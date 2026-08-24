@@ -26,7 +26,9 @@ Customers owns profiles, contacts, and customer attachments. Tickets owns ticket
 
 ### Vertical slice + CQRS + DDD
 
-.NET and NestJS features are organized as command/query slices (`Features/CreateTicket/...`), not a layered Application/Domain/Infrastructure cake. Aggregates and value objects live in the owning service `Domain/`. In-process CQRS (MediatR / `@nestjs/cqrs`) is required for new write/read use cases. Integration events are contracts; do not add a message broker unless the spec names it.
+.NET features use `Features/{Area}/{UseCase}/` with `Endpoint` / `Command|Query` / `Handler` (see `.cursor/rules/dotnet-vertical-slice.mdc`).  
+NestJS services use `features/{area}/{use-case}/` with `route.ts` / `schema.ts` / `handler.ts` (+ optional `service.ts`), plus `domain/`, `infrastructure/`, `shared/`, and `app/` + `server.ts` (see `.cursor/rules/nestjs-service-structure.mdc`).  
+In-process CQRS (MediatR / `@nestjs/cqrs`) is required for new write/read use cases. Integration events are contracts; do not add a message broker unless the spec names it. Aggregates and value objects live in the owning service `domain/` (or .NET `Domain/`).
 
 ### Keep local persistence boring
 
@@ -57,4 +59,4 @@ Stage only files for the slice. Never commit `.tmp-build/`, `*.db`, `bin/`, `obj
 - Specs are the review surface: if it is not in `spec.md`, it is not required.
 - After implement, mark tasks done and set spec status to Implemented.
 
-**Version**: 1.2.0 | **Ratified**: 2026-08-24 | **Last Amended**: 2026-08-24 — frontend core/shared/layout/features layout
+**Version**: 1.3.0 | **Ratified**: 2026-08-24 | **Last Amended**: 2026-08-24 — Nest features/domain/infrastructure layout

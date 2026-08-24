@@ -1,0 +1,66 @@
+---
+description: NestJS / Node service layout — features, domain, infrastructure, shared
+globs: src/services/{channels,notifications,ai,knowledge,sla}/**/*.{ts,js}
+alwaysApply: false
+---
+
+# Node.js (Nest) service structure
+
+Use this layout for Channels, Notifications, and other Nest services:
+
+```
+src/
+├── server.ts                 # bootstrap listen()
+├── app/
+│   ├── app.module.ts         # composition root (Nest module)
+│   ├── config.ts             # env / ports / downstream URLs
+│   └── middleware/           # Nest middleware / filters (optional)
+│
+├── features/
+│   └── {area}/
+│       ├── {area}.types.ts   # or {area}.domain.ts for area DTOs/commands
+│       └── {use-case}/
+│           ├── route.ts      # HTTP controller (Nest @Controller)
+│           ├── schema.ts     # input validation / DTO
+│           ├── handler.ts    # CQRS command/query handler
+│           └── service.ts    # optional orchestration (call infra/domain)
+│
+├── domain/
+│   ├── {bounded-context}/
+│   └── shared/
+│
+├── infrastructure/
+│   ├── database/             # JSON/SQLite/Prisma when the spec requires it
+│   ├── http/                 # outbound clients to other CRM services
+│   ├── cache/                # only when the spec names a cache
+│   ├── messaging/            # only when the spec names a broker
+│   ├── email/
+│   └── storage/
+│
+└── shared/
+    ├── errors/
+    ├── result/
+    ├── logger/
+    ├── utils/
+    └── types/
+```
+
+## Nest naming map
+
+| File | Nest role |
+|---|---|
+| `route.ts` | `@Controller` — maps HTTP; no business rules |
+| `schema.ts` | request DTO + validation helpers |
+| `handler.ts` | `@CommandHandler` / `@QueryHandler` |
+| `service.ts` | injectable use-case helper when handler would be too thick |
+
+## Rules
+
+1. **Composition only** in `app/` + `server.ts` — no feature HTTP handlers there.
+2. One use-case folder = one HTTP surface (or a tightly related pair).
+3. Domain types stay in `domain/`; feature `*.types.ts` holds transport/use-case DTOs.
+4. Persistence and outbound HTTP live under `infrastructure/`, not inside `features/`.
+5. Keep CQRS (`@nestjs/cqrs`) for writes/reads.
+6. **Do not** add Redis, RabbitMQ, Prisma, or S3 unless the active spec names them — folders may exist as empty placeholders only when useful.
+7. JSON/SQLite local persistence remains the default for demos.
+8. Cite `CRM-nnn` in new feature file headers.

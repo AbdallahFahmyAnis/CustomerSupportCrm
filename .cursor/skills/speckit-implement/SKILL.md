@@ -11,7 +11,7 @@ description: Implement the active CRM spec in dependency order. Use when the use
 2. Follow `plan.md` / `tasks.md` if present; otherwise implement P1 stories only.
 3. Match existing patterns:
    - .NET: nested vertical slices `Features/{Area}/{UseCase}/` with `Endpoint.cs` + `Command|Query.cs` + `Handler.cs` (+ optional Validator/Response); thin `Program.cs` + `DependencyInjection.cs`; MediatR
-   - NestJS: CQRS feature folders under `src/features/...`
+   - NestJS: `features/{area}/{use-case}/` with `route.ts` + `schema.ts` + `handler.ts` (+ optional `service.ts`); `domain/`, `infrastructure/`, `shared/`; `app/` + `server.ts`
    - Angular: `core/` + `shared/` + `layout/` + `features/{feature}/{use-case}/` with `{name}.page.ts` + `{name}.html` + `{name}.scss`; feature root `{feature}.api.ts` / `.models.ts` / `.store.ts` / `.routes.ts`; Native Federation; call `/api/...` on the gateway only
 4. Check off tasks as you go. Restart the touched service. Verify success criteria at `http://localhost:5000`.
 5. Set spec Status to `Implemented`. Update `specs/000-product/spec.md` shipped list if this was a product slice.

@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
   validateWebFormInput,
-} = require('../src/features/intake/submit-web-form/validate-web-form');
+} = require('../src/features/intake/submit-web-form/schema');
 
 /** SDD CRM-012 / CRM-027 — intake validation. */
 test('rejects missing fields', () => {
