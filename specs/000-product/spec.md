@@ -21,12 +21,13 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/002-customer-profiles` — CRM-001…003 profiles, contacts, notes/attachments
 - [x] `specs/003-ticket-lifecycle` — CRM-004…007 tickets (Feature-Based + Signals FE)
 - [x] `specs/004-identity-admin` — CRM-035 users, roles, permissions
+- [x] `specs/005-channels-portal` — CRM-012 / CRM-027 / CRM-028 web form + portal submit/track
 
 ## Next
 
-1. `specs/005-channels-portal` — CRM-012 / CRM-027 / CRM-028 web form + portal submit/track *(in progress)*
-2. CRM-008 email channel / CRM-040 providers
-3. CRM-036 audit logs / CRM-037 system config
+1. CRM-008 email channel / CRM-040 providers
+2. CRM-036 audit logs / CRM-037 system config
+3. CRM-009…011 other channels as needed
 
 ## Constraints
 
