@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CustomerOption, TicketDetail, TicketOptions, TicketSummary } from './tickets.models';
+import { CustomerOption, ChannelMessageDto, TicketDetail, TicketOptions, TicketSummary } from './tickets.models';
 
 /** SDD CRM-004 — tickets command/query API via gateway. */
 @Injectable({ providedIn: 'root' })
@@ -22,6 +22,10 @@ export class TicketsApi {
 
   get(id: string): Observable<TicketDetail> {
     return this.http.get<TicketDetail>(`/api/tickets/${id}`);
+  }
+
+  listChannelMessages(ticketId: string): Observable<ChannelMessageDto[]> {
+    return this.http.get<ChannelMessageDto[]>(`/api/channels/tickets/${ticketId}/messages`);
   }
 
   create(body: {

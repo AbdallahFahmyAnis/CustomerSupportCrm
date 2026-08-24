@@ -1,14 +1,15 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { TicketDetail, TicketOptions, TicketSummary } from './tickets.models';
+import { ChannelMessageDto, TicketDetail, TicketOptions, TicketSummary } from './tickets.models';
 import { TicketsApi } from './tickets.api';
 
-/** SDD CRM-004…007 — feature store (Feature-Based + Signals). */
+/** SDD CRM-004…007 / CRM-008 — feature store (Feature-Based + Signals). */
 @Injectable({ providedIn: 'root' })
 export class TicketsStore {
   private readonly api = inject(TicketsApi);
 
   readonly tickets = signal<TicketSummary[]>([]);
   readonly selected = signal<TicketDetail | null>(null);
+  readonly channelMessages = signal<ChannelMessageDto[]>([]);
   readonly options = signal<TicketOptions | null>(null);
   readonly loading = signal(false);
   readonly error = signal('');
@@ -45,15 +46,24 @@ export class TicketsStore {
   loadDetail(id: string): void {
     this.loading.set(true);
     this.error.set('');
+    this.channelMessages.set([]);
     this.api.get(id).subscribe({
       next: (ticket) => {
         this.selected.set(ticket);
         this.loading.set(false);
+        this.loadChannelMessages(id);
       },
       error: () => {
         this.error.set('Ticket not found.');
         this.loading.set(false);
       },
+    });
+  }
+
+  loadChannelMessages(ticketId: string): void {
+    this.api.listChannelMessages(ticketId).subscribe({
+      next: (rows) => this.channelMessages.set(rows ?? []),
+      error: () => this.channelMessages.set([]),
     });
   }
 
@@ -77,7 +87,10 @@ export class TicketsStore {
 
   refreshDetail(id: string): void {
     this.api.get(id).subscribe({
-      next: (ticket) => this.selected.set(ticket),
+      next: (ticket) => {
+        this.selected.set(ticket);
+        this.loadChannelMessages(id);
+      },
       error: (err) => this.error.set(err?.error?.error ?? 'Refresh failed.'),
     });
   }
