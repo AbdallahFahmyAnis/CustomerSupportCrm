@@ -1,0 +1,48 @@
+<section class="submit">
+  <p class="back"><a routerLink="/portal">← Portal home</a></p>
+  <h1>Submit a request</h1>
+  <p class="hint">We create a support ticket from this web form.</p>
+
+  @if (store.lastResult(); as result) {
+    <div class="success" role="status">
+      <p>Thanks — your request was received.</p>
+      <p>
+        Ticket number: <strong>{{ result.ticketNumber }}</strong>
+      </p>
+      <a routerLink="/portal/track">Track requests</a>
+    </div>
+  } @else {
+    <form (ngSubmit)="onSubmit()">
+      <label>
+        Name
+        <input name="name" [(ngModel)]="name" required autocomplete="name" />
+      </label>
+      <label>
+        Email
+        <input
+          name="email"
+          type="email"
+          [(ngModel)]="email"
+          required
+          autocomplete="email"
+        />
+      </label>
+      <label>
+        Subject
+        <input name="subject" [(ngModel)]="subject" required />
+      </label>
+      <label>
+        Message
+        <textarea name="message" [(ngModel)]="message" rows="5" required></textarea>
+      </label>
+
+      @if (store.submitError(); as err) {
+        <p class="error" role="alert">{{ err }}</p>
+      }
+
+      <button type="submit" [disabled]="store.submitting()">
+        {{ store.submitting() ? 'Sending…' : 'Submit request' }}
+      </button>
+    </form>
+  }
+</section>

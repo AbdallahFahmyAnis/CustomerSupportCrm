@@ -1,4 +1,4 @@
 import { Routes } from '@angular/router';
-import { PortalHomeComponent } from './portal-home.component';
+import { REQUESTS_ROUTES } from './features/requests/requests.routes';
 
-export const PORTAL_ROUTES: Routes = [{ path: '', component: PortalHomeComponent }];
+export const PORTAL_ROUTES: Routes = [...REQUESTS_ROUTES];
