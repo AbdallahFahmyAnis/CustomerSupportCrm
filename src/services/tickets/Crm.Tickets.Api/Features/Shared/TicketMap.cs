@@ -1,0 +1,54 @@
+using Crm.Contracts.Tickets;
+using Crm.Tickets.Api.Domain;
+
+namespace Crm.Tickets.Api.Features.Shared;
+
+internal static class TicketMap
+{
+    public static TicketSummaryDto Summary(Ticket t) => new(
+        t.Id.ToString(),
+        t.TicketNumber,
+        t.CustomerId.ToString(),
+        t.CustomerName,
+        t.Subject,
+        t.Category,
+        t.Priority,
+        t.Status,
+        t.AssignedAgentId,
+        t.AssignedAgentName,
+        t.IsEscalated);
+
+    public static TicketDetailDto Detail(Ticket t) => new(
+        t.Id.ToString(),
+        t.TicketNumber,
+        t.CustomerId.ToString(),
+        t.CustomerName,
+        t.Subject,
+        t.Description,
+        t.Category,
+        t.Priority,
+        t.Status,
+        t.AssignedAgentId,
+        t.AssignedAgentName,
+        t.IsEscalated,
+        t.CreatedAt,
+        t.UpdatedAt,
+        t.History
+            .OrderByDescending(h => h.ChangedAt)
+            .Select(h => new TicketHistoryDto(
+                h.Id.ToString(),
+                h.Field,
+                h.OldValue,
+                h.NewValue,
+                h.ChangedBy,
+                h.ChangedAt))
+            .ToList());
+}
+
+internal static class TicketHttp
+{
+    public static string Actor(HttpContext http) =>
+        http.Request.Headers["X-Crm-User-Email"].FirstOrDefault()
+        ?? http.Request.Headers["X-Crm-User-Id"].FirstOrDefault()
+        ?? "Demo Agent";
+}
