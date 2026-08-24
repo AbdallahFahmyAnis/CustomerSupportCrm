@@ -79,6 +79,8 @@ features/tickets/
 
 Pages load/query through the store; mutations go through command APIs and then refresh signal state. Do not add NgRx for new features.
 
+UI components use separate files: `component.ts` + `component.html` + `component.scss` (`templateUrl` / `styleUrls`).
+
 ## Service catalog
 
 | Service | Runtime | Port | Owns | First stories |

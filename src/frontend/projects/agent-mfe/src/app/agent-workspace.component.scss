@@ -1,0 +1,20 @@
+.workspace {
+  padding: 1.5rem;
+  max-width: 40rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.btn {
+  display: inline-block;
+  background: #2563eb;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.9rem;
+}

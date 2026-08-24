@@ -1,0 +1,54 @@
+<section class="page">
+  <header class="row">
+    <div>
+      <h1>Tickets</h1>
+      <p>{{ store.urgentCount() }} high/urgent in view</p>
+    </div>
+    <a routerLink="/agent/tickets/new" class="btn">Create ticket</a>
+  </header>
+
+  <form class="row" (ngSubmit)="search()">
+    <input name="q" [(ngModel)]="q" placeholder="Search id, customer, subject" />
+    <label class="check">
+      <input type="checkbox" name="mine" [(ngModel)]="mine" (change)="search()" />
+      Assigned to me
+    </label>
+    <button type="submit" class="btn secondary">Search</button>
+  </form>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Subject</th>
+        <th>Customer</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Assignee</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (t of store.tickets(); track t.id) {
+        <tr [class.hot-row]="t.priority === 'High' || t.priority === 'Urgent'">
+          <td><a [routerLink]="['/agent/tickets', t.id]">{{ t.ticketNumber }}</a></td>
+          <td>{{ t.subject }}</td>
+          <td>
+            <a [routerLink]="['/agent/customers', t.customerId]">{{ t.customerName }}</a>
+          </td>
+          <td>
+            <app-ticket-priority-badge
+              [priority]="t.priority"
+              [hot]="t.priority === 'High' || t.priority === 'Urgent'"
+            />
+          </td>
+          <td>{{ t.status }}@if (t.isEscalated) { · escalated }</td>
+          <td>{{ t.assignedAgentName || 'Unassigned' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

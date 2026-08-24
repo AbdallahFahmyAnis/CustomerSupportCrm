@@ -44,6 +44,7 @@ Stage only files for the slice. Never commit `.tmp-build/`, `*.db`, `bin/`, `obj
   - Organize by feature under `features/{name}/` with `data-access/`, `pages/`, and `ui/` (presentational).
   - Feature state uses Angular **signals** / a small feature store (`signal`, `computed`, `update`) — not NgRx for new work.
   - Pages (smart containers) call the feature store/API; `ui/` components are presentational (`input` / `output` only).
+  - Components use separate `*.ts` + `*.html` + `*.scss` (`templateUrl` / `styleUrls`) — no inline `template` / `styles` for UI components.
 - Arabic (RTL) and English (LTR) shell chrome must keep working.
 - Do not introduce RabbitMQ, Mongo, or extra containers unless the spec names them.
 
@@ -53,4 +54,4 @@ Stage only files for the slice. Never commit `.tmp-build/`, `*.db`, `bin/`, `obj
 - Specs are the review surface: if it is not in `spec.md`, it is not required.
 - After implement, mark tasks done and set spec status to Implemented.
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-24 | **Last Amended**: 2026-08-24
+**Version**: 1.1.1 | **Ratified**: 2026-08-24 | **Last Amended**: 2026-08-24

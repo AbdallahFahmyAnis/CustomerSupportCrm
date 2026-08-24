@@ -1,0 +1,23 @@
+<section class="page">
+  <a [routerLink]="['/agent/customers', id]">← Back</a>
+  <h1>Edit customer</h1>
+  <form (ngSubmit)="save()">
+    <label>Name <input name="displayName" [(ngModel)]="displayName" required /></label>
+    <label>Unique identifier <input name="uniqueIdentifier" [(ngModel)]="uniqueIdentifier" required /></label>
+    <label>Organization <input name="organization" [(ngModel)]="organization" /></label>
+    <label
+      >Status
+      <select name="status" [(ngModel)]="status">
+        <option>Active</option>
+        <option>Inactive</option>
+      </select>
+    </label>
+    <button type="submit" class="btn">Save</button>
+  </form>
+  @if (warning()) {
+    <p class="warn">{{ warning()!.message }}</p>
+  }
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+</section>
