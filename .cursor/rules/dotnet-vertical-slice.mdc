@@ -1,0 +1,45 @@
+---
+description: Vertical Slice Architecture for .NET CRM services — Features/{Area}/{UseCase} with Endpoint/Command/Handler
+globs: src/services/**/*.cs
+alwaysApply: false
+---
+
+# .NET service Vertical Slice layout
+
+Use this shape for Identity, Customers, Tickets, and new .NET APIs.
+
+## Target layout
+
+```
+src/services/{name}/
+├── Crm.{Name}.Api/
+│   ├── Program.cs              # composition only
+│   ├── DependencyInjection.cs  # services + MapEndpoints
+│   ├── Features/
+│   │   └── {Area}/
+│   │       └── {UseCase}/
+│   │           ├── Endpoint.cs
+│   │           ├── Command.cs | Query.cs
+│   │           ├── Handler.cs
+│   │           ├── Validator.cs   # when input needs checks
+│   │           └── Response.cs    # when not using shared contracts DTO
+│   ├── Domain/                 # or Crm.{Name}.Domain project
+│   └── Infrastructure/         # or Crm.{Name}.Infrastructure project
+```
+
+When a service grows, split `Domain/` and `Infrastructure/` into sibling projects referenced by the Api host.
+
+## Rules
+
+1. **Program.cs** — create builder, call `Add{Name}Api()`, build app, call `Use{Name}Api()` / `MapEndpoints()`, `Run()`. No route lambdas in Program.
+2. **Each use case** owns its HTTP mapping in `Endpoint.cs` (`IEndpoint.MapEndpoint`).
+3. **Do not** put multiple unrelated endpoints in one file; one use case folder = one HTTP surface (or a tightly related pair).
+4. Keep MediatR `Command`/`Query` + `Handler` in the same use-case folder.
+5. Prefer shared DTOs in `contracts/csharp/Crm.Contracts`; put slice-local result types in `Response.cs`.
+6. Nest under an **Area** (`Users`, `Auth`, `Tickets`, …) then the use case (`CreateUser`, `IssueToken`, …).
+
+## Anti-patterns
+
+- Fat `Program.cs` with all `MapGet`/`MapPost` handlers
+- Flat `Features/CreateUser/CreateUserCommand.cs` mixing command + handler + endpoint
+- Cross-slice static helpers on Handlers — put shared issuance/persistence in Infrastructure
