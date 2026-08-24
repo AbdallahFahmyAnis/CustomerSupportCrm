@@ -18,12 +18,13 @@ Give support agents a single place to know the customer, work tickets, and reply
 ## Shipped
 
 - [x] `specs/001-platform-foundation` — gateway, bilingual shell, health, VSA example
+- [x] `specs/002-customer-profiles` — CRM-001…003 profiles, contacts, notes/attachments
 
 ## Next
 
-1. `002-customer-profiles` (CRM-001…003)
-2. `003-ticket-lifecycle` (CRM-004…007)
-3. `004-identity-admin` (CRM-035)
+1. `003-ticket-lifecycle` (CRM-004…007)
+2. `004-identity-admin` (CRM-035)
+3. Channels / portal
 
 ## Constraints
 

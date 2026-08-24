@@ -17,6 +17,7 @@ export const EN = {
   comingSoon: 'Coming soon',
   bootstrap: 'Customers bootstrap',
   signedInAs: 'Signed in as',
+  customers: 'Customers',
 } as const;
 
 export const AR = {
@@ -36,6 +37,7 @@ export const AR = {
   comingSoon: 'قريبًا',
   bootstrap: 'حالة خدمة العملاء',
   signedInAs: 'مسجل الدخول باسم',
+  customers: 'العملاء',
 } as const;
 
 export type MessageKey = keyof typeof EN;

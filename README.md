@@ -19,8 +19,9 @@ Open [http://localhost:5000](http://localhost:5000).
 - User: `agent@crm.local`
 - Password: `Crm!123`
 
-## First slice
+## First slices
 
-`specs/001-platform-foundation` — gateway, bilingual shell, agent remote, health, Customers `GetBootstrapStatus` query.
+- `specs/001-platform-foundation` — gateway, bilingual shell, health
+- `specs/002-customer-profiles` — CRM-001…003 at `/agent/customers`
 
-Next: `002-customer-profiles` (CRM-001…003).
+Next: `003-ticket-lifecycle` (CRM-004…007).
