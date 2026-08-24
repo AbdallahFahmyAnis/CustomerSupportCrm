@@ -6,7 +6,7 @@ import { ChannelsStore } from '../../../infrastructure/database/channels.store';
 export class ListTicketMessagesService {
   constructor(private readonly store: ChannelsStore) {}
 
-  list(ticketId: string) {
+  async list(ticketId: string) {
     return this.store.listMessagesForTicket(ticketId);
   }
 }

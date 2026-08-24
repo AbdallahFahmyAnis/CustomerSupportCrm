@@ -4,25 +4,26 @@ using MediatR;
 
 namespace Crm.Identity.Api.Features.Users.DeactivateUser;
 
-public sealed class DeactivateUserHandler(IdentityDb db) : IRequestHandler<DeactivateUserCommand, DeactivateUserResponse>
+public sealed class DeactivateUserHandler(IdentityDirectory directory)
+    : IRequestHandler<DeactivateUserCommand, DeactivateUserResponse>
 {
-    public Task<DeactivateUserResponse> Handle(DeactivateUserCommand request, CancellationToken cancellationToken)
+    public async Task<DeactivateUserResponse> Handle(DeactivateUserCommand request, CancellationToken cancellationToken)
     {
-        var user = db.GetUser(request.UserId);
+        var user = await directory.GetUserAsync(request.UserId, cancellationToken);
         if (user is null)
         {
-            return Task.FromResult(new DeactivateUserResponse(null, "User not found."));
+            return new DeactivateUserResponse(null, "User not found.");
         }
 
         if (request.ActorId.HasValue && request.ActorId.Value == user.Id)
         {
-            return Task.FromResult(new DeactivateUserResponse(null, "You cannot deactivate your own account."));
+            return new DeactivateUserResponse(null, "You cannot deactivate your own account.");
         }
 
         user.Deactivate();
-        db.Update(user);
-        return Task.FromResult(new DeactivateUserResponse(
+        await directory.UpdateAsync(user, cancellationToken);
+        return new DeactivateUserResponse(
             new UserSummaryDto(user.Id.ToString(), user.Email, user.DisplayName, user.Role, user.IsActive),
-            null));
+            null);
     }
 }

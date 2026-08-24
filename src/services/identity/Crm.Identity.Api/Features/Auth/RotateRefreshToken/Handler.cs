@@ -4,40 +4,41 @@ using MediatR;
 
 namespace Crm.Identity.Api.Features.Auth.RotateRefreshToken;
 
-public sealed class RotateRefreshTokenHandler(IdentityDb db, TokenService tokens)
+public sealed class RotateRefreshTokenHandler(IdentityDirectory directory)
     : IRequestHandler<RotateRefreshTokenCommand, IssueTokenResponse>
 {
-    public Task<IssueTokenResponse> Handle(RotateRefreshTokenCommand request, CancellationToken cancellationToken)
+    public async Task<IssueTokenResponse> Handle(RotateRefreshTokenCommand request, CancellationToken cancellationToken)
     {
         var validation = RotateRefreshTokenValidator.Validate(request);
         if (validation is not null)
         {
-            return Task.FromResult(new IssueTokenResponse(null, validation, false));
+            return new IssueTokenResponse(null, validation, false);
         }
 
         var now = DateTimeOffset.UtcNow;
         var hash = TokenService.HashToken(request.RefreshToken);
-        var existing = db.FindRefreshTokenByHash(hash);
+        var existing = await directory.FindRefreshTokenByHashAsync(hash, cancellationToken);
         if (existing is null || !existing.IsActive(now))
         {
             if (existing is not null)
             {
-                db.RevokeAllRefreshTokensForUser(existing.UserId, now);
+                await directory.RevokeAllRefreshTokensForUserAsync(existing.UserId, now, cancellationToken);
             }
 
-            return Task.FromResult(new IssueTokenResponse(null, "Invalid or revoked refresh token.", false));
+            return new IssueTokenResponse(null, "Invalid or revoked refresh token.", false);
         }
 
-        var user = db.GetUser(existing.UserId);
+        var user = await directory.GetUserAsync(existing.UserId, cancellationToken);
         if (user is null || !user.IsActive || user.IsLockedOut(now))
         {
-            db.RevokeRefreshToken(existing.Id, now);
-            return Task.FromResult(new IssueTokenResponse(null, "User cannot refresh token.", false));
+            await directory.RevokeRefreshTokenAsync(existing.Id, now, null, cancellationToken);
+            return new IssueTokenResponse(null, "User cannot refresh token.", false);
         }
 
-        var pair = TokenIssuer.IssuePair(db, tokens, user, now);
-        var replacement = db.FindRefreshTokenByHash(TokenService.HashToken(pair.RefreshToken));
-        db.RevokeRefreshToken(existing.Id, now, replacement?.Id);
-        return Task.FromResult(new IssueTokenResponse(pair, null, false));
+        var pair = await directory.IssuePairAsync(user, now, cancellationToken);
+        var replacement = await directory.FindRefreshTokenByHashAsync(
+            TokenService.HashToken(pair.RefreshToken), cancellationToken);
+        await directory.RevokeRefreshTokenAsync(existing.Id, now, replacement?.Id, cancellationToken);
+        return new IssueTokenResponse(pair, null, false);
     }
 }

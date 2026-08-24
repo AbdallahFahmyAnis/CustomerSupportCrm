@@ -12,7 +12,7 @@ export class ListPortalRequestsService {
   ) {}
 
   async listByEmail(email: string): Promise<PortalRequestDto[]> {
-    const rows = this.store.listRequestsByEmail(email);
+    const rows = await this.store.listRequestsByEmail(email);
     const result: PortalRequestDto[] = [];
     for (const row of rows) {
       const live = await this.downstream.getTicketStatus(row.ticketId);

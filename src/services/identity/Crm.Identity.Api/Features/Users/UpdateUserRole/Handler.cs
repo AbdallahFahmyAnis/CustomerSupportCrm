@@ -4,33 +4,34 @@ using MediatR;
 
 namespace Crm.Identity.Api.Features.Users.UpdateUserRole;
 
-public sealed class UpdateUserRoleHandler(IdentityDb db) : IRequestHandler<UpdateUserRoleCommand, UpdateUserRoleResponse>
+public sealed class UpdateUserRoleHandler(IdentityDirectory directory)
+    : IRequestHandler<UpdateUserRoleCommand, UpdateUserRoleResponse>
 {
-    public Task<UpdateUserRoleResponse> Handle(UpdateUserRoleCommand request, CancellationToken cancellationToken)
+    public async Task<UpdateUserRoleResponse> Handle(UpdateUserRoleCommand request, CancellationToken cancellationToken)
     {
         var validation = UpdateUserRoleValidator.Validate(request);
         if (validation is not null)
         {
-            return Task.FromResult(new UpdateUserRoleResponse(null, validation));
+            return new UpdateUserRoleResponse(null, validation);
         }
 
         try
         {
-            var user = db.GetUser(request.UserId);
+            var user = await directory.GetUserAsync(request.UserId, cancellationToken);
             if (user is null)
             {
-                return Task.FromResult(new UpdateUserRoleResponse(null, "User not found."));
+                return new UpdateUserRoleResponse(null, "User not found.");
             }
 
             user.AssignRole(request.Role);
-            db.Update(user);
-            return Task.FromResult(new UpdateUserRoleResponse(
+            await directory.UpdateAsync(user, cancellationToken);
+            return new UpdateUserRoleResponse(
                 new UserSummaryDto(user.Id.ToString(), user.Email, user.DisplayName, user.Role, user.IsActive),
-                null));
+                null);
         }
         catch (Exception ex)
         {
-            return Task.FromResult(new UpdateUserRoleResponse(null, ex.Message));
+            return new UpdateUserRoleResponse(null, ex.Message);
         }
     }
 }

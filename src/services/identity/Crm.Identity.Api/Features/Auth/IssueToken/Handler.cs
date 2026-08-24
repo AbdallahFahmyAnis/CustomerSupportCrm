@@ -1,52 +1,53 @@
+using Crm.Identity.Api.Features.Auth.IssueToken;
 using Crm.Identity.Api.Infrastructure;
 using MediatR;
 
 namespace Crm.Identity.Api.Features.Auth.IssueToken;
 
-public sealed class IssueTokenHandler(IdentityDb db, TokenService tokens)
+public sealed class IssueTokenHandler(IdentityDirectory directory)
     : IRequestHandler<IssueTokenCommand, IssueTokenResponse>
 {
-    public Task<IssueTokenResponse> Handle(IssueTokenCommand request, CancellationToken cancellationToken)
+    public async Task<IssueTokenResponse> Handle(IssueTokenCommand request, CancellationToken cancellationToken)
     {
         var validation = IssueTokenValidator.Validate(request);
         if (validation is not null)
         {
-            return Task.FromResult(new IssueTokenResponse(null, validation, false));
+            return new IssueTokenResponse(null, validation, false);
         }
 
         var now = DateTimeOffset.UtcNow;
-        var user = db.FindByEmail(request.Email);
+        var user = await directory.FindByEmailAsync(request.Email, cancellationToken);
         if (user is null)
         {
-            return Task.FromResult(new IssueTokenResponse(null, "Invalid credentials.", false));
+            return new IssueTokenResponse(null, "Invalid credentials.", false);
         }
 
         if (!user.IsActive)
         {
-            return Task.FromResult(new IssueTokenResponse(null, "Account is inactive.", false));
+            return new IssueTokenResponse(null, "Account is inactive.", false);
         }
 
         if (user.IsLockedOut(now))
         {
-            return Task.FromResult(new IssueTokenResponse(
+            return new IssueTokenResponse(
                 null,
                 $"Account locked until {user.LockoutUntil:u}.",
-                true));
+                true);
         }
 
-        if (!user.VerifyPassword(request.Password))
+        if (!await directory.CheckPasswordAsync(user, request.Password))
         {
-            user.RegisterFailedLogin(now);
-            db.Update(user);
-            var locked = user.IsLockedOut(now);
-            return Task.FromResult(new IssueTokenResponse(
+            await directory.RegisterFailedLoginAsync(user, now, cancellationToken);
+            var refreshed = await directory.GetUserAsync(user.Id, cancellationToken);
+            var locked = refreshed is not null && await directory.IsLockedOutAsync(user.Id, cancellationToken);
+            return new IssueTokenResponse(
                 null,
-                locked ? $"Account locked until {user.LockoutUntil:u}." : "Invalid credentials.",
-                locked));
+                locked ? $"Account locked until {refreshed!.LockoutUntil:u}." : "Invalid credentials.",
+                locked);
         }
 
-        user.RegisterSuccessfulLogin();
-        db.Update(user);
-        return Task.FromResult(new IssueTokenResponse(TokenIssuer.IssuePair(db, tokens, user, now), null, false));
+        await directory.RegisterSuccessfulLoginAsync(user, cancellationToken);
+        var pair = await directory.IssuePairAsync(user, now, cancellationToken);
+        return new IssueTokenResponse(pair, null, false);
     }
 }

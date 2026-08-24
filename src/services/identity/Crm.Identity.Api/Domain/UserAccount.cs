@@ -106,6 +106,8 @@ public sealed class UserAccount
         return Convert.ToHexString(bytes);
     }
 
+    public static void EnsureRolePublic(string role) => EnsureRole(role);
+
     private static void EnsureRole(string role)
     {
         if (string.IsNullOrWhiteSpace(role) ||
