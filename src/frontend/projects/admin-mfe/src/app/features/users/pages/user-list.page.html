@@ -1,0 +1,48 @@
+<section class="page">
+  <header class="row">
+    <h1>Users</h1>
+    <a routerLink="/admin/users/new" class="btn">Create user</a>
+  </header>
+
+  <form class="row" (ngSubmit)="search()">
+    <input name="q" [(ngModel)]="q" placeholder="Search email, name, role" />
+    <button type="submit" class="btn secondary">Search</button>
+  </form>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (u of store.users(); track u.id) {
+        <tr>
+          <td>{{ u.displayName }}</td>
+          <td>{{ u.email }}</td>
+          <td>
+            <select [ngModel]="u.role" (ngModelChange)="onRoleChange(u.id, $event)" [name]="'role-' + u.id">
+              @for (r of store.roles(); track r.name) {
+                <option [value]="r.name">{{ r.name }}</option>
+              }
+            </select>
+          </td>
+          <td>{{ u.isActive ? 'Active' : 'Inactive' }}</td>
+          <td>
+            @if (u.isActive) {
+              <button type="button" class="link" (click)="deactivate(u.id)">Deactivate</button>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

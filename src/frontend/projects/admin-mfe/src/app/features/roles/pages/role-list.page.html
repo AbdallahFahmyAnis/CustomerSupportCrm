@@ -1,0 +1,21 @@
+<section class="page">
+  <h1>Roles &amp; permissions</h1>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+
+  <div class="grid">
+    @for (r of store.roles(); track r.name) {
+      <article>
+        <h2>{{ r.name }}</h2>
+        <p>{{ r.description }}</p>
+        <ul>
+          @for (p of r.permissions; track p) {
+            <li><span class="chip">{{ p }}</span></li>
+          }
+        </ul>
+      </article>
+    }
+  </div>
+</section>

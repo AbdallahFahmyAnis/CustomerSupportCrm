@@ -11,7 +11,7 @@ export const EN = {
   email: 'Email',
   password: 'Password',
   languageToggle: 'العربية',
-  homeLead: 'Open the agent workspace through the gateway. Demo user: agent@crm.local / Crm!123',
+  homeLead: 'Open via gateway. Demo: agent@crm.local or admin@crm.local / Crm!123',
   workspaceReady: 'Agent workspace is ready',
   workspaceHint: 'Customers and tickets land here in later SDD slices.',
   comingSoon: 'Coming soon',
@@ -19,6 +19,7 @@ export const EN = {
   signedInAs: 'Signed in as',
   customers: 'Customers',
   tickets: 'Tickets',
+  users: 'Users',
 } as const;
 
 export const AR = {
@@ -32,7 +33,7 @@ export const AR = {
   email: 'البريد الإلكتروني',
   password: 'كلمة المرور',
   languageToggle: 'English',
-  homeLead: 'افتح مساحة الوكيل عبر البوابة. مستخدم التجربة: agent@crm.local / Crm!123',
+  homeLead: 'افتح عبر البوابة. تجربة: agent@crm.local أو admin@crm.local / Crm!123',
   workspaceReady: 'مساحة عمل الوكيل جاهزة',
   workspaceHint: 'العملاء والتذاكر تصل إلى هنا في الشرائح التالية.',
   comingSoon: 'قريبًا',
@@ -40,6 +41,7 @@ export const AR = {
   signedInAs: 'مسجل الدخول باسم',
   customers: 'العملاء',
   tickets: 'التذاكر',
+  users: 'المستخدمون',
 } as const;
 
 export type MessageKey = keyof typeof EN;

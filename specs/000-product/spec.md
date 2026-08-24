@@ -20,11 +20,12 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/001-platform-foundation` — gateway, bilingual shell, health, VSA example
 - [x] `specs/002-customer-profiles` — CRM-001…003 profiles, contacts, notes/attachments
 - [x] `specs/003-ticket-lifecycle` — CRM-004…007 tickets (Feature-Based + Signals FE)
+- [x] `specs/004-identity-admin` — CRM-035 users, roles, permissions
 
 ## Next
 
-1. `004-identity-admin` (CRM-035)
-2. Channels / portal
+1. Channels / portal
+2. CRM-036 audit logs / CRM-037 system config
 
 ## Constraints
 
@@ -32,4 +33,4 @@ Give support agents a single place to know the customer, work tickets, and reply
 - Gateway-only public edge (`http://localhost:5000`)
 - .NET vertical slice + CQRS + DDD; NestJS for channels / AI / realtime
 - Angular Native Federation; MFEs never call downstream ports
-- Demo user: `agent@crm.local` / `Crm!123`
+- Demo user: `agent@crm.local` / `Crm!123` (also `admin@crm.local` for admin)
