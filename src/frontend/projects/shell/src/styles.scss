@@ -1,0 +1,32 @@
+html, body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.home {
+  padding: 1.5rem;
+  max-width: 40rem;
+}
+
+.home form {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.home label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.home input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+}
+
+.error {
+  color: #b91c1c;
+}

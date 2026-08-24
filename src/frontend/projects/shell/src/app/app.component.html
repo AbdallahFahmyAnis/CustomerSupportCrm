@@ -1,0 +1,19 @@
+<header class="chrome">
+  <a routerLink="/" class="brand">{{ lang.t('product') }}</a>
+  <nav>
+    <a routerLink="/agent">{{ lang.t('agent') }}</a>
+    <a routerLink="/portal">{{ lang.t('portal') }}</a>
+    <a routerLink="/admin">{{ lang.t('admin') }}</a>
+    <a routerLink="/knowledge">{{ lang.t('knowledge') }}</a>
+  </nav>
+  <div class="actions">
+    @if (session.session(); as user) {
+      <span>{{ lang.t('signedInAs') }} {{ user.name }}</span>
+      <button type="button" (click)="signOut()">{{ lang.t('signOut') }}</button>
+    }
+    <button type="button" (click)="lang.toggle()">{{ lang.t('languageToggle') }}</button>
+  </div>
+</header>
+<main>
+  <router-outlet />
+</main>

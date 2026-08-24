@@ -1,0 +1,6 @@
+{
+  "agent-mfe": "/mfe/agent/remoteEntry.json",
+  "portal-mfe": "/mfe/portal/remoteEntry.json",
+  "admin-mfe": "/mfe/admin/remoteEntry.json",
+  "knowledge-mfe": "/mfe/knowledge/remoteEntry.json"
+}
