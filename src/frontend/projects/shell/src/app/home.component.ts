@@ -6,27 +6,8 @@ import { LanguageStore, SessionApi } from 'shared';
   selector: 'app-home',
   standalone: true,
   imports: [FormsModule],
-  template: `
-    <section class="home">
-      <p>{{ lang.t('homeLead') }}</p>
-      @if (!session.session()) {
-        <form (ngSubmit)="signIn()">
-          <label>
-            {{ lang.t('email') }}
-            <input name="email" [(ngModel)]="email" autocomplete="username" />
-          </label>
-          <label>
-            {{ lang.t('password') }}
-            <input name="password" type="password" [(ngModel)]="password" autocomplete="current-password" />
-          </label>
-          <button type="submit">{{ lang.t('signIn') }}</button>
-          @if (error) {
-            <p class="error">{{ error }}</p>
-          }
-        </form>
-      }
-    </section>
-  `,
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent {
   readonly lang = inject(LanguageStore);
