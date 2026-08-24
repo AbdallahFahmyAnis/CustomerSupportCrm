@@ -27,7 +27,8 @@ public sealed class Customer
         string displayName,
         string uniqueIdentifier,
         string? organization = null,
-        string? status = null)
+        string? status = null,
+        Guid? id = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
         ArgumentException.ThrowIfNullOrWhiteSpace(uniqueIdentifier);
@@ -35,7 +36,7 @@ public sealed class Customer
         var now = DateTimeOffset.UtcNow;
         return new Customer
         {
-            Id = Guid.NewGuid(),
+            Id = id ?? Guid.NewGuid(),
             DisplayName = displayName.Trim(),
             UniqueIdentifier = uniqueIdentifier.Trim(),
             Organization = string.IsNullOrWhiteSpace(organization) ? null : organization.Trim(),

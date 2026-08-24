@@ -67,6 +67,18 @@ Agents mutate through commands (POST/PUT/PATCH/DELETE) handled in a feature fold
 
 The shell loads remotes at runtime (Native Federation). Remotes are served through the gateway under `/mfe/{name}/`. Each MFE calls `/api/...` only.
 
+Frontend code inside each MFE is **feature-based + signals**:
+
+```
+features/tickets/
+  data-access/   tickets.api.ts, tickets.store.ts (signals)
+  pages/         list/create/detail smart containers
+  ui/            presentational components (inputs/outputs)
+  tickets.routes.ts
+```
+
+Pages load/query through the store; mutations go through command APIs and then refresh signal state. Do not add NgRx for new features.
+
 ## Service catalog
 
 | Service | Runtime | Port | Owns | First stories |

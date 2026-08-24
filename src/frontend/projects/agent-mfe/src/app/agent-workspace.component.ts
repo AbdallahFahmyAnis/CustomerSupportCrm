@@ -9,15 +9,18 @@ import { RouterLink } from '@angular/router';
   template: `
     <section class="workspace">
       <h1>Agent workspace</h1>
-      <p>Work customer records and (soon) tickets from here.</p>
-      <a routerLink="/agent/customers" class="btn">Open customers</a>
+      <p>Work customer records and tickets from here.</p>
+      <div class="actions">
+        <a routerLink="/agent/customers" class="btn">Open customers</a>
+        <a routerLink="/agent/tickets" class="btn">Open tickets</a>
+      </div>
     </section>
   `,
   styles: `
     .workspace { padding: 1.5rem; max-width: 40rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.75rem; }
     .btn {
       display: inline-block;
-      margin-top: 0.75rem;
       background: #2563eb;
       color: #fff;
       text-decoration: none;

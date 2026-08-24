@@ -85,13 +85,23 @@ public sealed class CustomersDb
                 }
             }
 
-            var acme = Customer.Register("Acme Industries", "CUST-1001", "Acme Corp", "Active");
+            var acme = Customer.Register(
+                "Acme Industries",
+                "CUST-1001",
+                "Acme Corp",
+                "Active",
+                Guid.Parse("0a50ed5a-1796-4555-bc08-5b28cf59a539"));
             acme.AddContact("email", "ops@acme.example", true);
             acme.AddContact("phone", "+1-555-0100", false);
             acme.AddNote("First call: asked about invoice #4421.", "Demo Agent");
             SaveNew(acme);
 
-            var beta = Customer.Register("Beta LLC", "CUST-1002", "Beta", "Active");
+            var beta = Customer.Register(
+                "Beta LLC",
+                "CUST-1002",
+                "Beta",
+                "Active",
+                Guid.Parse("72f13bfd-ef8f-45b0-b7e0-57b3d353a70b"));
             beta.AddContact("whatsapp", "+1-555-0199", true);
             beta.AddContact("address", "12 Harbor St", false);
             SaveNew(beta);

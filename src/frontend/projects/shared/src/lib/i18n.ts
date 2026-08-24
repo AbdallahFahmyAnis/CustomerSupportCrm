@@ -18,6 +18,7 @@ export const EN = {
   bootstrap: 'Customers bootstrap',
   signedInAs: 'Signed in as',
   customers: 'Customers',
+  tickets: 'Tickets',
 } as const;
 
 export const AR = {
@@ -38,6 +39,7 @@ export const AR = {
   bootstrap: 'حالة خدمة العملاء',
   signedInAs: 'مسجل الدخول باسم',
   customers: 'العملاء',
+  tickets: 'التذاكر',
 } as const;
 
 export type MessageKey = keyof typeof EN;
