@@ -90,6 +90,24 @@
       </form>
     </div>
 
+    <h2>Channel messages</h2>
+    @if (store.channelMessages().length === 0) {
+      <p class="muted">No channel messages yet.</p>
+    } @else {
+      <ul class="messages">
+        @for (m of store.channelMessages(); track m.id) {
+          <li>
+            <span class="badge">{{ m.channel }} · {{ m.direction }}</span>
+            @if (m.fromEmail) {
+              <span class="meta">from {{ m.fromEmail }}</span>
+            }
+            <p class="msg-body">{{ m.body }}</p>
+            <span class="meta">{{ m.createdAt | date: 'short' }}</span>
+          </li>
+        }
+      </ul>
+    }
+
     <h2>History</h2>
     <ul class="history">
       @for (h of t.history; track h.id) {

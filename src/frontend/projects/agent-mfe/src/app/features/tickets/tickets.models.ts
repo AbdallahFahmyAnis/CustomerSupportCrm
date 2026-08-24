@@ -41,3 +41,14 @@ export interface CustomerOption {
   displayName: string;
   uniqueIdentifier: string;
 }
+
+/** SDD CRM-008 — channel message on ticket thread. */
+export interface ChannelMessageDto {
+  id: string;
+  ticketId: string;
+  channel: string;
+  direction: string;
+  body: string;
+  fromEmail?: string;
+  createdAt: string;
+}
