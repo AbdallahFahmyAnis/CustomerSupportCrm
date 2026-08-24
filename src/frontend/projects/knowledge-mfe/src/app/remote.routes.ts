@@ -1,4 +1,4 @@
 import { Routes } from '@angular/router';
-import { KnowledgeHomeComponent } from './knowledge-home.component';
+import { KnowledgeHomePage } from './features/home/home/home.page';
 
-export const KNOWLEDGE_ROUTES: Routes = [{ path: '', component: KnowledgeHomeComponent }];
+export const KNOWLEDGE_ROUTES: Routes = [{ path: '', component: KnowledgeHomePage }];

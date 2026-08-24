@@ -3,6 +3,6 @@ import { Routes } from '@angular/router';
 export const ROLES_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () => import('./pages/role-list.page').then((m) => m.RoleListPage),
+    loadComponent: () => import('./role-list/role-list.page').then((m) => m.RoleListPage),
   },
 ];

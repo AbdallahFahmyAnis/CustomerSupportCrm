@@ -1,0 +1,53 @@
+---
+description: Angular app structure — core / shared / layout / features
+globs: src/frontend/**/*.{ts,html,scss}
+alwaysApply: false
+---
+
+# Frontend application structure
+
+Use this layout inside each Angular app (`shell`, `*-mfe`):
+
+```
+src/app/
+├── core/                 # App-wide infrastructure (singleton)
+│   ├── auth/
+│   ├── http/
+│   ├── services/
+│   ├── config/
+│   └── core.providers.ts
+├── shared/               # Reusable UI / utilities (no feature domain)
+│   ├── components/
+│   ├── directives/
+│   ├── pipes/
+│   ├── validators/
+│   └── shared.models.ts
+├── layout/               # Shell chrome (header / sidebar / footer)
+├── features/             # Business capabilities
+│   └── {feature}/
+│       ├── {use-case}/           # e.g. user-list/, create-user/
+│       │   ├── {use-case}.page.ts
+│       │   ├── {use-case}.html
+│       │   ├── {use-case}.scss
+│       │   └── {use-case}.store.ts   # optional page store
+│       ├── {feature}.api.ts
+│       ├── {feature}.models.ts
+│       ├── {feature}.store.ts        # optional feature store (signals)
+│       └── {feature}.routes.ts
+├── app.routes.ts
+├── app.config.ts
+└── app.component.ts
+```
+
+## Rules
+
+1. **Features own screens** — one folder per use case under `features/{feature}/`; no `data-access/` or `pages/` buckets.
+2. **API + models** live at the feature root (`users.api.ts`, `users.models.ts`).
+3. **Signals stores** — prefer feature-level `{feature}.store.ts` when shared across screens; page-level `{use-case}.store.ts` when local.
+4. **Pages** use separate `{name}.page.ts` + `{name}.html` + `{name}.scss` (no inline templates).
+5. **Presentational widgets** used by one feature stay under that feature (or `shared/components` if reused cross-feature).
+6. **`core/`** — auth, HTTP interceptors, app config providers only; do not put business screens here.
+7. **`layout/`** — application chrome; MFEs may omit layout when the shell already owns it.
+8. Remotes still expose `remote.routes.ts` (or `app.routes.ts`) that compose feature route arrays.
+9. Call gateway `/api/...` only — never downstream ports.
+10. Shared cross-MFE library remains `projects/shared` (LanguageStore, SessionApi, etc.); app `shared/` is local to that app.

@@ -1,0 +1,60 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.chrome {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.brand {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+nav a {
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a.active {
+  color: #fff;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+button {
+  border: 0;
+  border-radius: 0.375rem;
+  padding: 0.4rem 0.75rem;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .chrome {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

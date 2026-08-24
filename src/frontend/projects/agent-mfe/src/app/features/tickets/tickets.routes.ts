@@ -1,17 +1,17 @@
 import { Routes } from '@angular/router';
 
-/** Feature routes — Feature-Based + Signals (tickets). */
+/** SDD CRM-004…007 — tickets feature routes. */
 export const TICKETS_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () => import('./pages/ticket-list.page').then((m) => m.TicketListPage),
+    loadComponent: () => import('./ticket-list/ticket-list.page').then((m) => m.TicketListPage),
   },
   {
     path: 'new',
-    loadComponent: () => import('./pages/ticket-create.page').then((m) => m.TicketCreatePage),
+    loadComponent: () => import('./create-ticket/create-ticket.page').then((m) => m.TicketCreatePage),
   },
   {
     path: ':id',
-    loadComponent: () => import('./pages/ticket-detail.page').then((m) => m.TicketDetailPage),
+    loadComponent: () => import('./ticket-detail/ticket-detail.page').then((m) => m.TicketDetailPage),
   },
 ];
