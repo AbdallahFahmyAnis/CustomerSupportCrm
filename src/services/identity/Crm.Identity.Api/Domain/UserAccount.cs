@@ -3,15 +3,20 @@ using System.Text;
 
 namespace Crm.Identity.Api.Domain;
 
-/// <summary>SDD CRM-035 — user aggregate.</summary>
+/// <summary>SDD CRM-035 — user aggregate with lockout.</summary>
 public sealed class UserAccount
 {
+    public const int MaxFailedAttempts = 5;
+    public static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+
     public Guid Id { get; private set; }
     public string Email { get; private set; } = "";
     public string DisplayName { get; private set; } = "";
     public string PasswordHash { get; private set; } = "";
     public string Role { get; private set; } = RoleNames.Agent;
     public bool IsActive { get; private set; } = true;
+    public int FailedLoginCount { get; private set; }
+    public DateTimeOffset? LockoutUntil { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
 
     public static UserAccount Register(
@@ -34,6 +39,8 @@ public sealed class UserAccount
             PasswordHash = HashPassword(password),
             Role = role.Trim(),
             IsActive = true,
+            FailedLoginCount = 0,
+            LockoutUntil = null,
             CreatedAt = DateTimeOffset.UtcNow
         };
     }
@@ -45,6 +52,8 @@ public sealed class UserAccount
         string passwordHash,
         string role,
         bool isActive,
+        int failedLoginCount,
+        DateTimeOffset? lockoutUntil,
         DateTimeOffset createdAt)
         => new()
         {
@@ -54,11 +63,32 @@ public sealed class UserAccount
             PasswordHash = passwordHash,
             Role = role,
             IsActive = isActive,
+            FailedLoginCount = failedLoginCount,
+            LockoutUntil = lockoutUntil,
             CreatedAt = createdAt
         };
 
+    public bool IsLockedOut(DateTimeOffset utcNow)
+        => LockoutUntil is not null && LockoutUntil > utcNow;
+
     public bool VerifyPassword(string password)
         => IsActive && PasswordHash == HashPassword(password);
+
+    public void RegisterFailedLogin(DateTimeOffset utcNow)
+    {
+        FailedLoginCount++;
+        if (FailedLoginCount >= MaxFailedAttempts)
+        {
+            LockoutUntil = utcNow.Add(LockoutDuration);
+            FailedLoginCount = 0;
+        }
+    }
+
+    public void RegisterSuccessfulLogin()
+    {
+        FailedLoginCount = 0;
+        LockoutUntil = null;
+    }
 
     public void AssignRole(string role)
     {

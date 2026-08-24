@@ -6,7 +6,7 @@
 
 ## Summary
 
-Replace hardcoded Identity login with SQLite-backed users/roles/permissions (VSA + CQRS). Gateway login keeps calling `/api/identity/dev-login` but that command authenticates against the store. admin-mfe gets `features/users` and `features/roles` (Feature-Based + Signals, separate html/scss/ts).
+Replace hardcoded Identity login with SQLite-backed users/roles/permissions (VSA + CQRS). Identity issues JWT access + opaque refresh tokens with rotation, revoke (jti blacklist), and lockout after 5 failed logins. Gateway BFF stores tokens in httpOnly cookies (`crm.at` / `crm.rt`); browser only gets user profile. admin-mfe gets `features/users` and `features/roles` (Feature-Based + Signals, separate html/scss/ts).
 
 ## Technical Context
 

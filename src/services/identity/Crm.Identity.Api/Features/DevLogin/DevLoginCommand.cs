@@ -1,31 +1,17 @@
 using Crm.Contracts.Identity;
-using Crm.Identity.Api.Infrastructure;
+using Crm.Identity.Api.Features.IssueToken;
 using MediatR;
 
 namespace Crm.Identity.Api.Features.DevLogin;
 
-/// <summary>SDD CRM-035 — authenticate against Identity store (gateway BFF login).</summary>
-public sealed record DevLoginCommand(string Email, string Password) : IRequest<DevUserDto?>;
+/// <summary>SDD CRM-035 — backward-compatible login alias → token issuance.</summary>
+public sealed record DevLoginCommand(string Email, string Password) : IRequest<TokenResponseDto?>;
 
-public sealed class DevLoginHandler(IdentityDb db) : IRequestHandler<DevLoginCommand, DevUserDto?>
+public sealed class DevLoginHandler(IMediator mediator) : IRequestHandler<DevLoginCommand, TokenResponseDto?>
 {
-    public Task<DevUserDto?> Handle(DevLoginCommand request, CancellationToken cancellationToken)
+    public async Task<TokenResponseDto?> Handle(DevLoginCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-        {
-            return Task.FromResult<DevUserDto?>(null);
-        }
-
-        var user = db.FindByEmail(request.Email);
-        if (user is null || !user.VerifyPassword(request.Password))
-        {
-            return Task.FromResult<DevUserDto?>(null);
-        }
-
-        return Task.FromResult<DevUserDto?>(new DevUserDto(
-            user.Id.ToString(),
-            user.Email,
-            user.DisplayName,
-            user.Role));
+        var result = await mediator.Send(new IssueTokenCommand(request.Email, request.Password), cancellationToken);
+        return result.Tokens;
     }
 }
