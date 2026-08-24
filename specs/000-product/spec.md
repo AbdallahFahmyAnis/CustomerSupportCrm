@@ -22,12 +22,14 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/003-ticket-lifecycle` — CRM-004…007 tickets (Feature-Based + Signals FE)
 - [x] `specs/004-identity-admin` — CRM-035 users, roles, permissions
 - [x] `specs/005-channels-portal` — CRM-012 / CRM-027 / CRM-028 web form + portal submit/track
+- [x] `specs/006-data-platform` — Docker SQL Server / Postgres / Mongo + Azure Pipelines; Identity → SQL Server
 
 ## Next
 
 1. CRM-008 email channel / CRM-040 providers
-2. CRM-036 audit logs / CRM-037 system config
-3. CRM-009…011 other channels as needed
+2. Migrate Customers/Tickets → SQL Server; Channels → Postgres
+3. CRM-036 audit logs / CRM-037 remaining system config UI
+4. CRM-009…011 other channels as needed
 
 ## Constraints
 

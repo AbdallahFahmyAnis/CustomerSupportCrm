@@ -16,6 +16,7 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
 
     [Fact]
     [Trait("Story", "CRM-035")]
+    [Trait("Story", "CRM-037")]
     public async Task Login_issues_access_and_refresh_tokens()
     {
         var agent = await _client.PostAsJsonAsync("/api/identity/token",
@@ -152,11 +153,36 @@ public sealed class IdentityApiFactory : WebApplicationFactory<Program>
         Directory.CreateDirectory(_dataPath);
         builder.ConfigureAppConfiguration((_, config) =>
         {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
+            var useSqlServer = string.Equals(
+                Environment.GetEnvironmentVariable("CRM_IDENTITY_PROVIDER"),
+                "SqlServer",
+                StringComparison.OrdinalIgnoreCase);
+
+            var settings = new Dictionary<string, string?>
             {
-                ["Identity:DataPath"] = _dataPath,
                 ["Identity:Jwt:SigningKey"] = "CrmTestSigningKey-AtLeast-32-Characters-Long!"
-            });
+            };
+
+            if (useSqlServer)
+            {
+                var baseCs = Environment.GetEnvironmentVariable("ConnectionStrings__Identity")
+                    ?? throw new InvalidOperationException(
+                        "CRM_IDENTITY_PROVIDER=SqlServer requires ConnectionStrings__Identity.");
+                var sqlBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(baseCs)
+                {
+                    InitialCatalog = $"CrmIdTest_{Guid.NewGuid():N}"
+                };
+                settings["Identity:Provider"] = "SqlServer";
+                settings["ConnectionStrings:Identity"] = sqlBuilder.ConnectionString;
+            }
+            else
+            {
+                settings["Identity:Provider"] = "Sqlite";
+                settings["ConnectionStrings:Identity"] = string.Empty;
+                settings["Identity:DataPath"] = _dataPath;
+            }
+
+            config.AddInMemoryCollection(settings);
         });
     }
 }

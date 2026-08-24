@@ -1,73 +1,98 @@
+using System.Data.Common;
 using Crm.BuildingBlocks.Identity;
 using Crm.Identity.Api.Domain;
+using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 
 namespace Crm.Identity.Api.Infrastructure;
 
-/// <summary>SDD CRM-035 / specs/004-identity-admin — SQLite persistence.</summary>
+/// <summary>
+/// SDD CRM-035 / CRM-037 / specs/006-data-platform —
+/// SQL Server when ConnectionStrings:Identity (or Provider=SqlServer) is set; otherwise SQLite.
+/// </summary>
 public sealed class IdentityDb
 {
     private readonly string _connectionString;
+    private readonly bool _sqlServer;
 
     public IdentityDb(IWebHostEnvironment env, IConfiguration config)
     {
-        var dataRoot = Path.GetFullPath(config["Identity:DataPath"] ?? Path.Combine(env.ContentRootPath, "data"));
-        Directory.CreateDirectory(dataRoot);
-        _connectionString = $"Data Source={Path.Combine(dataRoot, "identity.db")}";
+        var provider = (config["CRM_IDENTITY_PROVIDER"]
+                        ?? config["Identity:Provider"]
+                        ?? string.Empty).Trim();
+        var sqlCs = config.GetConnectionString("Identity");
+        _sqlServer = provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase)
+                     || !string.IsNullOrWhiteSpace(sqlCs)
+                        && !provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase);
+
+        if (_sqlServer)
+        {
+            if (string.IsNullOrWhiteSpace(sqlCs))
+            {
+                throw new InvalidOperationException(
+                    "Identity Provider=SqlServer requires ConnectionStrings:Identity.");
+            }
+
+            _connectionString = sqlCs;
+        }
+        else
+        {
+            var dataRoot = Path.GetFullPath(config["Identity:DataPath"] ?? Path.Combine(env.ContentRootPath, "data"));
+            Directory.CreateDirectory(dataRoot);
+            _connectionString = $"Data Source={Path.Combine(dataRoot, "identity.db")}";
+        }
     }
 
     public void EnsureSchema()
     {
+        if (_sqlServer)
+        {
+            EnsureSqlServerDatabase();
+        }
+
         using var connection = Open();
         using (var command = connection.CreateCommand())
         {
-            command.CommandText =
-                """
-                CREATE TABLE IF NOT EXISTS Users (
-                  Id TEXT PRIMARY KEY,
-                  Email TEXT NOT NULL UNIQUE,
-                  DisplayName TEXT NOT NULL,
-                  PasswordHash TEXT NOT NULL,
-                  Role TEXT NOT NULL,
-                  IsActive INTEGER NOT NULL,
-                  FailedLoginCount INTEGER NOT NULL DEFAULT 0,
-                  LockoutUntil TEXT NULL,
-                  CreatedAt TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS Roles (
-                  Name TEXT PRIMARY KEY,
-                  Description TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS RolePermissions (
-                  RoleName TEXT NOT NULL,
-                  Permission TEXT NOT NULL,
-                  PRIMARY KEY (RoleName, Permission),
-                  FOREIGN KEY (RoleName) REFERENCES Roles(Name)
-                );
-                CREATE TABLE IF NOT EXISTS RefreshTokens (
-                  Id TEXT PRIMARY KEY,
-                  UserId TEXT NOT NULL,
-                  TokenHash TEXT NOT NULL UNIQUE,
-                  ExpiresAt TEXT NOT NULL,
-                  CreatedAt TEXT NOT NULL,
-                  RevokedAt TEXT NULL,
-                  ReplacedByTokenId TEXT NULL
-                );
-                CREATE TABLE IF NOT EXISTS RevokedAccessTokens (
-                  Jti TEXT PRIMARY KEY,
-                  UserId TEXT NOT NULL,
-                  ExpiresAt TEXT NOT NULL,
-                  RevokedAt TEXT NOT NULL
-                );
-                """;
+            command.CommandText = _sqlServer ? SqlServerSchemaSql : SqliteSchemaSql;
             command.ExecuteNonQuery();
         }
 
-        TryAddColumn(connection, "Users", "FailedLoginCount", "INTEGER NOT NULL DEFAULT 0");
-        TryAddColumn(connection, "Users", "LockoutUntil", "TEXT NULL");
+        if (!_sqlServer)
+        {
+            TryAddSqliteColumn(connection, "Users", "FailedLoginCount", "INTEGER NOT NULL DEFAULT 0");
+            TryAddSqliteColumn(connection, "Users", "LockoutUntil", "TEXT NULL");
+        }
     }
 
-    private static void TryAddColumn(SqliteConnection connection, string table, string column, string definition)
+    private void EnsureSqlServerDatabase()
+    {
+        var builder = new SqlConnectionStringBuilder(_connectionString);
+        var database = builder.InitialCatalog;
+        if (string.IsNullOrWhiteSpace(database))
+        {
+            return;
+        }
+
+        if (!database.All(c => char.IsLetterOrDigit(c) || c is '_' or '-'))
+        {
+            throw new InvalidOperationException("Identity SQL catalog name is invalid.");
+        }
+
+        builder.InitialCatalog = "master";
+        using var connection = new SqlConnection(builder.ConnectionString);
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            $"""
+             IF DB_ID(N'{database}') IS NULL
+             BEGIN
+               CREATE DATABASE [{database}];
+             END
+             """;
+        command.ExecuteNonQuery();
+    }
+
+    private static void TryAddSqliteColumn(DbConnection connection, string table, string column, string definition)
     {
         try
         {
@@ -148,22 +173,32 @@ public sealed class IdentityDb
         using var command = connection.CreateCommand();
         if (string.IsNullOrWhiteSpace(q))
         {
-            command.CommandText =
-                """
-                SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
-                FROM Users ORDER BY DisplayName LIMIT 100
-                """;
+            command.CommandText = _sqlServer
+                ? """
+                  SELECT TOP 100 Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
+                  FROM Users ORDER BY DisplayName
+                  """
+                : """
+                  SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
+                  FROM Users ORDER BY DisplayName LIMIT 100
+                  """;
         }
         else
         {
-            command.CommandText =
-                """
-                SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
-                FROM Users
-                WHERE Email LIKE $q OR DisplayName LIKE $q OR Role LIKE $q
-                ORDER BY DisplayName LIMIT 100
-                """;
-            command.Parameters.AddWithValue("$q", $"%{q.Trim()}%");
+            command.CommandText = _sqlServer
+                ? """
+                  SELECT TOP 100 Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
+                  FROM Users
+                  WHERE Email LIKE @q OR DisplayName LIKE @q OR Role LIKE @q
+                  ORDER BY DisplayName
+                  """
+                : """
+                  SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
+                  FROM Users
+                  WHERE Email LIKE @q OR DisplayName LIKE @q OR Role LIKE @q
+                  ORDER BY DisplayName LIMIT 100
+                  """;
+            AddParam(command, "@q", $"%{q.Trim()}%");
         }
 
         var list = new List<UserAccount>();
@@ -183,9 +218,9 @@ public sealed class IdentityDb
         command.CommandText =
             """
             SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
-            FROM Users WHERE Id = $id
+            FROM Users WHERE Id = @id
             """;
-        command.Parameters.AddWithValue("$id", id.ToString());
+        AddParam(command, "@id", id.ToString());
         using var reader = command.ExecuteReader();
         return reader.Read() ? ReadUser(reader) : null;
     }
@@ -197,9 +232,9 @@ public sealed class IdentityDb
         command.CommandText =
             """
             SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
-            FROM Users WHERE Email = $email
+            FROM Users WHERE Email = @email
             """;
-        command.Parameters.AddWithValue("$email", email.Trim().ToLowerInvariant());
+        AddParam(command, "@email", email.Trim().ToLowerInvariant());
         using var reader = command.ExecuteReader();
         return reader.Read() ? ReadUser(reader) : null;
     }
@@ -211,7 +246,7 @@ public sealed class IdentityDb
         command.CommandText =
             """
             INSERT INTO Users (Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt)
-            VALUES ($id, $email, $name, $hash, $role, $active, $fails, $lockout, $created)
+            VALUES (@id, @email, @name, @hash, @role, @active, @fails, @lockout, @created)
             """;
         BindUser(command, user);
         command.ExecuteNonQuery();
@@ -223,17 +258,17 @@ public sealed class IdentityDb
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            UPDATE Users SET DisplayName = $name, PasswordHash = $hash, Role = $role, IsActive = $active,
-              FailedLoginCount = $fails, LockoutUntil = $lockout
-            WHERE Id = $id
+            UPDATE Users SET DisplayName = @name, PasswordHash = @hash, Role = @role, IsActive = @active,
+              FailedLoginCount = @fails, LockoutUntil = @lockout
+            WHERE Id = @id
             """;
-        command.Parameters.AddWithValue("$id", user.Id.ToString());
-        command.Parameters.AddWithValue("$name", user.DisplayName);
-        command.Parameters.AddWithValue("$hash", user.PasswordHash);
-        command.Parameters.AddWithValue("$role", user.Role);
-        command.Parameters.AddWithValue("$active", user.IsActive ? 1 : 0);
-        command.Parameters.AddWithValue("$fails", user.FailedLoginCount);
-        command.Parameters.AddWithValue("$lockout", (object?)user.LockoutUntil?.ToString("O") ?? DBNull.Value);
+        AddParam(command, "@id", user.Id.ToString());
+        AddParam(command, "@name", user.DisplayName);
+        AddParam(command, "@hash", user.PasswordHash);
+        AddParam(command, "@role", user.Role);
+        AddParam(command, "@active", user.IsActive ? 1 : 0);
+        AddParam(command, "@fails", user.FailedLoginCount);
+        AddParam(command, "@lockout", (object?)user.LockoutUntil?.ToString("O") ?? DBNull.Value);
         command.ExecuteNonQuery();
     }
 
@@ -244,15 +279,15 @@ public sealed class IdentityDb
         command.CommandText =
             """
             INSERT INTO RefreshTokens (Id, UserId, TokenHash, ExpiresAt, CreatedAt, RevokedAt, ReplacedByTokenId)
-            VALUES ($id, $uid, $hash, $exp, $created, $revoked, $replaced)
+            VALUES (@id, @uid, @hash, @exp, @created, @revoked, @replaced)
             """;
-        command.Parameters.AddWithValue("$id", token.Id.ToString());
-        command.Parameters.AddWithValue("$uid", token.UserId.ToString());
-        command.Parameters.AddWithValue("$hash", token.TokenHash);
-        command.Parameters.AddWithValue("$exp", token.ExpiresAt.ToString("O"));
-        command.Parameters.AddWithValue("$created", token.CreatedAt.ToString("O"));
-        command.Parameters.AddWithValue("$revoked", (object?)token.RevokedAt?.ToString("O") ?? DBNull.Value);
-        command.Parameters.AddWithValue("$replaced", (object?)token.ReplacedByTokenId?.ToString() ?? DBNull.Value);
+        AddParam(command, "@id", token.Id.ToString());
+        AddParam(command, "@uid", token.UserId.ToString());
+        AddParam(command, "@hash", token.TokenHash);
+        AddParam(command, "@exp", token.ExpiresAt.ToString("O"));
+        AddParam(command, "@created", token.CreatedAt.ToString("O"));
+        AddParam(command, "@revoked", (object?)token.RevokedAt?.ToString("O") ?? DBNull.Value);
+        AddParam(command, "@replaced", (object?)token.ReplacedByTokenId?.ToString() ?? DBNull.Value);
         command.ExecuteNonQuery();
     }
 
@@ -263,9 +298,9 @@ public sealed class IdentityDb
         command.CommandText =
             """
             SELECT Id, UserId, TokenHash, ExpiresAt, CreatedAt, RevokedAt, ReplacedByTokenId
-            FROM RefreshTokens WHERE TokenHash = $hash
+            FROM RefreshTokens WHERE TokenHash = @hash
             """;
-        command.Parameters.AddWithValue("$hash", tokenHash);
+        AddParam(command, "@hash", tokenHash);
         using var reader = command.ExecuteReader();
         if (!reader.Read())
         {
@@ -290,12 +325,12 @@ public sealed class IdentityDb
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            UPDATE RefreshTokens SET RevokedAt = $revoked, ReplacedByTokenId = $replaced
-            WHERE Id = $id AND RevokedAt IS NULL
+            UPDATE RefreshTokens SET RevokedAt = @revoked, ReplacedByTokenId = @replaced
+            WHERE Id = @id AND RevokedAt IS NULL
             """;
-        command.Parameters.AddWithValue("$id", id.ToString());
-        command.Parameters.AddWithValue("$revoked", revokedAt.ToString("O"));
-        command.Parameters.AddWithValue("$replaced", (object?)replacedBy?.ToString() ?? DBNull.Value);
+        AddParam(command, "@id", id.ToString());
+        AddParam(command, "@revoked", revokedAt.ToString("O"));
+        AddParam(command, "@replaced", (object?)replacedBy?.ToString() ?? DBNull.Value);
         command.ExecuteNonQuery();
     }
 
@@ -305,11 +340,11 @@ public sealed class IdentityDb
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            UPDATE RefreshTokens SET RevokedAt = $revoked
-            WHERE UserId = $uid AND RevokedAt IS NULL
+            UPDATE RefreshTokens SET RevokedAt = @revoked
+            WHERE UserId = @uid AND RevokedAt IS NULL
             """;
-        command.Parameters.AddWithValue("$uid", userId.ToString());
-        command.Parameters.AddWithValue("$revoked", revokedAt.ToString("O"));
+        AddParam(command, "@uid", userId.ToString());
+        AddParam(command, "@revoked", revokedAt.ToString("O"));
         command.ExecuteNonQuery();
     }
 
@@ -317,15 +352,21 @@ public sealed class IdentityDb
     {
         using var connection = Open();
         using var command = connection.CreateCommand();
-        command.CommandText =
-            """
-            INSERT OR REPLACE INTO RevokedAccessTokens (Jti, UserId, ExpiresAt, RevokedAt)
-            VALUES ($jti, $uid, $exp, $revoked)
-            """;
-        command.Parameters.AddWithValue("$jti", jti);
-        command.Parameters.AddWithValue("$uid", userId.ToString());
-        command.Parameters.AddWithValue("$exp", expiresAt.ToString("O"));
-        command.Parameters.AddWithValue("$revoked", revokedAt.ToString("O"));
+        command.CommandText = _sqlServer
+            ? """
+              MERGE RevokedAccessTokens AS t
+              USING (SELECT @jti AS Jti) AS s ON t.Jti = s.Jti
+              WHEN MATCHED THEN UPDATE SET UserId = @uid, ExpiresAt = @exp, RevokedAt = @revoked
+              WHEN NOT MATCHED THEN INSERT (Jti, UserId, ExpiresAt, RevokedAt) VALUES (@jti, @uid, @exp, @revoked);
+              """
+            : """
+              INSERT OR REPLACE INTO RevokedAccessTokens (Jti, UserId, ExpiresAt, RevokedAt)
+              VALUES (@jti, @uid, @exp, @revoked)
+              """;
+        AddParam(command, "@jti", jti);
+        AddParam(command, "@uid", userId.ToString());
+        AddParam(command, "@exp", expiresAt.ToString("O"));
+        AddParam(command, "@revoked", revokedAt.ToString("O"));
         command.ExecuteNonQuery();
     }
 
@@ -333,8 +374,10 @@ public sealed class IdentityDb
     {
         using var connection = Open();
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT 1 FROM RevokedAccessTokens WHERE Jti = $jti LIMIT 1";
-        command.Parameters.AddWithValue("$jti", jti);
+        command.CommandText = _sqlServer
+            ? "SELECT TOP 1 1 FROM RevokedAccessTokens WHERE Jti = @jti"
+            : "SELECT 1 FROM RevokedAccessTokens WHERE Jti = @jti LIMIT 1";
+        AddParam(command, "@jti", jti);
         return command.ExecuteScalar() is not null;
     }
 
@@ -359,8 +402,8 @@ public sealed class IdentityDb
     {
         using var connection = Open();
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT Name, Description FROM Roles WHERE Name = $name";
-        command.Parameters.AddWithValue("$name", name);
+        command.CommandText = "SELECT Name, Description FROM Roles WHERE Name = @name";
+        AddParam(command, "@name", name);
         using var reader = command.ExecuteReader();
         if (!reader.Read())
         {
@@ -380,21 +423,27 @@ public sealed class IdentityDb
         using (var command = connection.CreateCommand())
         {
             command.Transaction = tx;
-            command.CommandText =
-                """
-                INSERT INTO Roles (Name, Description) VALUES ($name, $desc)
-                ON CONFLICT(Name) DO UPDATE SET Description = excluded.Description
-                """;
-            command.Parameters.AddWithValue("$name", role.Name);
-            command.Parameters.AddWithValue("$desc", role.Description);
+            command.CommandText = _sqlServer
+                ? """
+                  MERGE Roles AS t
+                  USING (SELECT @name AS Name) AS s ON t.Name = s.Name
+                  WHEN MATCHED THEN UPDATE SET Description = @desc
+                  WHEN NOT MATCHED THEN INSERT (Name, Description) VALUES (@name, @desc);
+                  """
+                : """
+                  INSERT INTO Roles (Name, Description) VALUES (@name, @desc)
+                  ON CONFLICT(Name) DO UPDATE SET Description = excluded.Description
+                  """;
+            AddParam(command, "@name", role.Name);
+            AddParam(command, "@desc", role.Description);
             command.ExecuteNonQuery();
         }
 
         using (var clear = connection.CreateCommand())
         {
             clear.Transaction = tx;
-            clear.CommandText = "DELETE FROM RolePermissions WHERE RoleName = $name";
-            clear.Parameters.AddWithValue("$name", role.Name);
+            clear.CommandText = "DELETE FROM RolePermissions WHERE RoleName = @name";
+            AddParam(clear, "@name", role.Name);
             clear.ExecuteNonQuery();
         }
 
@@ -404,21 +453,21 @@ public sealed class IdentityDb
             insert.Transaction = tx;
             insert.CommandText =
                 """
-                INSERT INTO RolePermissions (RoleName, Permission) VALUES ($name, $perm)
+                INSERT INTO RolePermissions (RoleName, Permission) VALUES (@name, @perm)
                 """;
-            insert.Parameters.AddWithValue("$name", role.Name);
-            insert.Parameters.AddWithValue("$perm", permission);
+            AddParam(insert, "@name", role.Name);
+            AddParam(insert, "@perm", permission);
             insert.ExecuteNonQuery();
         }
 
         tx.Commit();
     }
 
-    private static List<string> LoadPermissions(SqliteConnection connection, string roleName)
+    private List<string> LoadPermissions(DbConnection connection, string roleName)
     {
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT Permission FROM RolePermissions WHERE RoleName = $name ORDER BY Permission";
-        command.Parameters.AddWithValue("$name", roleName);
+        command.CommandText = "SELECT Permission FROM RolePermissions WHERE RoleName = @name ORDER BY Permission";
+        AddParam(command, "@name", roleName);
         var list = new List<string>();
         using var reader = command.ExecuteReader();
         while (reader.Read())
@@ -429,35 +478,130 @@ public sealed class IdentityDb
         return list;
     }
 
-    private static void BindUser(SqliteCommand command, UserAccount user)
+    private static void BindUser(DbCommand command, UserAccount user)
     {
-        command.Parameters.AddWithValue("$id", user.Id.ToString());
-        command.Parameters.AddWithValue("$email", user.Email);
-        command.Parameters.AddWithValue("$name", user.DisplayName);
-        command.Parameters.AddWithValue("$hash", user.PasswordHash);
-        command.Parameters.AddWithValue("$role", user.Role);
-        command.Parameters.AddWithValue("$active", user.IsActive ? 1 : 0);
-        command.Parameters.AddWithValue("$fails", user.FailedLoginCount);
-        command.Parameters.AddWithValue("$lockout", (object?)user.LockoutUntil?.ToString("O") ?? DBNull.Value);
-        command.Parameters.AddWithValue("$created", user.CreatedAt.ToString("O"));
+        AddParam(command, "@id", user.Id.ToString());
+        AddParam(command, "@email", user.Email);
+        AddParam(command, "@name", user.DisplayName);
+        AddParam(command, "@hash", user.PasswordHash);
+        AddParam(command, "@role", user.Role);
+        AddParam(command, "@active", user.IsActive ? 1 : 0);
+        AddParam(command, "@fails", user.FailedLoginCount);
+        AddParam(command, "@lockout", (object?)user.LockoutUntil?.ToString("O") ?? DBNull.Value);
+        AddParam(command, "@created", user.CreatedAt.ToString("O"));
     }
 
-    private static UserAccount ReadUser(SqliteDataReader reader)
+    private static UserAccount ReadUser(DbDataReader reader)
         => UserAccount.Rehydrate(
             Guid.Parse(reader.GetString(0)),
             reader.GetString(1),
             reader.GetString(2),
             reader.GetString(3),
             reader.GetString(4),
-            reader.GetInt64(5) == 1,
-            reader.IsDBNull(6) ? 0 : Convert.ToInt32(reader.GetInt64(6)),
+            Convert.ToInt32(reader.GetValue(5)) == 1,
+            reader.IsDBNull(6) ? 0 : Convert.ToInt32(reader.GetValue(6)),
             reader.IsDBNull(7) ? null : DateTimeOffset.Parse(reader.GetString(7)),
             DateTimeOffset.Parse(reader.GetString(8)));
 
-    private SqliteConnection Open()
+    private static void AddParam(DbCommand command, string name, object value)
     {
-        var connection = new SqliteConnection(_connectionString);
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = name;
+        parameter.Value = value;
+        command.Parameters.Add(parameter);
+    }
+
+    private DbConnection Open()
+    {
+        DbConnection connection = _sqlServer
+            ? new SqlConnection(_connectionString)
+            : new SqliteConnection(_connectionString);
         connection.Open();
         return connection;
     }
+
+    private const string SqliteSchemaSql =
+        """
+        CREATE TABLE IF NOT EXISTS Users (
+          Id TEXT PRIMARY KEY,
+          Email TEXT NOT NULL UNIQUE,
+          DisplayName TEXT NOT NULL,
+          PasswordHash TEXT NOT NULL,
+          Role TEXT NOT NULL,
+          IsActive INTEGER NOT NULL,
+          FailedLoginCount INTEGER NOT NULL DEFAULT 0,
+          LockoutUntil TEXT NULL,
+          CreatedAt TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS Roles (
+          Name TEXT PRIMARY KEY,
+          Description TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS RolePermissions (
+          RoleName TEXT NOT NULL,
+          Permission TEXT NOT NULL,
+          PRIMARY KEY (RoleName, Permission),
+          FOREIGN KEY (RoleName) REFERENCES Roles(Name)
+        );
+        CREATE TABLE IF NOT EXISTS RefreshTokens (
+          Id TEXT PRIMARY KEY,
+          UserId TEXT NOT NULL,
+          TokenHash TEXT NOT NULL UNIQUE,
+          ExpiresAt TEXT NOT NULL,
+          CreatedAt TEXT NOT NULL,
+          RevokedAt TEXT NULL,
+          ReplacedByTokenId TEXT NULL
+        );
+        CREATE TABLE IF NOT EXISTS RevokedAccessTokens (
+          Jti TEXT PRIMARY KEY,
+          UserId TEXT NOT NULL,
+          ExpiresAt TEXT NOT NULL,
+          RevokedAt TEXT NOT NULL
+        );
+        """;
+
+    private const string SqlServerSchemaSql =
+        """
+        IF OBJECT_ID(N'dbo.Users', N'U') IS NULL
+        CREATE TABLE dbo.Users (
+          Id NVARCHAR(36) NOT NULL PRIMARY KEY,
+          Email NVARCHAR(320) NOT NULL UNIQUE,
+          DisplayName NVARCHAR(200) NOT NULL,
+          PasswordHash NVARCHAR(500) NOT NULL,
+          Role NVARCHAR(100) NOT NULL,
+          IsActive INT NOT NULL,
+          FailedLoginCount INT NOT NULL CONSTRAINT DF_Users_FailedLoginCount DEFAULT 0,
+          LockoutUntil NVARCHAR(40) NULL,
+          CreatedAt NVARCHAR(40) NOT NULL
+        );
+        IF OBJECT_ID(N'dbo.Roles', N'U') IS NULL
+        CREATE TABLE dbo.Roles (
+          Name NVARCHAR(100) NOT NULL PRIMARY KEY,
+          Description NVARCHAR(500) NOT NULL
+        );
+        IF OBJECT_ID(N'dbo.RolePermissions', N'U') IS NULL
+        CREATE TABLE dbo.RolePermissions (
+          RoleName NVARCHAR(100) NOT NULL,
+          Permission NVARCHAR(200) NOT NULL,
+          PRIMARY KEY (RoleName, Permission),
+          FOREIGN KEY (RoleName) REFERENCES dbo.Roles(Name)
+        );
+        IF OBJECT_ID(N'dbo.RefreshTokens', N'U') IS NULL
+        CREATE TABLE dbo.RefreshTokens (
+          Id NVARCHAR(36) NOT NULL PRIMARY KEY,
+          UserId NVARCHAR(36) NOT NULL,
+          TokenHash NVARCHAR(200) NOT NULL UNIQUE,
+          ExpiresAt NVARCHAR(40) NOT NULL,
+          CreatedAt NVARCHAR(40) NOT NULL,
+          RevokedAt NVARCHAR(40) NULL,
+          ReplacedByTokenId NVARCHAR(36) NULL
+        );
+        IF OBJECT_ID(N'dbo.RevokedAccessTokens', N'U') IS NULL
+        CREATE TABLE dbo.RevokedAccessTokens (
+          Jti NVARCHAR(100) NOT NULL PRIMARY KEY,
+          UserId NVARCHAR(36) NOT NULL,
+          ExpiresAt NVARCHAR(40) NOT NULL,
+          RevokedAt NVARCHAR(40) NOT NULL
+        );
+        """;
 }

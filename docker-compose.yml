@@ -1,0 +1,67 @@
+# Local data platform (specs/006-data-platform / CRM-037)
+#
+# Usage:
+#   docker compose up -d
+#   set ConnectionStrings__Identity=Server=localhost,1433;User Id=sa;Password=...;TrustServerCertificate=True;Initial Catalog=CrmIdentity
+#
+# Default passwords are for local/CI only — change before any shared environment.
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: crm-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${CRM_MSSQL_SA_PASSWORD:-Crm_Local_Sql_2026!}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - crm_sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: crm-postgres
+    environment:
+      POSTGRES_USER: "${CRM_POSTGRES_USER:-crm}"
+      POSTGRES_PASSWORD: "${CRM_POSTGRES_PASSWORD:-Crm_Local_Pg_2026!}"
+      POSTGRES_DB: "${CRM_POSTGRES_DB:-crm_channels}"
+    ports:
+      - "5432:5432"
+    volumes:
+      - crm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:7
+    container_name: crm-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${CRM_MONGO_USER:-crm}"
+      MONGO_INITDB_ROOT_PASSWORD: "${CRM_MONGO_PASSWORD:-Crm_Local_Mongo_2026!}"
+    ports:
+      - "27017:27017"
+    volumes:
+      - crm_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  crm_sqlserver_data:
+  crm_postgres_data:
+  crm_mongo_data:

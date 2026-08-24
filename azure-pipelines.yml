@@ -1,0 +1,101 @@
+# specs/006-data-platform / CRM-037 — Docker DBs + build/test
+trigger:
+  branches:
+    include:
+      - master
+      - cursor/*
+
+pr:
+  branches:
+    include:
+      - master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  CRM_MSSQL_SA_PASSWORD: Crm_Local_Sql_2026!
+  # Service container hostname is the services: key (not localhost)
+  ConnectionStrings__Identity: Server=sqlserver,1433;User Id=sa;Password=Crm_Local_Sql_2026!;TrustServerCertificate=True;Initial Catalog=CrmIdentity
+  CRM_IDENTITY_PROVIDER: SqlServer
+
+resources:
+  containers:
+    - container: sqlserver
+      image: mcr.microsoft.com/mssql/server:2022-latest
+      env:
+        ACCEPT_EULA: Y
+        MSSQL_SA_PASSWORD: $(CRM_MSSQL_SA_PASSWORD)
+      ports:
+        - 1433:1433
+    - container: postgres
+      image: postgres:16-alpine
+      env:
+        POSTGRES_USER: crm
+        POSTGRES_PASSWORD: Crm_Local_Pg_2026!
+        POSTGRES_DB: crm_channels
+      ports:
+        - 5432:5432
+    - container: mongo
+      image: mongo:7
+      env:
+        MONGO_INITDB_ROOT_USERNAME: crm
+        MONGO_INITDB_ROOT_PASSWORD: Crm_Local_Mongo_2026!
+      ports:
+        - 27017:27017
+
+stages:
+  - stage: BuildTest
+    displayName: Build and test
+    jobs:
+      - job: DotNet
+        displayName: .NET restore, build, test
+        services:
+          sqlserver: sqlserver
+          postgres: postgres
+          mongo: mongo
+        steps:
+          - task: UseDotNet@2
+            displayName: Use .NET 9
+            inputs:
+              packageType: sdk
+              version: 9.x
+
+          - bash: |
+              set -e
+              echo "Waiting for SQL Server at sqlserver:1433..."
+              for i in $(seq 1 60); do
+                if (echo >/dev/tcp/sqlserver/1433) >/dev/null 2>&1; then
+                  echo "SQL Server port is open (attempt $i)"
+                  # Extra settle time for SQL Server accept connections
+                  sleep 15
+                  exit 0
+                fi
+                sleep 5
+              done
+              echo "Timed out waiting for SQL Server"
+              exit 1
+            displayName: Wait for SQL Server
+
+          - task: DotNetCoreCLI@2
+            displayName: Restore
+            inputs:
+              command: restore
+              projects: "**/*.sln"
+
+          - task: DotNetCoreCLI@2
+            displayName: Build
+            inputs:
+              command: build
+              projects: "**/*.sln"
+              arguments: "--no-restore -c Release"
+
+          - task: DotNetCoreCLI@2
+            displayName: Test
+            inputs:
+              command: test
+              projects: "**/*Tests*.csproj"
+              arguments: "--no-build -c Release --logger trx"
+            env:
+              ConnectionStrings__Identity: $(ConnectionStrings__Identity)
+              CRM_IDENTITY_PROVIDER: $(CRM_IDENTITY_PROVIDER)
