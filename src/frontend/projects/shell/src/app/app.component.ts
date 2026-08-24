@@ -7,7 +7,7 @@ import { LanguageStore, SessionApi } from 'shared';
   standalone: true,
   imports: [RouterOutlet, RouterLink],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
   readonly lang = inject(LanguageStore);

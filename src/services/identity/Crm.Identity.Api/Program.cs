@@ -5,7 +5,10 @@ using Crm.Identity.Api.Features.CreateUser;
 using Crm.Identity.Api.Features.DeactivateUser;
 using Crm.Identity.Api.Features.DevLogin;
 using Crm.Identity.Api.Features.GetHealth;
+using Crm.Identity.Api.Features.IssueToken;
 using Crm.Identity.Api.Features.ListRoles;
+using Crm.Identity.Api.Features.RotateRefreshToken;
+using Crm.Identity.Api.Features.RevokeToken;
 using Crm.Identity.Api.Features.SearchUsers;
 using Crm.Identity.Api.Features.UpdateUserRole;
 using Crm.Identity.Api.Infrastructure;
@@ -14,6 +17,7 @@ using MediatR;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddSingleton<IdentityDb>();
+builder.Services.AddSingleton<TokenService>();
 
 var app = builder.Build();
 app.UseCorrelationId();
@@ -33,10 +37,38 @@ static Guid? ActorId(HttpContext http)
 
 app.MapGet("/health", async (IMediator mediator) => Results.Ok(await mediator.Send(new GetHealthQuery())));
 
+app.MapPost("/api/identity/token", async (DevLoginRequest body, IMediator mediator) =>
+{
+    var result = await mediator.Send(new IssueTokenCommand(body.Email, body.Password));
+    if (result.Tokens is not null)
+    {
+        return Results.Ok(result.Tokens);
+    }
+
+    return result.Locked
+        ? Results.Json(new { error = result.Error }, statusCode: StatusCodes.Status423Locked)
+        : Results.Json(new { error = result.Error ?? "Unauthorized" }, statusCode: StatusCodes.Status401Unauthorized);
+});
+
+app.MapPost("/api/identity/token/refresh", async (RefreshTokenRequest body, IMediator mediator) =>
+{
+    var result = await mediator.Send(new RotateRefreshTokenCommand(body.RefreshToken));
+    return result.Tokens is not null
+        ? Results.Ok(result.Tokens)
+        : Results.Json(new { error = result.Error ?? "Unauthorized" }, statusCode: StatusCodes.Status401Unauthorized);
+});
+
+app.MapPost("/api/identity/token/revoke", async (RevokeTokenRequest body, IMediator mediator) =>
+{
+    var result = await mediator.Send(new RevokeTokenCommand(body.RefreshToken, body.AccessToken));
+    return result.Ok ? Results.NoContent() : Results.BadRequest(new { error = result.Error });
+});
+
+/// <summary>Legacy alias used by older gateway builds — returns token pair.</summary>
 app.MapPost("/api/identity/dev-login", async (DevLoginCommand command, IMediator mediator) =>
 {
-    var user = await mediator.Send(command);
-    return user is null ? Results.Unauthorized() : Results.Ok(user);
+    var tokens = await mediator.Send(command);
+    return tokens is null ? Results.Unauthorized() : Results.Ok(tokens);
 });
 
 app.MapGet("/api/identity/users", async (string? q, IMediator mediator) =>

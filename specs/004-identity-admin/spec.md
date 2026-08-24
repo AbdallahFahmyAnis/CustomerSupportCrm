@@ -23,6 +23,9 @@ Access control becomes explicit and auditable instead of a single hardcoded demo
 - Sign-in validates against persisted Identity users (seed keeps `agent@crm.local` / `Crm!123`)
 - Seed an Admin user for admin-mfe work
 - admin-mfe Feature-Based + Signals under `/admin/users` and `/admin/roles`
+- Access JWT + refresh token; refresh rotation; revoke refresh/access (jti blacklist)
+- Max failed login attempts with temporary lockout
+- Gateway BFF keeps tokens server-side (httpOnly refresh cookie); browser never stores access token
 
 **Out of scope**
 - CRM-036 audit logs
@@ -52,6 +55,10 @@ Access control becomes explicit and auditable instead of a single hardcoded demo
 4. **Given** a user, **when** I change their role, **then** the new role is saved and returned on next login/session.
 5. **Given** I open Roles, **when** the page loads, **then** I see Admin / Agent / Lead (or equivalent) with their permissions.
 6. **Given** I am not Admin, **when** I call user mutation APIs, **then** the system blocks the change.
+7. **Given** valid credentials, **when** I sign in via the gateway, **then** Identity issues an access token and refresh token (gateway keeps them; UI still uses BFF cookie).
+8. **Given** a valid refresh token, **when** I refresh, **then** I receive a new access + refresh pair and the old refresh is revoked.
+9. **Given** a revoked refresh token, **when** I refresh or reuse it, **then** Identity rejects it.
+10. **Given** too many failed logins (default 5), **when** I try again, **then** the account is locked for a cooldown window and sign-in is blocked.
 
 ## Definition of Done
 
@@ -59,9 +66,11 @@ Access control becomes explicit and auditable instead of a single hardcoded demo
 - [x] Tests `[Trait("Story", "CRM-035")]`
 - [x] Seeded users clickable without manual setup
 - [x] Spec/plan/code cite CRM-035; FE Feature-Based + Signals with html/scss/ts
+- [x] Token/refresh/revoke + lockout tests pass
 
 ## Assumptions and dependencies
 
 - Depends on: `001-platform-foundation`
-- Assumptions: SQLite in Identity; single primary role per user; passwords stored with a simple hash suitable for local demo (not production KMS)
+- Assumptions: SQLite in Identity; single primary role per user; passwords stored with a simple hash suitable for local demo (not production KMS); JWT signing key from config for local demo
 - Demo passwords remain `Crm!123` in seed docs
+- Defaults: max 5 failed attempts, 15-minute lockout, ~15-minute access token, ~7-day refresh token

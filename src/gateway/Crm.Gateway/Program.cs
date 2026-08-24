@@ -56,6 +56,13 @@ builder.Services.AddReverseProxy()
                 context.ProxyRequest.Headers.TryAddWithoutValidation(
                     "X-Crm-User-Role",
                     user.FindFirstValue(ClaimTypes.Role) ?? string.Empty);
+
+                var access = context.HttpContext.Request.Cookies["crm.at"];
+                if (!string.IsNullOrWhiteSpace(access))
+                {
+                    context.ProxyRequest.Headers.Remove("Authorization");
+                    context.ProxyRequest.Headers.TryAddWithoutValidation("Authorization", $"Bearer {access}");
+                }
             }
 
             return ValueTask.CompletedTask;
@@ -66,6 +73,20 @@ var app = builder.Build();
 app.UseCorrelationId();
 app.UseAuthentication();
 app.UseAuthorization();
+
+const string RefreshCookie = "crm.rt";
+const string AccessCookie = "crm.at";
+var jsonOpts = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+static CookieOptions TokenCookieOptions(DateTimeOffset expires) => new()
+{
+    HttpOnly = true,
+    Secure = false,
+    SameSite = SameSiteMode.Lax,
+    Expires = expires.UtcDateTime,
+    IsEssential = true,
+    Path = "/"
+};
 
 app.MapGet("/health", async (IHttpClientFactory httpFactory, IConfiguration config) =>
 {
@@ -111,34 +132,102 @@ app.MapPost("/login", async (DevLoginRequest request, HttpContext http, IHttpCli
 {
     var client = httpFactory.CreateClient("downstream");
     var identity = config["Services:Identity"] ?? "http://localhost:5101";
-    using var response = await client.PostAsJsonAsync($"{identity.TrimEnd('/')}/api/identity/dev-login", request);
+    using var response = await client.PostAsJsonAsync($"{identity.TrimEnd('/')}/api/identity/token", request);
     if (!response.IsSuccessStatusCode)
     {
-        return Results.Unauthorized();
+        var err = await response.Content.ReadAsStringAsync();
+        return Results.Json(
+            string.IsNullOrWhiteSpace(err) ? new { error = "Unauthorized" } : JsonSerializer.Deserialize<object>(err),
+            statusCode: (int)response.StatusCode);
     }
 
-    var user = await response.Content.ReadFromJsonAsync<DevUserDto>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
-    if (user is null)
+    var tokens = await response.Content.ReadFromJsonAsync<TokenResponseDto>(jsonOpts);
+    if (tokens?.User is null)
     {
         return Results.Unauthorized();
     }
 
     var claims = new List<Claim>
     {
-        new(ClaimTypes.NameIdentifier, user.Id),
-        new(ClaimTypes.Name, user.Name),
-        new(ClaimTypes.Email, user.Email),
-        new(ClaimTypes.Role, user.Role)
+        new(ClaimTypes.NameIdentifier, tokens.User.Id),
+        new(ClaimTypes.Name, tokens.User.Name),
+        new(ClaimTypes.Email, tokens.User.Email),
+        new(ClaimTypes.Role, tokens.User.Role)
     };
     await http.SignInAsync(
         CookieAuthenticationDefaults.AuthenticationScheme,
         new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
 
-    return Results.Ok(user);
+    http.Response.Cookies.Append(AccessCookie, tokens.AccessToken, TokenCookieOptions(tokens.AccessTokenExpiresAt));
+    http.Response.Cookies.Append(RefreshCookie, tokens.RefreshToken, TokenCookieOptions(tokens.RefreshTokenExpiresAt));
+
+    // Browser only receives user profile — tokens stay in httpOnly cookies.
+    return Results.Ok(tokens.User);
 });
 
-app.MapPost("/logout", async (HttpContext http) =>
+app.MapPost("/api/auth/refresh", async (HttpContext http, IHttpClientFactory httpFactory, IConfiguration config) =>
 {
+    if (!http.Request.Cookies.TryGetValue(RefreshCookie, out var refresh) || string.IsNullOrWhiteSpace(refresh))
+    {
+        return Results.Unauthorized();
+    }
+
+    var client = httpFactory.CreateClient("downstream");
+    var identity = config["Services:Identity"] ?? "http://localhost:5101";
+    using var response = await client.PostAsJsonAsync(
+        $"{identity.TrimEnd('/')}/api/identity/token/refresh",
+        new RefreshTokenRequest(refresh));
+    if (!response.IsSuccessStatusCode)
+    {
+        http.Response.Cookies.Delete(AccessCookie);
+        http.Response.Cookies.Delete(RefreshCookie);
+        await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return Results.Unauthorized();
+    }
+
+    var tokens = await response.Content.ReadFromJsonAsync<TokenResponseDto>(jsonOpts);
+    if (tokens?.User is null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var claims = new List<Claim>
+    {
+        new(ClaimTypes.NameIdentifier, tokens.User.Id),
+        new(ClaimTypes.Name, tokens.User.Name),
+        new(ClaimTypes.Email, tokens.User.Email),
+        new(ClaimTypes.Role, tokens.User.Role)
+    };
+    await http.SignInAsync(
+        CookieAuthenticationDefaults.AuthenticationScheme,
+        new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
+    http.Response.Cookies.Append(AccessCookie, tokens.AccessToken, TokenCookieOptions(tokens.AccessTokenExpiresAt));
+    http.Response.Cookies.Append(RefreshCookie, tokens.RefreshToken, TokenCookieOptions(tokens.RefreshTokenExpiresAt));
+    return Results.Ok(tokens.User);
+});
+
+app.MapPost("/logout", async (HttpContext http, IHttpClientFactory httpFactory, IConfiguration config) =>
+{
+    http.Request.Cookies.TryGetValue(RefreshCookie, out var refresh);
+    http.Request.Cookies.TryGetValue(AccessCookie, out var access);
+    if (!string.IsNullOrWhiteSpace(refresh) || !string.IsNullOrWhiteSpace(access))
+    {
+        try
+        {
+            var client = httpFactory.CreateClient("downstream");
+            var identity = config["Services:Identity"] ?? "http://localhost:5101";
+            await client.PostAsJsonAsync(
+                $"{identity.TrimEnd('/')}/api/identity/token/revoke",
+                new RevokeTokenRequest(refresh, access));
+        }
+        catch
+        {
+            // best-effort revoke
+        }
+    }
+
+    http.Response.Cookies.Delete(AccessCookie);
+    http.Response.Cookies.Delete(RefreshCookie);
     await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     return Results.NoContent();
 });

@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\building-blocks\Crm.BuildingBlocks\Crm.BuildingBlocks.csproj" />

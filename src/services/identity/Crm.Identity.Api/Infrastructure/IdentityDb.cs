@@ -19,30 +19,66 @@ public sealed class IdentityDb
     public void EnsureSchema()
     {
         using var connection = Open();
-        using var command = connection.CreateCommand();
-        command.CommandText =
-            """
-            CREATE TABLE IF NOT EXISTS Users (
-              Id TEXT PRIMARY KEY,
-              Email TEXT NOT NULL UNIQUE,
-              DisplayName TEXT NOT NULL,
-              PasswordHash TEXT NOT NULL,
-              Role TEXT NOT NULL,
-              IsActive INTEGER NOT NULL,
-              CreatedAt TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS Roles (
-              Name TEXT PRIMARY KEY,
-              Description TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS RolePermissions (
-              RoleName TEXT NOT NULL,
-              Permission TEXT NOT NULL,
-              PRIMARY KEY (RoleName, Permission),
-              FOREIGN KEY (RoleName) REFERENCES Roles(Name)
-            );
-            """;
-        command.ExecuteNonQuery();
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText =
+                """
+                CREATE TABLE IF NOT EXISTS Users (
+                  Id TEXT PRIMARY KEY,
+                  Email TEXT NOT NULL UNIQUE,
+                  DisplayName TEXT NOT NULL,
+                  PasswordHash TEXT NOT NULL,
+                  Role TEXT NOT NULL,
+                  IsActive INTEGER NOT NULL,
+                  FailedLoginCount INTEGER NOT NULL DEFAULT 0,
+                  LockoutUntil TEXT NULL,
+                  CreatedAt TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS Roles (
+                  Name TEXT PRIMARY KEY,
+                  Description TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS RolePermissions (
+                  RoleName TEXT NOT NULL,
+                  Permission TEXT NOT NULL,
+                  PRIMARY KEY (RoleName, Permission),
+                  FOREIGN KEY (RoleName) REFERENCES Roles(Name)
+                );
+                CREATE TABLE IF NOT EXISTS RefreshTokens (
+                  Id TEXT PRIMARY KEY,
+                  UserId TEXT NOT NULL,
+                  TokenHash TEXT NOT NULL UNIQUE,
+                  ExpiresAt TEXT NOT NULL,
+                  CreatedAt TEXT NOT NULL,
+                  RevokedAt TEXT NULL,
+                  ReplacedByTokenId TEXT NULL
+                );
+                CREATE TABLE IF NOT EXISTS RevokedAccessTokens (
+                  Jti TEXT PRIMARY KEY,
+                  UserId TEXT NOT NULL,
+                  ExpiresAt TEXT NOT NULL,
+                  RevokedAt TEXT NOT NULL
+                );
+                """;
+            command.ExecuteNonQuery();
+        }
+
+        TryAddColumn(connection, "Users", "FailedLoginCount", "INTEGER NOT NULL DEFAULT 0");
+        TryAddColumn(connection, "Users", "LockoutUntil", "TEXT NULL");
+    }
+
+    private static void TryAddColumn(SqliteConnection connection, string table, string column, string definition)
+    {
+        try
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"ALTER TABLE {table} ADD COLUMN {column} {definition}";
+            command.ExecuteNonQuery();
+        }
+        catch
+        {
+            // column already exists
+        }
     }
 
     public void SeedIfEmpty()
@@ -114,7 +150,7 @@ public sealed class IdentityDb
         {
             command.CommandText =
                 """
-                SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, CreatedAt
+                SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
                 FROM Users ORDER BY DisplayName LIMIT 100
                 """;
         }
@@ -122,7 +158,7 @@ public sealed class IdentityDb
         {
             command.CommandText =
                 """
-                SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, CreatedAt
+                SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
                 FROM Users
                 WHERE Email LIKE $q OR DisplayName LIKE $q OR Role LIKE $q
                 ORDER BY DisplayName LIMIT 100
@@ -146,7 +182,7 @@ public sealed class IdentityDb
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, CreatedAt
+            SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
             FROM Users WHERE Id = $id
             """;
         command.Parameters.AddWithValue("$id", id.ToString());
@@ -160,7 +196,7 @@ public sealed class IdentityDb
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, CreatedAt
+            SELECT Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt
             FROM Users WHERE Email = $email
             """;
         command.Parameters.AddWithValue("$email", email.Trim().ToLowerInvariant());
@@ -174,8 +210,8 @@ public sealed class IdentityDb
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            INSERT INTO Users (Id, Email, DisplayName, PasswordHash, Role, IsActive, CreatedAt)
-            VALUES ($id, $email, $name, $hash, $role, $active, $created)
+            INSERT INTO Users (Id, Email, DisplayName, PasswordHash, Role, IsActive, FailedLoginCount, LockoutUntil, CreatedAt)
+            VALUES ($id, $email, $name, $hash, $role, $active, $fails, $lockout, $created)
             """;
         BindUser(command, user);
         command.ExecuteNonQuery();
@@ -187,7 +223,8 @@ public sealed class IdentityDb
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            UPDATE Users SET DisplayName = $name, PasswordHash = $hash, Role = $role, IsActive = $active
+            UPDATE Users SET DisplayName = $name, PasswordHash = $hash, Role = $role, IsActive = $active,
+              FailedLoginCount = $fails, LockoutUntil = $lockout
             WHERE Id = $id
             """;
         command.Parameters.AddWithValue("$id", user.Id.ToString());
@@ -195,7 +232,110 @@ public sealed class IdentityDb
         command.Parameters.AddWithValue("$hash", user.PasswordHash);
         command.Parameters.AddWithValue("$role", user.Role);
         command.Parameters.AddWithValue("$active", user.IsActive ? 1 : 0);
+        command.Parameters.AddWithValue("$fails", user.FailedLoginCount);
+        command.Parameters.AddWithValue("$lockout", (object?)user.LockoutUntil?.ToString("O") ?? DBNull.Value);
         command.ExecuteNonQuery();
+    }
+
+    public void InsertRefreshToken(StoredRefreshToken token)
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO RefreshTokens (Id, UserId, TokenHash, ExpiresAt, CreatedAt, RevokedAt, ReplacedByTokenId)
+            VALUES ($id, $uid, $hash, $exp, $created, $revoked, $replaced)
+            """;
+        command.Parameters.AddWithValue("$id", token.Id.ToString());
+        command.Parameters.AddWithValue("$uid", token.UserId.ToString());
+        command.Parameters.AddWithValue("$hash", token.TokenHash);
+        command.Parameters.AddWithValue("$exp", token.ExpiresAt.ToString("O"));
+        command.Parameters.AddWithValue("$created", token.CreatedAt.ToString("O"));
+        command.Parameters.AddWithValue("$revoked", (object?)token.RevokedAt?.ToString("O") ?? DBNull.Value);
+        command.Parameters.AddWithValue("$replaced", (object?)token.ReplacedByTokenId?.ToString() ?? DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public StoredRefreshToken? FindRefreshTokenByHash(string tokenHash)
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT Id, UserId, TokenHash, ExpiresAt, CreatedAt, RevokedAt, ReplacedByTokenId
+            FROM RefreshTokens WHERE TokenHash = $hash
+            """;
+        command.Parameters.AddWithValue("$hash", tokenHash);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new StoredRefreshToken
+        {
+            Id = Guid.Parse(reader.GetString(0)),
+            UserId = Guid.Parse(reader.GetString(1)),
+            TokenHash = reader.GetString(2),
+            ExpiresAt = DateTimeOffset.Parse(reader.GetString(3)),
+            CreatedAt = DateTimeOffset.Parse(reader.GetString(4)),
+            RevokedAt = reader.IsDBNull(5) ? null : DateTimeOffset.Parse(reader.GetString(5)),
+            ReplacedByTokenId = reader.IsDBNull(6) ? null : Guid.Parse(reader.GetString(6))
+        };
+    }
+
+    public void RevokeRefreshToken(Guid id, DateTimeOffset revokedAt, Guid? replacedBy = null)
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            UPDATE RefreshTokens SET RevokedAt = $revoked, ReplacedByTokenId = $replaced
+            WHERE Id = $id AND RevokedAt IS NULL
+            """;
+        command.Parameters.AddWithValue("$id", id.ToString());
+        command.Parameters.AddWithValue("$revoked", revokedAt.ToString("O"));
+        command.Parameters.AddWithValue("$replaced", (object?)replacedBy?.ToString() ?? DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    public void RevokeAllRefreshTokensForUser(Guid userId, DateTimeOffset revokedAt)
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            UPDATE RefreshTokens SET RevokedAt = $revoked
+            WHERE UserId = $uid AND RevokedAt IS NULL
+            """;
+        command.Parameters.AddWithValue("$uid", userId.ToString());
+        command.Parameters.AddWithValue("$revoked", revokedAt.ToString("O"));
+        command.ExecuteNonQuery();
+    }
+
+    public void RevokeAccessJti(string jti, Guid userId, DateTimeOffset expiresAt, DateTimeOffset revokedAt)
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT OR REPLACE INTO RevokedAccessTokens (Jti, UserId, ExpiresAt, RevokedAt)
+            VALUES ($jti, $uid, $exp, $revoked)
+            """;
+        command.Parameters.AddWithValue("$jti", jti);
+        command.Parameters.AddWithValue("$uid", userId.ToString());
+        command.Parameters.AddWithValue("$exp", expiresAt.ToString("O"));
+        command.Parameters.AddWithValue("$revoked", revokedAt.ToString("O"));
+        command.ExecuteNonQuery();
+    }
+
+    public bool IsAccessJtiRevoked(string jti)
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT 1 FROM RevokedAccessTokens WHERE Jti = $jti LIMIT 1";
+        command.Parameters.AddWithValue("$jti", jti);
+        return command.ExecuteScalar() is not null;
     }
 
     public IReadOnlyList<Role> ListRoles()
@@ -297,6 +437,8 @@ public sealed class IdentityDb
         command.Parameters.AddWithValue("$hash", user.PasswordHash);
         command.Parameters.AddWithValue("$role", user.Role);
         command.Parameters.AddWithValue("$active", user.IsActive ? 1 : 0);
+        command.Parameters.AddWithValue("$fails", user.FailedLoginCount);
+        command.Parameters.AddWithValue("$lockout", (object?)user.LockoutUntil?.ToString("O") ?? DBNull.Value);
         command.Parameters.AddWithValue("$created", user.CreatedAt.ToString("O"));
     }
 
@@ -308,7 +450,9 @@ public sealed class IdentityDb
             reader.GetString(3),
             reader.GetString(4),
             reader.GetInt64(5) == 1,
-            DateTimeOffset.Parse(reader.GetString(6)));
+            reader.IsDBNull(6) ? 0 : Convert.ToInt32(reader.GetInt64(6)),
+            reader.IsDBNull(7) ? null : DateTimeOffset.Parse(reader.GetString(7)),
+            DateTimeOffset.Parse(reader.GetString(8)));
 
     private SqliteConnection Open()
     {
