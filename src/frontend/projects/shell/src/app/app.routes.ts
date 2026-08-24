@@ -1,9 +1,9 @@
 import { loadRemoteModule } from '@angular-architects/native-federation';
 import { Routes } from '@angular/router';
-import { HomeComponent } from './home.component';
+import { HomePage } from './features/home/home/home.page';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', component: HomeComponent },
+  { path: '', pathMatch: 'full', component: HomePage },
   {
     path: 'agent',
     loadChildren: () =>

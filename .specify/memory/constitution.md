@@ -26,7 +26,9 @@ Customers owns profiles, contacts, and customer attachments. Tickets owns ticket
 
 ### Vertical slice + CQRS + DDD
 
-.NET and NestJS features are organized as command/query slices (`Features/CreateTicket/...`), not a layered Application/Domain/Infrastructure cake. Aggregates and value objects live in the owning service `Domain/`. In-process CQRS (MediatR / `@nestjs/cqrs`) is required for new write/read use cases. Integration events are contracts; do not add a message broker unless the spec names it.
+.NET features use `Features/{Area}/{UseCase}/` with `Endpoint` / `Command|Query` / `Handler` (see `.cursor/rules/dotnet-vertical-slice.mdc`).  
+NestJS services use `features/{area}/{use-case}/` with `route.ts` / `schema.ts` / `handler.ts` (+ optional `service.ts`), plus `domain/`, `infrastructure/`, `shared/`, and `app/` + `server.ts` (see `.cursor/rules/nestjs-service-structure.mdc`).  
+In-process CQRS (MediatR / `@nestjs/cqrs`) is required for new write/read use cases. Integration events are contracts; do not add a message broker unless the spec names it. Aggregates and value objects live in the owning service `domain/` (or .NET `Domain/`).
 
 ### Keep local persistence boring
 
@@ -40,11 +42,14 @@ Stage only files for the slice. Never commit `.tmp-build/`, `*.db`, `bin/`, `obj
 
 - Angular: Native Federation. Shell owns chrome, language, and auth. agent-mfe owns agent work; portal-mfe owns customer portal; admin-mfe owns security/config; knowledge-mfe owns authoring/search.
 - MFEs call `/api/...` on the gateway only — never `localhost:510x` or `localhost:520x`.
-- Frontend structure is **Feature-Based + Signals**:
-  - Organize by feature under `features/{name}/` with `data-access/`, `pages/`, and `ui/` (presentational).
-  - Feature state uses Angular **signals** / a small feature store (`signal`, `computed`, `update`) — not NgRx for new work.
-  - Pages (smart containers) call the feature store/API; `ui/` components are presentational (`input` / `output` only).
-  - Components use separate `*.ts` + `*.html` + `*.scss` (`templateUrl` / `styleUrls`) — no inline `template` / `styles` for UI components.
+- Frontend structure is **Feature-Based + Signals** under `src/app/`:
+  - `core/` — auth, HTTP interceptors, app providers
+  - `shared/` — reusable local UI/utilities (cross-MFE kits stay in `projects/shared`)
+  - `layout/` — shell chrome when the app owns it
+  - `features/{feature}/{use-case}/` — screens as `{name}.page.ts` + `{name}.html` + `{name}.scss`; feature root holds `{feature}.api.ts`, `{feature}.models.ts`, `{feature}.store.ts`, `{feature}.routes.ts`
+  - Feature state uses Angular **signals** / a small feature or page store — not NgRx for new work
+  - Smart pages call the feature/page store; presentational widgets take `input` / `output` only
+  - No inline `template` / `styles` for UI components
 - Arabic (RTL) and English (LTR) shell chrome must keep working.
 - Do not introduce RabbitMQ, Mongo, or extra containers unless the spec names them.
 
@@ -54,4 +59,4 @@ Stage only files for the slice. Never commit `.tmp-build/`, `*.db`, `bin/`, `obj
 - Specs are the review surface: if it is not in `spec.md`, it is not required.
 - After implement, mark tasks done and set spec status to Implemented.
 
-**Version**: 1.1.1 | **Ratified**: 2026-08-24 | **Last Amended**: 2026-08-24
+**Version**: 1.3.0 | **Ratified**: 2026-08-24 | **Last Amended**: 2026-08-24 — Nest features/domain/infrastructure layout

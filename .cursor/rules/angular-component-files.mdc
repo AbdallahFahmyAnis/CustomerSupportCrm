@@ -8,8 +8,16 @@ alwaysApply: false
 
 Do not put HTML or CSS inline in `.ts` files.
 
-- Use `templateUrl: './name.component.html'`
-- Use `styleUrls: ['./name.component.scss']`
-- Never use `template:` or `styles:` for UI components (including tiny `router-outlet` roots)
+## Pages (features)
+
+- `{name}.page.ts` with `templateUrl: './{name}.html'` and `styleUrls: ['./{name}.scss']`
+- Companion files: `{name}.html`, `{name}.scss`
+
+## Other UI components
+
+- Prefer `{name}.component.ts` + `{name}.component.html` + `{name}.component.scss`
+- Or the shorter `{name}.ts` + `{name}.html` + `{name}.scss` when colocated under `shared/components` or a feature widget folder
+
+Never use `template:` or `styles:` for product UI components.
 
 Exception: none for product UI. Specs and generated docs are not components.
