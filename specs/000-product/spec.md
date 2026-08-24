@@ -24,8 +24,9 @@ Give support agents a single place to know the customer, work tickets, and reply
 
 ## Next
 
-1. Channels / portal
-2. CRM-036 audit logs / CRM-037 system config
+1. `specs/005-channels-portal` — CRM-012 / CRM-027 / CRM-028 web form + portal submit/track *(in progress)*
+2. CRM-008 email channel / CRM-040 providers
+3. CRM-036 audit logs / CRM-037 system config
 
 ## Constraints
 

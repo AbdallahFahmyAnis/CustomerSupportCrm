@@ -1,0 +1,44 @@
+<section class="track">
+  <p class="back"><a routerLink="/portal">← Portal home</a></p>
+  <h1>Track my requests</h1>
+  <p class="hint">Enter the email you used when submitting.</p>
+
+  <form (ngSubmit)="search()">
+    <label>
+      Email
+      <input
+        name="email"
+        type="email"
+        [(ngModel)]="email"
+        required
+        autocomplete="email"
+      />
+    </label>
+    <button type="submit" [disabled]="store.tracking()">
+      {{ store.tracking() ? 'Searching…' : 'Find requests' }}
+    </button>
+  </form>
+
+  @if (store.trackError(); as err) {
+    <p class="error" role="alert">{{ err }}</p>
+  }
+
+  @if (!store.tracking() && store.trackEmail()) {
+    @if (store.hasRequests()) {
+      <ul class="list">
+        @for (row of store.requests(); track row.requestId) {
+          <li>
+            <div class="row-head">
+              <strong>{{ row.ticketNumber }}</strong>
+              <span class="status">{{ row.status }}</span>
+            </div>
+            <div class="subject">{{ row.subject }}</div>
+            <div class="meta">{{ row.createdAt | date: 'medium' }}</div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">No requests found for that email.</p>
+    }
+  }
+</section>
