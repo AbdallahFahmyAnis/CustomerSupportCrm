@@ -1,0 +1,16 @@
+---
+description: After finishing an SDD story, commit, push, and open a PR
+alwaysApply: true
+---
+
+# Finish story → PR
+
+When an SDD story/slice is marked **Implemented** (spec DoD done, smoke OK):
+
+1. **Commit** on a dedicated branch `cursor/<slug>-NNN` (e.g. `cursor/ticket-lifecycle-003`). Do not commit secrets or local DB files.
+2. **Push** with `-u origin HEAD`.
+3. **Open a PR** into `master` (Azure DevOps: `az repos pr create`; GitHub: `gh pr create`). Title/story ids in the summary; include a short test plan.
+4. **Return the PR URL** to the user.
+5. Do this **without waiting** for the user to ask again once the story is finished—unless they said not to push/PR.
+
+If the previous story’s branch is unmerged and this slice depends on it, stack the PR onto that branch or note the dependency in the PR body.
