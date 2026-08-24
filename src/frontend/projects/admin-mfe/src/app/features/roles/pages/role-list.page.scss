@@ -1,0 +1,36 @@
+.page {
+  padding: 1.25rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+article {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  display: inline-block;
+  background: #e2e8f0;
+  border-radius: 0.25rem;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.85rem;
+}
+
+.error {
+  color: #b91c1c;
+}

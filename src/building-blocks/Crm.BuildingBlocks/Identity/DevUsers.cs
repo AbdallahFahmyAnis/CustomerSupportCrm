@@ -1,6 +1,6 @@
 namespace Crm.BuildingBlocks.Identity;
 
-/// <summary>SDD 001-platform-foundation — demo credentials until CRM-035.</summary>
+/// <summary>SDD CRM-035 — seeded demo credentials (also in IdentityDb).</summary>
 public static class DevUsers
 {
     public const string AgentEmail = "agent@crm.local";
