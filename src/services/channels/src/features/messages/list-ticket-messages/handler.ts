@@ -15,7 +15,7 @@ export class ListTicketMessagesHandler
   async execute(query: ListTicketMessagesQuery) {
     try {
       const ticketId = requireTicketId(query.ticketId);
-      return this.service.list(ticketId);
+      return await this.service.list(ticketId);
     } catch (err) {
       throw new BadRequestException(
         err instanceof Error ? err.message : 'Invalid ticket id.',

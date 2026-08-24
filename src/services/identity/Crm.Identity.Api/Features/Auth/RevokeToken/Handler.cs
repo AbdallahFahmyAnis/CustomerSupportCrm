@@ -5,20 +5,21 @@ using MediatR;
 
 namespace Crm.Identity.Api.Features.Auth.RevokeToken;
 
-public sealed class RevokeTokenHandler(IdentityDb db, TokenService tokens)
+public sealed class RevokeTokenHandler(IdentityDirectory directory, TokenService tokens)
     : IRequestHandler<RevokeTokenCommand, RevokeTokenResponse>
 {
-    public Task<RevokeTokenResponse> Handle(RevokeTokenCommand request, CancellationToken cancellationToken)
+    public async Task<RevokeTokenResponse> Handle(RevokeTokenCommand request, CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
         var any = false;
 
         if (!string.IsNullOrWhiteSpace(request.RefreshToken))
         {
-            var existing = db.FindRefreshTokenByHash(TokenService.HashToken(request.RefreshToken));
+            var existing = await directory.FindRefreshTokenByHashAsync(
+                TokenService.HashToken(request.RefreshToken), cancellationToken);
             if (existing is not null && existing.RevokedAt is null)
             {
-                db.RevokeRefreshToken(existing.Id, now);
+                await directory.RevokeRefreshTokenAsync(existing.Id, now, null, cancellationToken);
                 any = true;
             }
         }
@@ -40,14 +41,14 @@ public sealed class RevokeTokenHandler(IdentityDb db, TokenService tokens)
                         exp = DateTimeOffset.FromUnixTimeSeconds(unix);
                     }
 
-                    db.RevokeAccessJti(jti, userId, exp, now);
+                    await directory.RevokeAccessJtiAsync(jti, userId, exp, now, cancellationToken);
                     any = true;
                 }
             }
         }
 
-        return Task.FromResult(any
+        return any
             ? new RevokeTokenResponse(true, null)
-            : new RevokeTokenResponse(false, "No active token to revoke."));
+            : new RevokeTokenResponse(false, "No active token to revoke.");
     }
 }

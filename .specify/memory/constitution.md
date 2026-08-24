@@ -32,7 +32,7 @@ In-process CQRS (MediatR / `@nestjs/cqrs`) is required for new write/read use ca
 
 ### Keep local persistence boring
 
-SQLite (or JSON for a Nest stub) is the offline/default escape hatch until a slice names a server engine. Spec `006-data-platform` allows Docker **SQL Server**, **PostgreSQL**, and **MongoDB** for local/CI; map Identity/Customers/Tickets → SQL Server, Channels → Postgres, Knowledge → Mongo when that service migrates. Schema uses `Ensure` / idempotent DDL with Guid string ids. Seed must not take down startup — wrap seed in try/catch and keep the API startable. Prefer connection strings from config/env over committed secrets.
+.NET services prefer **EF Core** (SQL Server for Identity/Customers/Tickets; Sqlite escape hatch for offline tests). Nest Channels prefers **TypeORM on PostgreSQL** (`CHANNELS_DATABASE_URL`) with JSON file escape hatch. Spec `006-data-platform` Docker SQL Server / Postgres / Mongo remain the local/CI engines; Knowledge → Mongo later. Spec `007-identity-ef-core` requires OpenIddict + ASP.NET Core Identity on EF Core. Seed must not take down startup. Prefer connection strings from config/env over committed secrets.
 
 ### Small, related commits
 
@@ -59,4 +59,4 @@ Stage only files for the slice. Never commit `.tmp-build/`, `*.db`, `bin/`, `obj
 - Specs are the review surface: if it is not in `spec.md`, it is not required.
 - After implement, mark tasks done and set spec status to Implemented.
 
-**Version**: 1.4.0 | **Ratified**: 2026-08-24 | **Last Amended**: 2026-08-24 — Docker SQL Server / Postgres / Mongo + Identity SQL path (006)
+**Version**: 1.5.0 | **Ratified**: 2026-08-24 | **Last Amended**: 2026-08-24 — OpenIddict + EF Core Identity; Channels TypeORM/Postgres (007)

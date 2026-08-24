@@ -31,7 +31,7 @@ export class SubmitWebFormService {
 
     const now = new Date().toISOString();
     const requestId = randomUUID();
-    this.store.addRequest(
+    await this.store.addRequest(
       {
         id: requestId,
         ticketId: ticket.id,
