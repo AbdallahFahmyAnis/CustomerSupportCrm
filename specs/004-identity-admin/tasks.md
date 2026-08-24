@@ -22,4 +22,4 @@
 
 - [x] T008 Smoke gateway `/admin/users`
 - [x] T009 Mark Implemented; update 000-product
-- [ ] T010 Commit + PR
+- [x] T010 Commit + PR
