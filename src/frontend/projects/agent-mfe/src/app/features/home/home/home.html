@@ -2,7 +2,7 @@
   <header class="row">
     <div>
       <h1>Agent workspace</h1>
-      <p class="lede">Customer context and ticket queue in one place.</p>
+      <p class="lede">Your assigned queue with customer context — start work without hunting.</p>
     </div>
   </header>
 
@@ -18,4 +18,38 @@
       <span>Work the queue and reply on channel</span>
     </a>
   </div>
+
+  <section class="my-tickets">
+    <div class="my-head">
+      <h2>My tickets</h2>
+      <a routerLink="/agent/tickets">Open full queue</a>
+    </div>
+    @if (loading()) {
+      <p class="muted">Loading assigned tickets…</p>
+    }
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    @if (!loading() && !error()) {
+      @if (mine().length === 0) {
+        <p class="muted">No tickets assigned to you right now.</p>
+      } @else {
+        <ul class="mine-list">
+          @for (t of mine(); track t.id) {
+            <li>
+              <a class="mine-card" [routerLink]="['/agent/tickets', t.id]">
+                <div class="mine-top">
+                  <strong>{{ t.ticketNumber }}</strong>
+                  <span class="badge">{{ t.priority }}</span>
+                  <span class="badge soft">{{ t.status }}</span>
+                </div>
+                <div class="subject">{{ t.subject }}</div>
+                <div class="meta">{{ t.customerName }}</div>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    }
+  </section>
 </section>
