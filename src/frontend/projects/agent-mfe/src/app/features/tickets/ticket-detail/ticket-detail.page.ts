@@ -71,6 +71,7 @@ export class TicketDetailPage implements OnInit {
   readonly aiBusy = signal(false);
   readonly aiError = signal('');
   readonly aiSummary = signal<{ summary: string; highlights: string[] } | null>(null);
+  readonly aiSuggestions = signal<{ title: string; body: string }[]>([]);
 
   readonly emailMessages = computed<CrmEmailMessage[]>(() =>
     this.store
@@ -316,5 +317,29 @@ export class TicketDetailPage implements OnInit {
         this.aiBusy.set(false);
       },
     });
+  }
+
+  /** SDD CRM-024 */
+  loadAiSuggestions(): void {
+    this.aiBusy.set(true);
+    this.aiError.set('');
+    this.api.suggestReplies(this.id).subscribe({
+      next: (rows) => {
+        this.aiSuggestions.set(rows ?? []);
+        this.aiBusy.set(false);
+      },
+      error: () => {
+        this.aiError.set('Could not load suggestions.');
+        this.aiBusy.set(false);
+      },
+    });
+  }
+
+  insertAiSuggestion(target: 'email' | 'chat', body: string): void {
+    if (target === 'email') {
+      this.emailDraft = this.emailDraft ? `${this.emailDraft}\n\n${body}` : body;
+    } else {
+      this.chatDraft = this.chatDraft ? `${this.chatDraft}\n\n${body}` : body;
+    }
   }
 }

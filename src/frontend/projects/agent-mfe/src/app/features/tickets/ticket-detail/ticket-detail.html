@@ -115,6 +115,30 @@
     </div>
 
     <div class="knowledge-panel card">
+      <h2>AI suggested replies</h2>
+      <button type="button" class="btn" (click)="loadAiSuggestions()" [disabled]="aiBusy()">
+        Suggest replies
+      </button>
+      @if (aiSuggestions().length) {
+        <ul class="ai-suggestions">
+          @for (s of aiSuggestions(); track s.title) {
+            <li>
+              <strong>{{ s.title }}</strong>
+              <div class="mention-row" style="margin-top: 0.35rem">
+                <button type="button" class="btn ghost" (click)="insertAiSuggestion('email', s.body)">
+                  Insert email
+                </button>
+                <button type="button" class="btn ghost" (click)="insertAiSuggestion('chat', s.body)">
+                  Insert chat
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="knowledge-panel card">
       <h2>Knowledge</h2>
       <form class="knowledge-form" (ngSubmit)="searchKnowledge()">
         <input name="kq" [(ngModel)]="knowledgeQ" placeholder="Search published articles…" />
