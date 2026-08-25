@@ -116,3 +116,20 @@ public sealed record CreateTicketTaskRequest(
 
 /// <summary>SDD CRM-015 — shared canned reply.</summary>
 public sealed record QuickReplyDto(string Id, string Title, string Body);
+
+/// <summary>SDD CRM-031 — ticket volume report.</summary>
+public sealed record TicketReportSummaryDto(
+    DateTimeOffset From,
+    DateTimeOffset To,
+    int Created,
+    int Open,
+    int ResolvedOrClosed,
+    int Escalated,
+    IReadOnlyList<ReportBucketDto> ByStatus,
+    IReadOnlyList<ReportBucketDto> ByCategory,
+    IReadOnlyList<ReportBucketDto> ByPriority,
+    IReadOnlyList<ReportAgentBucketDto> ByAgent);
+
+public sealed record ReportBucketDto(string Key, int Count);
+
+public sealed record ReportAgentBucketDto(string? AgentId, string? AgentName, int Count);

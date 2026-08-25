@@ -350,6 +350,33 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         db.SaveChanges();
     }
 
+    /// <summary>SDD CRM-031 / 032 / 033 — tickets created in inclusive range.</summary>
+    public IReadOnlyList<TicketRow> ListTicketRowsCreatedBetween(DateTimeOffset from, DateTimeOffset to)
+    {
+        using var db = factory.CreateDbContext();
+        return db.Tickets.AsNoTracking()
+            .Where(t => t.CreatedAt >= from && t.CreatedAt <= to)
+            .ToList();
+    }
+
+    /// <summary>SDD CRM-033 — feedback created in range with ticket assignee.</summary>
+    public IReadOnlyList<(TicketFeedbackRow Feedback, TicketRow? Ticket)> ListFeedbackCreatedBetween(
+        DateTimeOffset from,
+        DateTimeOffset to)
+    {
+        using var db = factory.CreateDbContext();
+        var feedback = db.TicketFeedback.AsNoTracking()
+            .Where(f => f.CreatedAt >= from && f.CreatedAt <= to)
+            .ToList();
+        var ticketIds = feedback.Select(f => f.TicketId).Distinct().ToList();
+        var tickets = db.Tickets.AsNoTracking()
+            .Where(t => ticketIds.Contains(t.Id))
+            .ToDictionary(t => t.Id);
+        return feedback
+            .Select(f => (f, tickets.TryGetValue(f.TicketId, out var t) ? t : null))
+            .ToList();
+    }
+
     private static Ticket FromRow(TicketRow row)
         => Ticket.Rehydrate(
             row.Id,

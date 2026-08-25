@@ -44,11 +44,14 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/026-ticket-tasks` — CRM-014 ticket tasks + due-today home
 - [x] `specs/027-quick-replies` — CRM-015 shared quick reply catalog
 - [x] `specs/028-customer-feedback` — CRM-030 portal CSAT + agent read-only
+- [x] `specs/029-ticket-reports` — CRM-031 ticket volume reports
 
 ## Next
 
-1. Inbound webhooks / signature verification for providers
-2. Reports / AI when ready
+1. CRM-032 SLA performance when ready
+2. CRM-033 CSAT reports when ready
+3. CRM-034 management dashboard when ready
+4. Inbound webhooks / AI when ready
 
 ## Constraints
 
