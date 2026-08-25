@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CrmModalComponent } from 'shared';
+import { CrmModalComponent, CrmTimelineComponent, CrmTimelineItem } from 'shared';
 import { CustomerDetail } from '../customers.models';
 import { CustomersApi } from '../customers.api';
 
@@ -10,13 +10,15 @@ import { CustomersApi } from '../customers.api';
 @Component({
   selector: 'app-customer-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, CrmModalComponent],
+  imports: [FormsModule, RouterLink, CrmModalComponent, CrmTimelineComponent],
   templateUrl: './customer-detail.html',
   styleUrls: ['./customer-detail.scss'],
+  providers: [DatePipe],
 })
 export class CustomerDetailComponent implements OnInit {
   readonly api = inject(CustomersApi);
   private readonly route = inject(ActivatedRoute);
+  private readonly datePipe = inject(DatePipe);
   readonly customer = signal<CustomerDetail | null>(null);
   readonly error = signal('');
   tab: 'contacts' | 'activity' | 'timeline' = 'contacts';
@@ -27,6 +29,19 @@ export class CustomerDetailComponent implements OnInit {
   confirmOpen = false;
   private pendingContactId = '';
   private id = '';
+
+  readonly timelineItems = computed<CrmTimelineItem[]>(() => {
+    const c = this.customer();
+    if (!c) {
+      return [];
+    }
+    return c.timeline.map((item) => ({
+      id: item.id,
+      title: item.kind,
+      body: item.summary,
+      timeLabel: this.datePipe.transform(item.occurredAt, 'medium') ?? '',
+    }));
+  });
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id') ?? '';

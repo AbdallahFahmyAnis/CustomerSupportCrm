@@ -8,65 +8,44 @@
   <header class="row">
     <div>
       <h1>Live chat</h1>
-      <p class="lede">Start a chat — we open a support ticket for an agent.</p>
+      <p class="lede">Message support — your conversation becomes a ticket.</p>
     </div>
   </header>
 
-  <div class="settings-card chat-card">
-    <div class="settings-hero">
-      <div class="avatar">C</div>
-      <div class="meta">
-        <strong>{{ ticketNumber ? 'Ticket ' + ticketNumber : 'New conversation' }}</strong>
-        <p>{{ ticketId ? 'Send another message on this ticket.' : 'Introduce yourself and ask a question.' }}</p>
-      </div>
-    </div>
-
-    <div class="chat-body">
-      @if (transcript().length) {
-        <ul class="transcript">
-          @for (row of transcript(); track $index) {
-            <li>
-              <span class="who">{{ row.direction }}</span>
-              <p>{{ row.body }}</p>
-            </li>
-          }
-        </ul>
-      }
-
-      <form class="settings-form" (ngSubmit)="send()">
+  @if (!ticketId) {
+    <div class="identity-card settings-card">
+      <form class="settings-form" (ngSubmit)="$event.preventDefault()">
         <div class="settings-form-grid">
           <label>
             Name
-            <input name="name" [(ngModel)]="name" autocomplete="name" [disabled]="!!ticketId" />
+            <input name="name" [(ngModel)]="name" autocomplete="name" />
           </label>
           <label>
             Email
-            <input
-              name="email"
-              type="email"
-              [(ngModel)]="email"
-              required
-              autocomplete="email"
-              [disabled]="!!ticketId"
-            />
+            <input name="email" type="email" [(ngModel)]="email" required autocomplete="email" />
           </label>
-          <label class="full">
-            Message
-            <textarea name="message" [(ngModel)]="message" rows="4" required placeholder="Type your message…"></textarea>
-          </label>
-        </div>
-
-        @if (error()) {
-          <p class="error" role="alert">{{ error() }}</p>
-        }
-
-        <div class="settings-actions">
-          <button type="submit" class="btn" [disabled]="sending()">
-            {{ sending() ? 'Sending…' : ticketId ? 'Send message' : 'Start chat' }}
-          </button>
-          <a routerLink="/portal" class="btn secondary">Back</a>
         </div>
       </form>
     </div>
-  </div>
+  }
+
+  <crm-chat
+    [title]="chatTitle"
+    [subtitle]="chatSubtitle"
+    avatarText="S"
+    [messages]="messages()"
+    [(draft)]="draft"
+    [sending]="sending()"
+    [composeDisabled]="!email.trim()"
+    placeholder="Type a message…"
+    sendLabel="Send"
+    emptyText="Say hello to start a conversation with support."
+    (send)="onSend($event)"
+  />
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  <p class="back-link"><a routerLink="/portal">← Portal home</a></p>
 </section>

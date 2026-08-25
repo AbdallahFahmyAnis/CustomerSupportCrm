@@ -1,7 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, effect, inject } from '@angular/core';
+import { Component, OnInit, computed, effect, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import {
+  CrmChatComponent,
+  CrmChatMessage,
+  CrmTimelineComponent,
+  CrmTimelineItem,
+} from 'shared';
 import { TicketPriorityBadgeComponent } from '../components/ticket-priority-badge/ticket-priority-badge.component';
 import { TicketsApi } from '../tickets.api';
 import { TicketsStore } from '../tickets.store';
@@ -10,24 +16,55 @@ import { TicketsStore } from '../tickets.store';
 @Component({
   selector: 'app-ticket-detail-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe, TicketPriorityBadgeComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    TicketPriorityBadgeComponent,
+    CrmChatComponent,
+    CrmTimelineComponent,
+  ],
   templateUrl: './ticket-detail.html',
   styleUrls: ['./ticket-detail.scss'],
+  providers: [DatePipe],
 })
 export class TicketDetailPage implements OnInit {
   readonly store = inject(TicketsStore);
   private readonly api = inject(TicketsApi);
   private readonly route = inject(ActivatedRoute);
+  private readonly datePipe = inject(DatePipe);
 
   category = '';
   priority = '';
   agentId = '';
   status = '';
   escalateTo = '';
-  replyBody = '';
-  whatsappReplyBody = '';
-  chatReplyBody = '';
+  replyChannel: 'email' | 'whatsapp' | 'chat' = 'chat';
+  chatDraft = '';
   private id = '';
+
+  readonly chatMessages = computed<CrmChatMessage[]>(() =>
+    this.store.channelMessages().map((m) => ({
+      id: m.id,
+      body: m.body,
+      mine: m.direction === 'Outbound',
+      meta: `${m.channel}${m.fromEmail ? ' · ' + m.fromEmail : ''}`,
+      timeLabel: this.datePipe.transform(m.createdAt, 'short') ?? '',
+    })),
+  );
+
+  readonly historyItems = computed<CrmTimelineItem[]>(() => {
+    const t = this.store.selected();
+    if (!t) {
+      return [];
+    }
+    return t.history.map((h) => ({
+      id: h.id,
+      title: h.field,
+      body: `${h.oldValue || '—'} → ${h.newValue || '—'}`,
+      timeLabel: this.datePipe.transform(h.changedAt, 'short') ?? '',
+      meta: h.changedBy,
+    }));
+  });
 
   constructor() {
     effect(() => {
@@ -76,36 +113,23 @@ export class TicketDetailPage implements OnInit {
     });
   }
 
-  sendReply(): void {
-    const body = this.replyBody.trim();
-    if (!body) {
+  onChatSend(body: string): void {
+    const text = body.trim();
+    if (!text) {
       this.store.error.set('Reply body is required.');
       return;
     }
-    this.store.replyEmail(this.id, body, () => {
-      this.replyBody = '';
-    });
-  }
-
-  sendWhatsAppReply(): void {
-    const body = this.whatsappReplyBody.trim();
-    if (!body) {
-      this.store.error.set('WhatsApp reply body is required.');
+    const clear = () => {
+      this.chatDraft = '';
+    };
+    if (this.replyChannel === 'email') {
+      this.store.replyEmail(this.id, text, clear);
       return;
     }
-    this.store.replyWhatsApp(this.id, body, () => {
-      this.whatsappReplyBody = '';
-    });
-  }
-
-  sendChatReply(): void {
-    const body = this.chatReplyBody.trim();
-    if (!body) {
-      this.store.error.set('Live chat reply body is required.');
+    if (this.replyChannel === 'whatsapp') {
+      this.store.replyWhatsApp(this.id, text, clear);
       return;
     }
-    this.store.replyChat(this.id, body, () => {
-      this.chatReplyBody = '';
-    });
+    this.store.replyChat(this.id, text, clear);
   }
 }

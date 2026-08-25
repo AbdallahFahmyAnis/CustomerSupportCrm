@@ -90,70 +90,30 @@
       </form>
     </div>
 
-    <h2>Channel messages</h2>
-    @if (store.channelMessages().length === 0) {
-      <p class="muted">No channel messages yet.</p>
-    } @else {
-      <ul class="messages">
-        @for (m of store.channelMessages(); track m.id) {
-          <li>
-            <span class="badge">{{ m.channel }} · {{ m.direction }}</span>
-            @if (m.fromEmail) {
-              <span class="meta">{{ m.direction === 'Inbound' ? 'from' : 'via' }} {{ m.fromEmail }}</span>
-            }
-            <p class="msg-body">{{ m.body }}</p>
-            <span class="meta">{{ m.createdAt | date: 'short' }}</span>
-          </li>
-        }
-      </ul>
-    }
-
-    <form class="card reply" (ngSubmit)="sendReply()">
-      <h2>Email reply</h2>
-      <label>
-        Message
-        <textarea name="replyBody" rows="4" [(ngModel)]="replyBody" placeholder="Write a reply to the customer…"></textarea>
-      </label>
-      <button type="submit" class="btn">Send email reply</button>
-    </form>
-
-    <form class="card reply" (ngSubmit)="sendWhatsAppReply()">
-      <h2>WhatsApp reply</h2>
-      <label>
-        Message
-        <textarea
-          name="whatsappReplyBody"
-          rows="4"
-          [(ngModel)]="whatsappReplyBody"
-          placeholder="Write a WhatsApp reply…"
-        ></textarea>
-      </label>
-      <button type="submit" class="btn">Send WhatsApp reply</button>
-    </form>
-
-    <form class="card reply" (ngSubmit)="sendChatReply()">
-      <h2>Live chat reply</h2>
-      <label>
-        Message
-        <textarea
-          name="chatReplyBody"
-          rows="4"
-          [(ngModel)]="chatReplyBody"
-          placeholder="Write a live chat reply…"
-        ></textarea>
-      </label>
-      <button type="submit" class="btn">Send live chat reply</button>
-    </form>
+    <h2>Channel conversation</h2>
+    <crm-chat
+      [title]="t.customerName"
+      [subtitle]="t.ticketNumber + ' · channel thread'"
+      [avatarText]="(t.customerName || '?').charAt(0).toUpperCase()"
+      [messages]="chatMessages()"
+      [(draft)]="chatDraft"
+      placeholder="Write a reply…"
+      sendLabel="Send"
+      (send)="onChatSend($event)"
+    >
+      <div crmChatComposeExtra class="channel-pick">
+        <label>
+          Channel
+          <select name="replyChannel" [(ngModel)]="replyChannel">
+            <option value="chat">Live chat</option>
+            <option value="email">Email</option>
+            <option value="whatsapp">WhatsApp</option>
+          </select>
+        </label>
+      </div>
+    </crm-chat>
 
     <h2>History</h2>
-    <ul class="history">
-      @for (h of t.history; track h.id) {
-        <li>
-          <strong>{{ h.field }}</strong>
-          {{ h.oldValue || '—' }} → {{ h.newValue || '—' }}
-          <span class="meta">{{ h.changedBy }} · {{ h.changedAt | date: 'short' }}</span>
-        </li>
-      }
-    </ul>
+    <crm-timeline [items]="historyItems()" emptyText="No history yet." />
   }
 </section>

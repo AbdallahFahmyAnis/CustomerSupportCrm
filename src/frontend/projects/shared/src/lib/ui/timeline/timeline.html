@@ -1,0 +1,25 @@
+@if (items().length === 0) {
+  <p class="crm-tl__empty">{{ emptyText() }}</p>
+} @else {
+  <ul class="crm-tl">
+    @for (item of items(); track item.id) {
+      <li class="crm-tl__item">
+        <span class="crm-tl__point" aria-hidden="true"></span>
+        <article class="crm-tl__card">
+          <header class="crm-tl__head">
+            <h4>{{ item.title }}</h4>
+            @if (item.timeLabel) {
+              <time>{{ item.timeLabel }}</time>
+            }
+          </header>
+          @if (item.body) {
+            <p class="crm-tl__body">{{ item.body }}</p>
+          }
+          @if (item.meta) {
+            <p class="crm-tl__meta">{{ item.meta }}</p>
+          }
+        </article>
+      </li>
+    }
+  </ul>
+}
