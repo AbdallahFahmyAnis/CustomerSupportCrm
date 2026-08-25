@@ -161,4 +161,27 @@ export class TicketsApi {
     const query = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
     return this.http.get<CustomerOption[]>(`/api/customers${query}`);
   }
+
+  /** SDD CRM-023 */
+  generateSummary(ticketId: string): Observable<{ ticketId: string; summary: string; highlights: string[] }> {
+    return this.http.post<{ ticketId: string; summary: string; highlights: string[] }>(
+      `/api/ai/tickets/${ticketId}/summary`,
+      {},
+    );
+  }
+
+  /** SDD CRM-024 */
+  suggestReplies(ticketId: string): Observable<{ title: string; body: string }[]> {
+    return this.http.post<{ title: string; body: string }[]>(`/api/ai/tickets/${ticketId}/suggestions`, {});
+  }
+
+  /** SDD CRM-025 */
+  categorize(
+    ticketId: string,
+  ): Observable<{ category: string; priority: string; confidence: number }> {
+    return this.http.post<{ category: string; priority: string; confidence: number }>(
+      `/api/ai/tickets/${ticketId}/categorize`,
+      {},
+    );
+  }
 }

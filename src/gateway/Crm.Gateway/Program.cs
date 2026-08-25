@@ -99,7 +99,8 @@ app.MapGet("/health", async (IHttpClientFactory httpFactory, IConfiguration conf
         ("knowledge", config["Services:Knowledge"] ?? "http://localhost:5104"),
         ("sla", config["Services:Sla"] ?? "http://localhost:5105"),
         ("channels", config["Services:Channels"] ?? "http://localhost:5201"),
-        ("notifications", config["Services:Notifications"] ?? "http://localhost:5202")
+        ("notifications", config["Services:Notifications"] ?? "http://localhost:5202"),
+        ("ai", config["Services:Ai"] ?? "http://localhost:5203")
     };
 
     var services = new Dictionary<string, object>();

@@ -97,6 +97,24 @@
     }
 
     <div class="knowledge-panel card">
+      <h2>AI summary</h2>
+      <button type="button" class="btn" (click)="generateAiSummary()" [disabled]="aiBusy()">
+        {{ aiBusy() ? 'Generating…' : 'Generate summary' }}
+      </button>
+      @if (aiError()) {
+        <p class="error">{{ aiError() }}</p>
+      }
+      @if (aiSummary(); as s) {
+        <p class="ai-summary">{{ s.summary }}</p>
+        <ul class="ai-highlights">
+          @for (h of s.highlights; track h) {
+            <li>{{ h }}</li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="knowledge-panel card">
       <h2>Knowledge</h2>
       <form class="knowledge-form" (ngSubmit)="searchKnowledge()">
         <input name="kq" [(ngModel)]="knowledgeQ" placeholder="Search published articles…" />

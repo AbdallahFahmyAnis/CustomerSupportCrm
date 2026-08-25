@@ -68,6 +68,9 @@ export class TicketDetailPage implements OnInit {
   taskDue = '';
   readonly customer = signal<CustomerDetail | null>(null);
   readonly customerError = signal('');
+  readonly aiBusy = signal(false);
+  readonly aiError = signal('');
+  readonly aiSummary = signal<{ summary: string; highlights: string[] } | null>(null);
 
   readonly emailMessages = computed<CrmEmailMessage[]>(() =>
     this.store
@@ -297,5 +300,21 @@ export class TicketDetailPage implements OnInit {
       this.chatDraft = this.chatDraft ? `${this.chatDraft}\n\n${reply.body}` : reply.body;
       this.chatQuickId = '';
     }
+  }
+
+  /** SDD CRM-023 */
+  generateAiSummary(): void {
+    this.aiBusy.set(true);
+    this.aiError.set('');
+    this.api.generateSummary(this.id).subscribe({
+      next: (row) => {
+        this.aiSummary.set({ summary: row.summary, highlights: row.highlights ?? [] });
+        this.aiBusy.set(false);
+      },
+      error: () => {
+        this.aiError.set('Could not generate summary. Is the AI service running?');
+        this.aiBusy.set(false);
+      },
+    });
   }
 }

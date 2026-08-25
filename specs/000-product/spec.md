@@ -48,12 +48,14 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/030-sla-performance` — CRM-032 SLA / agent performance
 - [x] `specs/031-csat-reports` — CRM-033 CSAT aggregates
 - [x] `specs/032-management-dashboard` — CRM-034 admin KPI dashboard
+- [x] `specs/033-ai-ticket-summaries` — CRM-023 Nest AI + ticket summaries
 
 ## Next
 
-1. AI features (CRM-023…) when ready
-2. CRM-038 external APIs when ready
-3. Inbound webhooks / provider signatures when ready
+1. CRM-024 suggested replies when ready
+2. CRM-025 auto-categorize when ready
+3. CRM-026 portal chatbot when ready
+4. CRM-038 external APIs when ready
 
 ## Constraints
 
