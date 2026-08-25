@@ -18,3 +18,6 @@ Configured as `ExternalApi:ApiKey` in `appsettings.json` (demo value only).
 | `POST` | `/api/external/v1/tickets` | Tickets create |
 | `GET` | `/api/external/v1/tickets/{id}` | Tickets get |
 | `GET` | `/api/external/v1/customers?q=` | Customers search |
+| `GET` | `/api/external/v1/openapi.yaml` | OpenAPI 3 (public, no key) |
+
+OpenAPI: see `/api/external/v1/openapi.yaml` or the YAML embedded in `ExternalApiOpenApi`.

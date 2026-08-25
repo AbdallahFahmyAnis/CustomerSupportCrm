@@ -11,6 +11,10 @@ public static class ExternalApiEndpoints
     {
         var group = app.MapGroup("/api/external/v1");
 
+        // SDD CRM-038 polish / 041 — public OpenAPI (no API key).
+        group.MapGet("/openapi.yaml", () =>
+            Results.Text(ExternalApiOpenApi.Yaml, "application/yaml"));
+
         group.MapPost("/tickets", async (HttpRequest request, IHttpClientFactory httpFactory, IConfiguration config) =>
         {
             if (!Authorize(request, config))
