@@ -20,6 +20,7 @@ public sealed class IdentityDirectory(
     {
         await db.Database.EnsureCreatedAsync(cancellationToken);
         await EnsureAuditTableAsync(cancellationToken);
+        await EnsureSystemSettingsTableAsync(cancellationToken);
     }
 
     /// <summary>SDD CRM-036 — EnsureCreated will not add tables to an existing DB.</summary>
@@ -63,6 +64,78 @@ public sealed class IdentityDirectory(
             END
             """,
             cancellationToken);
+    }
+
+    /// <summary>SDD CRM-037 — EnsureCreated will not add tables to an existing DB.</summary>
+    private async Task EnsureSystemSettingsTableAsync(CancellationToken cancellationToken)
+    {
+        if (db.Database.IsSqlite())
+        {
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                CREATE TABLE IF NOT EXISTS "SystemSettings" (
+                    "Id" TEXT NOT NULL CONSTRAINT "PK_SystemSettings" PRIMARY KEY,
+                    "OrganizationName" TEXT NOT NULL,
+                    "SupportEmail" TEXT NOT NULL,
+                    "DefaultCulture" TEXT NOT NULL,
+                    "MaxFailedLoginAttempts" INTEGER NOT NULL,
+                    "LockoutMinutes" INTEGER NOT NULL,
+                    "UpdatedAt" TEXT NOT NULL
+                );
+                """,
+                cancellationToken);
+            return;
+        }
+
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            IF OBJECT_ID(N'[SystemSettings]', N'U') IS NULL
+            BEGIN
+              CREATE TABLE [SystemSettings] (
+                [Id] uniqueidentifier NOT NULL CONSTRAINT [PK_SystemSettings] PRIMARY KEY,
+                [OrganizationName] nvarchar(200) NOT NULL,
+                [SupportEmail] nvarchar(256) NOT NULL,
+                [DefaultCulture] nvarchar(10) NOT NULL,
+                [MaxFailedLoginAttempts] int NOT NULL,
+                [LockoutMinutes] int NOT NULL,
+                [UpdatedAt] datetimeoffset NOT NULL
+              );
+            END
+            """,
+            cancellationToken);
+    }
+
+    public async Task<Domain.SystemSettings> GetOrCreateSettingsAsync(CancellationToken ct = default)
+    {
+        var row = await db.SystemSettings.FirstOrDefaultAsync(s => s.Id == Domain.SystemSettings.SingletonId, ct);
+        if (row is not null)
+        {
+            return row;
+        }
+
+        row = new Domain.SystemSettings { Id = Domain.SystemSettings.SingletonId, UpdatedAt = DateTimeOffset.UtcNow };
+        db.SystemSettings.Add(row);
+        await db.SaveChangesAsync(ct);
+        return row;
+    }
+
+    public async Task<Domain.SystemSettings> UpdateSettingsAsync(
+        string organizationName,
+        string supportEmail,
+        string defaultCulture,
+        int maxFailedLoginAttempts,
+        int lockoutMinutes,
+        CancellationToken ct = default)
+    {
+        var row = await GetOrCreateSettingsAsync(ct);
+        row.OrganizationName = organizationName.Trim();
+        row.SupportEmail = supportEmail.Trim().ToLowerInvariant();
+        row.DefaultCulture = defaultCulture.Trim().ToLowerInvariant();
+        row.MaxFailedLoginAttempts = maxFailedLoginAttempts;
+        row.LockoutMinutes = lockoutMinutes;
+        row.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return row;
     }
 
     public async Task AppendAuditAsync(
@@ -237,7 +310,16 @@ public sealed class IdentityDirectory(
             return;
         }
 
-        await users.AccessFailedAsync(entity);
+        var settings = await GetOrCreateSettingsAsync(ct);
+        entity.AccessFailedCount++;
+        if (entity.AccessFailedCount >= settings.MaxFailedLoginAttempts)
+        {
+            await users.SetLockoutEndDateAsync(entity, now.AddMinutes(settings.LockoutMinutes));
+            await users.ResetAccessFailedCountAsync(entity);
+            return;
+        }
+
+        await users.UpdateAsync(entity);
     }
 
     public async Task RegisterSuccessfulLoginAsync(UserAccount account, CancellationToken ct = default)

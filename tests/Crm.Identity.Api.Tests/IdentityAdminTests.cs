@@ -181,6 +181,110 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
+    [Fact]
+    [Trait("Story", "CRM-037")]
+    public async Task Admin_can_get_and_update_system_settings()
+    {
+        AsAdmin();
+
+        var current = await _client.GetFromJsonAsync<SystemSettingsDto>("/api/identity/settings");
+        current.Should().NotBeNull();
+        current!.OrganizationName.Should().NotBeNullOrWhiteSpace();
+        current.MaxFailedLoginAttempts.Should().BeGreaterThan(0);
+
+        var update = await _client.PutAsJsonAsync("/api/identity/settings",
+            new UpdateSystemSettingsRequest(
+                "CRM Demo Org",
+                "help@crm.local",
+                "ar",
+                current.MaxFailedLoginAttempts,
+                current.LockoutMinutes));
+        update.StatusCode.Should().Be(HttpStatusCode.OK);
+        var saved = await update.Content.ReadFromJsonAsync<SystemSettingsDto>();
+        saved!.OrganizationName.Should().Be("CRM Demo Org");
+        saved.SupportEmail.Should().Be("help@crm.local");
+        saved.DefaultCulture.Should().Be("ar");
+
+        var audit = await _client.GetFromJsonAsync<List<AuditLogDto>>("/api/identity/audit?q=SettingsUpdated");
+        audit!.Should().Contain(e => e.Action == "SettingsUpdated" && e.Success);
+
+        // restore defaults for sibling tests sharing the fixture DB
+        await _client.PutAsJsonAsync("/api/identity/settings",
+            new UpdateSystemSettingsRequest(
+                "Customer Support CRM",
+                "support@crm.local",
+                "en",
+                5,
+                15));
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-037")]
+    public async Task Settings_lockout_policy_is_applied_on_failed_login()
+    {
+        AsAdmin();
+        await _client.PutAsJsonAsync("/api/identity/settings",
+            new UpdateSystemSettingsRequest(
+                "Customer Support CRM",
+                "support@crm.local",
+                "en",
+                2,
+                15));
+
+        var email = $"lock2-{Guid.NewGuid():N}@crm.local";
+        (await _client.PostAsJsonAsync("/api/identity/users",
+            new CreateUserRequest(email, "Lock Two", "Crm!123", "Agent"))).EnsureSuccessStatusCode();
+
+        for (var i = 0; i < 2; i++)
+        {
+            var bad = await _client.PostAsJsonAsync("/api/identity/token",
+                new DevLoginRequest(email, "wrong-password"));
+            bad.StatusCode.Should().BeOneOf(HttpStatusCode.Unauthorized, HttpStatusCode.Locked);
+        }
+
+        var locked = await _client.PostAsJsonAsync("/api/identity/token",
+            new DevLoginRequest(email, "Crm!123"));
+        locked.StatusCode.Should().Be(HttpStatusCode.Locked);
+
+        await _client.PutAsJsonAsync("/api/identity/settings",
+            new UpdateSystemSettingsRequest(
+                "Customer Support CRM",
+                "support@crm.local",
+                "en",
+                5,
+                15));
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-037")]
+    public async Task Non_admin_cannot_read_or_update_settings()
+    {
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Role");
+        _client.DefaultRequestHeaders.Add("X-Crm-User-Role", "Agent");
+        (await _client.GetAsync("/api/identity/settings")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await _client.PutAsJsonAsync("/api/identity/settings",
+            new UpdateSystemSettingsRequest("X", "a@b.c", "en", 5, 15)))
+            .StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-037")]
+    public async Task Update_settings_rejects_invalid_payload()
+    {
+        AsAdmin();
+        var response = await _client.PutAsJsonAsync("/api/identity/settings",
+            new UpdateSystemSettingsRequest("", "not-an-email", "fr", 0, 0));
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    private void AsAdmin()
+    {
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Role");
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Id");
+        _client.DefaultRequestHeaders.Add("X-Crm-User-Role", "Admin");
+        _client.DefaultRequestHeaders.Add("X-Crm-User-Id", "33333333-3333-3333-3333-333333333333");
+    }
+
     private static int UserAccountMaxAttempts() => 5;
 }
 

@@ -21,4 +21,5 @@ public static class AuditActions
     public const string UserCreated = "UserCreated";
     public const string RoleChanged = "RoleChanged";
     public const string UserDeactivated = "UserDeactivated";
+    public const string SettingsUpdated = "SettingsUpdated";
 }

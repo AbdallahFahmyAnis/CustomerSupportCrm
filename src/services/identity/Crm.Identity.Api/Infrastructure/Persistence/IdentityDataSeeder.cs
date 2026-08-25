@@ -69,11 +69,27 @@ public sealed class IdentityDataSeeder(
 
             await EnsureGatewayClientAsync(cancellationToken);
             await EnsureDemoAuditAsync(cancellationToken);
+            await EnsureSettingsAsync(cancellationToken);
         }
         catch
         {
             // never brick startup
         }
+    }
+
+    private async Task EnsureSettingsAsync(CancellationToken cancellationToken)
+    {
+        if (await db.SystemSettings.AnyAsync(s => s.Id == SystemSettings.SingletonId, cancellationToken))
+        {
+            return;
+        }
+
+        db.SystemSettings.Add(new SystemSettings
+        {
+            Id = SystemSettings.SingletonId,
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task EnsureDemoAuditAsync(CancellationToken cancellationToken)
