@@ -189,4 +189,11 @@ export class TicketDetailPage implements OnInit {
     }
     this.store.replyChat(this.id, text, clear);
   }
+
+  runAutomation(): void {
+    this.api.runAutomation(this.id).subscribe({
+      next: () => this.store.refreshDetail(this.id),
+      error: (err) => this.store.error.set(err?.error?.error ?? 'Automation failed.'),
+    });
+  }
 }

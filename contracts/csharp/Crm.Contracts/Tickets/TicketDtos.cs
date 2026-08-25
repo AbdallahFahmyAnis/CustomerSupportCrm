@@ -54,6 +54,13 @@ public sealed record ChangeStatusRequest(string Status);
 
 public sealed record EscalateTicketRequest(string? AssignToAgentId, string? AssignToAgentName);
 
+/// <summary>SDD CRM-018 / CRM-019 — result of applying SLA automation.</summary>
+public sealed record RunAutomationResultDto(
+    TicketSummaryDto Ticket,
+    bool Assigned,
+    bool Escalated,
+    string? Message);
+
 public sealed record TicketOptionsDto(
     IReadOnlyList<string> Categories,
     IReadOnlyList<string> Priorities,

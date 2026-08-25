@@ -22,6 +22,12 @@ public static class DependencyInjection
         }, ServiceLifetime.Singleton);
 
         services.AddSingleton<TicketsDb>();
+        services.AddHttpClient<SlaAutomationClient>((sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var baseUrl = config["Services:Sla"] ?? "http://localhost:5105";
+            client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+        });
         return services;
     }
 

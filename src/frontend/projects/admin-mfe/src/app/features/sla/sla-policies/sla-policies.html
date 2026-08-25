@@ -1,8 +1,8 @@
 <section class="page">
   <header class="row">
     <div>
-      <h1>SLA targets</h1>
-      <p class="lede">First-response and resolution minutes by ticket priority</p>
+      <h1>SLA &amp; automation</h1>
+      <p class="lede">Targets, auto-assign rules, and escalation settings</p>
     </div>
   </header>
 
@@ -10,39 +10,105 @@
     <p class="error">{{ store.error() }}</p>
   }
   @if (store.saved()) {
-    <p class="ok">Policy saved.</p>
+    <p class="ok">Saved.</p>
   }
   @if (store.loading()) {
     <p>Loading…</p>
   } @else {
-    <div class="policy-table">
-      <div class="policy-head">
-        <span>Priority</span>
-        <span>First response (min)</span>
-        <span>Resolution (min)</span>
-        <span></span>
+    <section class="block">
+      <h2>Response &amp; resolution targets</h2>
+      <div class="policy-table">
+        <div class="policy-head">
+          <span>Priority</span>
+          <span>First response (min)</span>
+          <span>Resolution (min)</span>
+          <span></span>
+        </div>
+        @for (p of store.policies(); track p.priority) {
+          @let draft = draftFor(p.priority, p.firstResponseMinutes, p.resolutionMinutes);
+          <form class="policy-row" (ngSubmit)="savePolicy(p.priority)">
+            <strong>{{ p.priority }}</strong>
+            <input
+              type="number"
+              min="1"
+              name="first-{{ p.priority }}"
+              [(ngModel)]="draft.firstResponseMinutes"
+              required
+            />
+            <input
+              type="number"
+              min="1"
+              name="resolution-{{ p.priority }}"
+              [(ngModel)]="draft.resolutionMinutes"
+              required
+            />
+            <button type="submit" class="btn" [disabled]="store.saving()">Save</button>
+          </form>
+        }
       </div>
-      @for (p of store.policies(); track p.priority) {
-        @let draft = draftFor(p.priority, p.firstResponseMinutes, p.resolutionMinutes);
-        <form class="policy-row" (ngSubmit)="save(p.priority)">
-          <strong>{{ p.priority }}</strong>
-          <input
-            type="number"
-            min="1"
-            name="first-{{ p.priority }}"
-            [(ngModel)]="draft.firstResponseMinutes"
-            required
-          />
-          <input
-            type="number"
-            min="1"
-            name="resolution-{{ p.priority }}"
-            [(ngModel)]="draft.resolutionMinutes"
-            required
-          />
-          <button type="submit" class="btn" [disabled]="store.saving()">Save</button>
-        </form>
-      }
-    </div>
+    </section>
+
+    <section class="block">
+      <h2>Auto-assign rules</h2>
+      <p class="hint">Most specific match wins (category + priority &gt; one field &gt; catch-all). Empty = any.</p>
+      <div class="rules">
+        @for (r of ruleDrafts; track r.id) {
+          <div class="rule-row">
+            <label>
+              Category
+              <input name="cat-{{ r.id }}" [(ngModel)]="r.category" placeholder="any" />
+            </label>
+            <label>
+              Priority
+              <input name="pri-{{ r.id }}" [(ngModel)]="r.priority" placeholder="any" />
+            </label>
+            <label>
+              Agent name
+              <input name="an-{{ r.id }}" [(ngModel)]="r.agentName" required />
+            </label>
+            <label>
+              Agent id
+              <input name="ai-{{ r.id }}" [(ngModel)]="r.agentId" required />
+            </label>
+            <label class="check">
+              <input type="checkbox" name="en-{{ r.id }}" [(ngModel)]="r.enabled" />
+              Enabled
+            </label>
+            <button type="button" class="btn secondary" (click)="removeRule(r.id)">Remove</button>
+          </div>
+        }
+      </div>
+      <div class="actions">
+        <button type="button" class="btn secondary" (click)="addRule()">Add rule</button>
+        <button type="button" class="btn" (click)="saveRules()" [disabled]="store.saving()">Save rules</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>Escalation</h2>
+      <form class="escalation" (ngSubmit)="saveEscalation()">
+        <label class="check">
+          <input type="checkbox" name="fr" [(ngModel)]="escalateOnFirstResponseBreach" />
+          Escalate on first-response breach
+        </label>
+        <label class="check">
+          <input type="checkbox" name="res" [(ngModel)]="escalateOnResolutionBreach" />
+          Escalate on resolution breach
+        </label>
+        <label class="check">
+          <input type="checkbox" name="urg" [(ngModel)]="escalateUrgentAlways" />
+          Always escalate Urgent tickets
+        </label>
+        <label>
+          Assign to agent name
+          <input name="escName" [(ngModel)]="assignToAgentName" required />
+        </label>
+        <label>
+          Assign to agent id
+          <input name="escId" [(ngModel)]="assignToAgentId" required />
+        </label>
+        <button type="submit" class="btn" [disabled]="store.saving()">Save escalation</button>
+      </form>
+    </section>
   }
 </section>

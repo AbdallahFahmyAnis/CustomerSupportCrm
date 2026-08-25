@@ -72,6 +72,42 @@ public sealed class SlaTargetsTests : IClassFixture<SlaApiFactory>
         late!.FirstResponseBreached.Should().BeTrue();
         late.ResolutionBreached.Should().BeFalse();
     }
+
+    [Fact]
+    [Trait("Story", "CRM-018")]
+    public async Task Suggest_assignee_prefers_priority_over_default()
+    {
+        var urgent = await _client.PostAsJsonAsync("/api/sla/suggest-assignee",
+            new SuggestAssigneeRequest("Billing", "Urgent"));
+        urgent.EnsureSuccessStatusCode();
+        var lead = await urgent.Content.ReadFromJsonAsync<SuggestAssigneeDto>();
+        lead!.AgentName.Should().Be("Lead Agent");
+
+        var technical = await _client.PostAsJsonAsync("/api/sla/suggest-assignee",
+            new SuggestAssigneeRequest("Technical", "Low"));
+        technical.EnsureSuccessStatusCode();
+        var demo = await technical.Content.ReadFromJsonAsync<SuggestAssigneeDto>();
+        demo!.AgentName.Should().Be("Demo Agent");
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-019")]
+    public async Task Should_escalate_urgent_and_skip_when_already_escalated()
+    {
+        var created = DateTimeOffset.UtcNow;
+        var yes = await _client.PostAsJsonAsync("/api/sla/should-escalate",
+            new ShouldEscalateRequest("Urgent", created, IsEscalated: false, Status: "New"));
+        yes.EnsureSuccessStatusCode();
+        var decision = await yes.Content.ReadFromJsonAsync<ShouldEscalateDto>();
+        decision!.ShouldEscalate.Should().BeTrue();
+        decision.AssignToAgentName.Should().Be("Lead Agent");
+
+        var no = await _client.PostAsJsonAsync("/api/sla/should-escalate",
+            new ShouldEscalateRequest("Urgent", created, IsEscalated: true, Status: "New"));
+        no.EnsureSuccessStatusCode();
+        var skipped = await no.Content.ReadFromJsonAsync<ShouldEscalateDto>();
+        skipped!.ShouldEscalate.Should().BeFalse();
+    }
 }
 
 public sealed class SlaApiFactory : WebApplicationFactory<Program>
