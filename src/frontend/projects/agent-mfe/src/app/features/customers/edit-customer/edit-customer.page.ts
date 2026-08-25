@@ -41,10 +41,13 @@ export class CustomerEditComponent implements OnInit {
   readonly error = signal('');
 
   readonly steps: CrmWizardStep[] = [
-    { title: 'Profile', subtitle: 'Name and identifier' },
-    { title: 'Organization', subtitle: 'Org and status' },
+    { title: 'Details', subtitle: 'Profile and organization' },
     { title: 'Review', subtitle: 'Confirm and save' },
   ];
+
+  get avatarLetter(): string {
+    return (this.displayName.trim() || '?').charAt(0).toUpperCase();
+  }
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -60,10 +63,7 @@ export class CustomerEditComponent implements OnInit {
   }
 
   canAdvance(): boolean {
-    if (this.step === 0) {
-      return !!this.displayName.trim() && !!this.uniqueIdentifier.trim();
-    }
-    return true;
+    return !!this.displayName.trim() && !!this.uniqueIdentifier.trim();
   }
 
   save(): void {
@@ -71,9 +71,9 @@ export class CustomerEditComponent implements OnInit {
     this.error.set('');
     this.api
       .update(this.id, {
-        displayName: this.displayName,
-        uniqueIdentifier: this.uniqueIdentifier,
-        organization: this.organization || undefined,
+        displayName: this.displayName.trim(),
+        uniqueIdentifier: this.uniqueIdentifier.trim(),
+        organization: this.organization.trim() || undefined,
         status: this.status,
       })
       .subscribe({

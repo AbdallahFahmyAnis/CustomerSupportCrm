@@ -20,5 +20,10 @@
       <span class="chip more">+{{ permissions().length - 4 }}</span>
     }
   </div>
-  <button type="button" class="edit" (click)="edit.emit()">Edit Role</button>
+  <button type="button" class="icon-btn" title="Edit role" aria-label="Edit role" (click)="edit.emit()">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  </button>
 </article>

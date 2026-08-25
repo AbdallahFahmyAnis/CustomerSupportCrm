@@ -8,6 +8,7 @@ import {
   model,
 } from '@angular/core';
 import {
+  CrmDataActionsDirective,
   CrmDataCardDirective,
   CrmDataCellDirective,
   CrmDataToolbarDirective,
@@ -35,6 +36,7 @@ export class CrmDataViewComponent {
   readonly viewMode = model<CrmDataViewMode>('list');
 
   @ContentChild(CrmDataToolbarDirective) toolbar?: CrmDataToolbarDirective;
+  @ContentChild(CrmDataActionsDirective) actions?: CrmDataActionsDirective;
   @ContentChild(CrmDataCardDirective) cardTpl?: CrmDataCardDirective;
   @ContentChildren(CrmDataCellDirective) cells!: QueryList<CrmDataCellDirective>;
 

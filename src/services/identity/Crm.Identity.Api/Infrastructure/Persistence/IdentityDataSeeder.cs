@@ -70,11 +70,32 @@ public sealed class IdentityDataSeeder(
             await EnsureGatewayClientAsync(cancellationToken);
             await EnsureDemoAuditAsync(cancellationToken);
             await EnsureSettingsAsync(cancellationToken);
+            await EnsurePermissionCatalogAsync(cancellationToken);
         }
         catch
         {
             // never brick startup
         }
+    }
+
+    private async Task EnsurePermissionCatalogAsync(CancellationToken cancellationToken)
+    {
+        foreach (var name in PermissionCatalog.All)
+        {
+            if (await db.PermissionDefinitions.AnyAsync(p => p.Name == name, cancellationToken))
+            {
+                continue;
+            }
+
+            db.PermissionDefinitions.Add(new PermissionDefinition
+            {
+                Name = name,
+                Description = $"Seeded permission {name}",
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task EnsureSettingsAsync(CancellationToken cancellationToken)

@@ -126,6 +126,41 @@ a:hover {
   border-color: transparent;
 }
 
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--crm-radius-sm);
+  background: transparent;
+  color: var(--crm-text-muted);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--crm-primary-soft);
+  color: var(--crm-primary);
+}
+
+.icon-btn.danger:hover {
+  background: rgba(185, 28, 28, 0.1);
+  color: var(--crm-danger);
+}
+
+.icon-btn svg {
+  display: block;
+}
+
+.row-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
 input,
 select,
 textarea {

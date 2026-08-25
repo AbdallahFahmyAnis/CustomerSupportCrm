@@ -23,27 +23,29 @@ export class UserCreatePage implements OnInit {
   role = 'Agent';
 
   readonly steps: CrmWizardStep[] = [
-    { title: 'Account', subtitle: 'Email and name' },
-    { title: 'Access', subtitle: 'Password and role' },
+    { title: 'Details', subtitle: 'Account and access' },
     { title: 'Review', subtitle: 'Confirm and create' },
   ];
+
+  get avatarLetter(): string {
+    return (this.displayName.trim() || this.email.trim() || '?').charAt(0).toUpperCase();
+  }
 
   ngOnInit(): void {
     this.store.loadRoles();
   }
 
   canAdvance(): boolean {
-    if (this.step === 0) {
-      return !!this.email.trim() && !!this.displayName.trim();
-    }
-    if (this.step === 1) {
-      return !!this.password && !!this.role;
-    }
-    return true;
+    return (
+      !!this.email.trim() &&
+      !!this.displayName.trim() &&
+      !!this.password &&
+      !!this.role
+    );
   }
 
   submit(): void {
-    if (!this.email.trim() || !this.displayName.trim() || !this.password) return;
+    if (!this.canAdvance()) return;
     this.store.create(
       {
         email: this.email.trim(),

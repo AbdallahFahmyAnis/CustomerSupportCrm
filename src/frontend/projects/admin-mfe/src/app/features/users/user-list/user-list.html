@@ -4,17 +4,20 @@
       <h1>Users</h1>
       <p class="lede">Accounts, roles, and access</p>
     </div>
-    <a routerLink="/admin/users/new" class="btn">Create user</a>
   </header>
 
   <crm-data-view
-    title="Filters"
-    subtitle="Search and switch list / grid"
+    title="User list"
+    subtitle="Search, edit role, or switch list / grid"
     [items]="store.users()"
     [columns]="columns"
     trackKey="id"
     [(viewMode)]="viewMode"
   >
+    <ng-template crmDataActions>
+      <a routerLink="/admin/users/new" class="btn">Create user</a>
+    </ng-template>
+
     <ng-template crmDataToolbar>
       <form class="toolbar-form" (ngSubmit)="search()">
         <input name="q" [(ngModel)]="q" placeholder="Search email, name, role" />
@@ -23,11 +26,7 @@
     </ng-template>
 
     <ng-template crmDataCell="role" let-u>
-      <select [ngModel]="u.role" (ngModelChange)="onRoleChange(u.id, $event)" [name]="'role-' + u.id">
-        @for (r of store.roles(); track r.name) {
-          <option [value]="r.name">{{ r.name }}</option>
-        }
-      </select>
+      <span class="role-chip">{{ u.role }}</span>
     </ng-template>
 
     <ng-template crmDataCell="isActive" let-u>
@@ -37,9 +36,36 @@
     </ng-template>
 
     <ng-template crmDataCell="actions" let-u>
-      @if (u.isActive) {
-        <button type="button" class="link" (click)="askDeactivate(u)">Deactivate</button>
-      }
+      <div class="row-actions">
+        <button
+          type="button"
+          class="icon-btn"
+          title="Edit"
+          aria-label="Edit user"
+          (click)="askEdit(u)"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+        </button>
+        @if (u.isActive) {
+          <button
+            type="button"
+            class="icon-btn danger"
+            title="Deactivate"
+            aria-label="Deactivate user"
+            (click)="askDeactivate(u)"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <path d="M3 6h18" />
+              <path d="M8 6V4h8v2" />
+              <path d="M19 6l-1 14H6L5 6" />
+              <path d="M10 11v6M14 11v6" />
+            </svg>
+          </button>
+        }
+      </div>
     </ng-template>
 
     <ng-template crmDataCard let-u>
@@ -47,17 +73,40 @@
         <div class="avatar">{{ (u.displayName || '?').charAt(0) }}</div>
         <strong>{{ u.displayName }}</strong>
         <span class="muted">{{ u.email }}</span>
-        <select [ngModel]="u.role" (ngModelChange)="onRoleChange(u.id, $event)" [name]="'g-role-' + u.id">
-          @for (r of store.roles(); track r.name) {
-            <option [value]="r.name">{{ r.name }}</option>
-          }
-        </select>
+        <span class="role-chip">{{ u.role }}</span>
         <span class="badge-soft" [class.ok]="u.isActive" [class.bad]="!u.isActive">
           {{ u.isActive ? 'Active' : 'Inactive' }}
         </span>
-        @if (u.isActive) {
-          <button type="button" class="link" (click)="askDeactivate(u)">Deactivate</button>
-        }
+        <div class="row-actions">
+          <button
+            type="button"
+            class="icon-btn"
+            title="Edit"
+            aria-label="Edit user"
+            (click)="askEdit(u)"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </button>
+          @if (u.isActive) {
+            <button
+              type="button"
+              class="icon-btn danger"
+              title="Deactivate"
+              aria-label="Deactivate user"
+              (click)="askDeactivate(u)"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <path d="M3 6h18" />
+                <path d="M8 6V4h8v2" />
+                <path d="M19 6l-1 14H6L5 6" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
+            </button>
+          }
+        </div>
       </div>
     </ng-template>
   </crm-data-view>
@@ -65,6 +114,33 @@
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
+
+  <crm-modal [(open)]="editOpen" title="Edit user">
+    @if (pendingUser; as u) {
+      <div class="edit-form">
+        <div class="edit-hero">
+          <div class="avatar">{{ (u.displayName || '?').charAt(0) }}</div>
+          <div>
+            <strong>{{ u.displayName }}</strong>
+            <p class="muted">{{ u.email }}</p>
+          </div>
+        </div>
+        <label>
+          Role
+          <select name="editRole" [(ngModel)]="editRole">
+            @for (r of store.roles(); track r.name) {
+              <option [value]="r.name">{{ r.name }}</option>
+            }
+          </select>
+        </label>
+        <p class="hint">Email and display name are set at create time. Change role here to update access.</p>
+      </div>
+    }
+    <div crmModalActions>
+      <button type="button" class="btn secondary" (click)="editOpen = false">Cancel</button>
+      <button type="button" class="btn" (click)="confirmEdit()" [disabled]="!editRole">Save changes</button>
+    </div>
+  </crm-modal>
 
   <crm-modal [(open)]="confirmOpen" title="Deactivate user" size="sm">
     <p>

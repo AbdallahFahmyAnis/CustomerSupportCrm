@@ -34,7 +34,36 @@ export class UsersApi {
     return this.http.get<RoleSummary[]>('/api/identity/roles');
   }
 
+  updateRolePermissions(roleName: string, permissions: string[]): Observable<RoleSummary> {
+    return this.http.put<RoleSummary>(
+      `/api/identity/roles/${encodeURIComponent(roleName)}/permissions`,
+      { permissions },
+    );
+  }
+
   permissions(): Observable<{ permissions: string[] }> {
     return this.http.get<{ permissions: string[] }>('/api/identity/permissions');
+  }
+
+  createPermission(name: string, description?: string): Observable<{ name: string }> {
+    return this.http.post<{ name: string }>('/api/identity/permissions', {
+      name,
+      description,
+    });
+  }
+
+  updatePermission(
+    currentName: string,
+    name: string,
+    description?: string,
+  ): Observable<{ name: string }> {
+    return this.http.put<{ name: string }>(
+      `/api/identity/permissions/${encodeURIComponent(currentName)}`,
+      { name, description },
+    );
+  }
+
+  deletePermission(name: string): Observable<void> {
+    return this.http.delete<void>(`/api/identity/permissions/${encodeURIComponent(name)}`);
   }
 }

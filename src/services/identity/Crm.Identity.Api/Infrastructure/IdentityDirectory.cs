@@ -21,6 +21,7 @@ public sealed class IdentityDirectory(
         await db.Database.EnsureCreatedAsync(cancellationToken);
         await EnsureAuditTableAsync(cancellationToken);
         await EnsureSystemSettingsTableAsync(cancellationToken);
+        await EnsurePermissionDefinitionsTableAsync(cancellationToken);
     }
 
     /// <summary>SDD CRM-036 — EnsureCreated will not add tables to an existing DB.</summary>
@@ -99,6 +100,37 @@ public sealed class IdentityDirectory(
                 [MaxFailedLoginAttempts] int NOT NULL,
                 [LockoutMinutes] int NOT NULL,
                 [UpdatedAt] datetimeoffset NOT NULL
+              );
+            END
+            """,
+            cancellationToken);
+    }
+
+    /// <summary>SDD CRM-035 — EnsureCreated will not add tables to an existing DB.</summary>
+    private async Task EnsurePermissionDefinitionsTableAsync(CancellationToken cancellationToken)
+    {
+        if (db.Database.IsSqlite())
+        {
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                CREATE TABLE IF NOT EXISTS "PermissionDefinitions" (
+                    "Name" TEXT NOT NULL CONSTRAINT "PK_PermissionDefinitions" PRIMARY KEY,
+                    "Description" TEXT NOT NULL,
+                    "CreatedAt" TEXT NOT NULL
+                );
+                """,
+                cancellationToken);
+            return;
+        }
+
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            IF OBJECT_ID(N'[PermissionDefinitions]', N'U') IS NULL
+            BEGIN
+              CREATE TABLE [PermissionDefinitions] (
+                [Name] nvarchar(120) NOT NULL CONSTRAINT [PK_PermissionDefinitions] PRIMARY KEY,
+                [Description] nvarchar(400) NOT NULL,
+                [CreatedAt] datetimeoffset NOT NULL
               );
             END
             """,
@@ -420,6 +452,200 @@ public sealed class IdentityDirectory(
         }
 
         return result;
+    }
+
+    public async Task<IReadOnlyList<string>> ListPermissionNamesAsync(CancellationToken ct = default)
+    {
+        return await db.PermissionDefinitions.AsNoTracking()
+            .OrderBy(p => p.Name)
+            .Select(p => p.Name)
+            .ToListAsync(ct);
+    }
+
+    public async Task<(PermissionDefinition? Row, string? Error)> CreatePermissionAsync(
+        string name,
+        string? description,
+        CancellationToken ct = default)
+    {
+        var normalized = NormalizePermissionName(name);
+        if (normalized is null)
+        {
+            return (null, "Permission name must look like 'area.action' (letters, digits, ., *, -).");
+        }
+
+        if (await db.PermissionDefinitions.AnyAsync(p => p.Name == normalized, ct))
+        {
+            return (null, "Permission already exists.");
+        }
+
+        var row = new PermissionDefinition
+        {
+            Name = normalized,
+            Description = (description ?? "").Trim(),
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.PermissionDefinitions.Add(row);
+        await db.SaveChangesAsync(ct);
+        return (row, null);
+    }
+
+    public async Task<(PermissionDefinition? Row, string? Error)> UpdatePermissionAsync(
+        string currentName,
+        string newName,
+        string? description,
+        CancellationToken ct = default)
+    {
+        var from = NormalizePermissionName(currentName);
+        var to = NormalizePermissionName(newName);
+        if (from is null || to is null)
+        {
+            return (null, "Permission name must look like 'area.action' (letters, digits, ., *, -).");
+        }
+
+        var row = await db.PermissionDefinitions.FirstOrDefaultAsync(p => p.Name == from, ct);
+        if (row is null)
+        {
+            return (null, "Permission not found.");
+        }
+
+        if (!string.Equals(from, to, StringComparison.OrdinalIgnoreCase)
+            && await db.PermissionDefinitions.AnyAsync(p => p.Name == to, ct))
+        {
+            return (null, "A permission with the new name already exists.");
+        }
+
+        row.Description = (description ?? row.Description).Trim();
+        if (!string.Equals(from, to, StringComparison.Ordinal))
+        {
+            db.PermissionDefinitions.Remove(row);
+            var renamed = new PermissionDefinition
+            {
+                Name = to,
+                Description = row.Description,
+                CreatedAt = row.CreatedAt
+            };
+            db.PermissionDefinitions.Add(renamed);
+            await RenamePermissionClaimsAsync(from, to, ct);
+            await db.SaveChangesAsync(ct);
+            return (renamed, null);
+        }
+
+        await db.SaveChangesAsync(ct);
+        return (row, null);
+    }
+
+    public async Task<string?> DeletePermissionAsync(string name, CancellationToken ct = default)
+    {
+        var normalized = NormalizePermissionName(name);
+        if (normalized is null)
+        {
+            return "Permission name is invalid.";
+        }
+
+        var row = await db.PermissionDefinitions.FirstOrDefaultAsync(p => p.Name == normalized, ct);
+        if (row is null)
+        {
+            return "Permission not found.";
+        }
+
+        db.PermissionDefinitions.Remove(row);
+        await RemovePermissionClaimsAsync(normalized, ct);
+        await db.SaveChangesAsync(ct);
+        return null;
+    }
+
+    public async Task<(Role? Role, string? Error)> SetRolePermissionsAsync(
+        string roleName,
+        IEnumerable<string> permissions,
+        CancellationToken ct = default)
+    {
+        var role = await roles.FindByNameAsync(roleName.Trim());
+        if (role is null)
+        {
+            return (null, "Role not found.");
+        }
+
+        var desired = permissions
+            .Select(NormalizePermissionName)
+            .Where(p => p is not null)
+            .Cast<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(p => p)
+            .ToList();
+
+        var catalog = await ListPermissionNamesAsync(ct);
+        var unknown = desired.Where(p => !catalog.Contains(p, StringComparer.OrdinalIgnoreCase)).ToList();
+        if (unknown.Count > 0)
+        {
+            return (null, "Unknown permissions: " + string.Join(", ", unknown));
+        }
+
+        var claims = await roles.GetClaimsAsync(role);
+        foreach (var claim in claims.Where(c => c.Type == IdentityDataSeeder.PermissionClaimType))
+        {
+            await roles.RemoveClaimAsync(role, claim);
+        }
+
+        foreach (var permission in desired)
+        {
+            await roles.AddClaimAsync(
+                role,
+                new System.Security.Claims.Claim(IdentityDataSeeder.PermissionClaimType, permission));
+        }
+
+        return (await ToRoleAsync(role), null);
+    }
+
+    private async Task RenamePermissionClaimsAsync(string from, string to, CancellationToken ct)
+    {
+        var allRoles = await roles.Roles.ToListAsync(ct);
+        foreach (var role in allRoles)
+        {
+            var claims = await roles.GetClaimsAsync(role);
+            var match = claims.FirstOrDefault(c =>
+                c.Type == IdentityDataSeeder.PermissionClaimType
+                && string.Equals(c.Value, from, StringComparison.OrdinalIgnoreCase));
+            if (match is null)
+            {
+                continue;
+            }
+
+            await roles.RemoveClaimAsync(role, match);
+            await roles.AddClaimAsync(
+                role,
+                new System.Security.Claims.Claim(IdentityDataSeeder.PermissionClaimType, to));
+        }
+    }
+
+    private async Task RemovePermissionClaimsAsync(string permission, CancellationToken ct)
+    {
+        var allRoles = await roles.Roles.ToListAsync(ct);
+        foreach (var role in allRoles)
+        {
+            var claims = await roles.GetClaimsAsync(role);
+            foreach (var claim in claims.Where(c =>
+                         c.Type == IdentityDataSeeder.PermissionClaimType
+                         && string.Equals(c.Value, permission, StringComparison.OrdinalIgnoreCase)))
+            {
+                await roles.RemoveClaimAsync(role, claim);
+            }
+        }
+    }
+
+    private static string? NormalizePermissionName(string? raw)
+    {
+        var name = raw?.Trim().ToLowerInvariant() ?? "";
+        if (name.Length is < 3 or > 120)
+        {
+            return null;
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(name, @"^[a-z][a-z0-9._*-]*$"))
+        {
+            return null;
+        }
+
+        return name;
     }
 
     public async Task<TokenResponseDto> IssuePairAsync(UserAccount user, DateTimeOffset now, CancellationToken ct = default)

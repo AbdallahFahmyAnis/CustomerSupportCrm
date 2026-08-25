@@ -1,9 +1,14 @@
 <section class="page">
-  <p><a routerLink="/admin/users">← Users</a></p>
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/admin/users">Users</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Create</span>
+  </nav>
+
   <header class="row">
     <div>
       <h1>Create user</h1>
-      <p class="lede">Account details, access, then review</p>
+      <p class="lede">Account details and access, then a quick review</p>
     </div>
   </header>
 
@@ -19,51 +24,85 @@
     (finish)="submit()"
   >
     <ng-template crmWizardStep>
-      <div class="form-grid">
+      <div class="step-intro">
+        <h3>Account & access</h3>
+        <p class="muted">Email and display name identify the account; role controls permissions.</p>
+      </div>
+      <div class="field-stack">
         <label>
           Email
-          <input name="email" type="email" [(ngModel)]="email" required />
+          <input
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            required
+            placeholder="user@example.com"
+            autocomplete="username"
+          />
         </label>
         <label>
           Display name
-          <input name="displayName" [(ngModel)]="displayName" required />
+          <input
+            name="displayName"
+            [(ngModel)]="displayName"
+            required
+            placeholder="Full name"
+            autocomplete="name"
+          />
         </label>
+        <div class="field-row">
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              [(ngModel)]="password"
+              required
+              autocomplete="new-password"
+            />
+          </label>
+          <label>
+            Role
+            <select name="role" [(ngModel)]="role" required>
+              @for (r of store.roles(); track r.name) {
+                <option [value]="r.name">{{ r.name }}</option>
+              }
+            </select>
+          </label>
+        </div>
       </div>
     </ng-template>
 
     <ng-template crmWizardStep>
-      <div class="form-grid">
-        <label>
-          Password
-          <input name="password" type="password" [(ngModel)]="password" required />
-        </label>
-        <label>
-          Role
-          <select name="role" [(ngModel)]="role" required>
-            @for (r of store.roles(); track r.name) {
-              <option [value]="r.name">{{ r.name }}</option>
-            }
-          </select>
-        </label>
+      <div class="review-panel">
+        <div class="review-hero">
+          <div class="avatar">{{ avatarLetter }}</div>
+          <div>
+            <strong>Almost done</strong>
+            <p class="muted">Confirm the account, then create.</p>
+          </div>
+        </div>
+        <table class="review-table">
+          <tr>
+            <th>Email</th>
+            <td>{{ email.trim() || '—' }}</td>
+          </tr>
+          <tr>
+            <th>Display name</th>
+            <td>{{ displayName.trim() || '—' }}</td>
+          </tr>
+          <tr>
+            <th>Role</th>
+            <td>
+              <span class="badge-soft">{{ role }}</span>
+            </td>
+          </tr>
+          <tr>
+            <th>Password</th>
+            <td>{{ password ? '••••••••' : '—' }}</td>
+          </tr>
+        </table>
       </div>
-    </ng-template>
-
-    <ng-template crmWizardStep>
-      <h3 class="review-title">Review & create</h3>
-      <table class="review-table">
-        <tr>
-          <th>Email</th>
-          <td>{{ email }}</td>
-        </tr>
-        <tr>
-          <th>Display name</th>
-          <td>{{ displayName }}</td>
-        </tr>
-        <tr>
-          <th>Role</th>
-          <td>{{ role }}</td>
-        </tr>
-      </table>
     </ng-template>
   </crm-wizard>
 </section>

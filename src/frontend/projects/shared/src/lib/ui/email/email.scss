@@ -235,7 +235,6 @@
 
 .crm-email__compose textarea {
   width: 100%;
-  min-height: 5.5rem;
   resize: vertical;
   border: 1px solid var(--crm-border);
   border-radius: var(--crm-radius-sm, 0.4rem);
@@ -256,8 +255,6 @@
 }
 
 .crm-email__compose-actions .btn {
-  min-height: 2.4rem;
-  min-width: 5.5rem;
 }
 
 .crm-email__empty {

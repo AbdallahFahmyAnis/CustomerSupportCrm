@@ -1,3 +1,26 @@
+.crumb-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--crm-text-muted);
+}
+
+.crumb-nav a {
+  font-weight: 600;
+}
+
+.crumb-nav .sep {
+  opacity: 0.55;
+}
+
+.crumb-nav .current {
+  color: var(--crm-text);
+  font-weight: 600;
+}
+
 .role-chips {
   display: flex;
   flex-wrap: wrap;
@@ -11,4 +34,31 @@
 .perm-card {
   display: grid;
   gap: 0.55rem;
+}
+
+.perm-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.perm-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.perm-form input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hint {
+  margin: 0;
+  color: var(--crm-text-muted);
+  font-size: 0.85rem;
+}
+
+.error {
+  margin-bottom: 0.75rem;
 }
