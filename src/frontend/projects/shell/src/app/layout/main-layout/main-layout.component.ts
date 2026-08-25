@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   canAccessAdmin,
@@ -6,6 +6,7 @@ import {
   LanguageStore,
   SessionApi,
 } from 'shared';
+import { CrmNotification, NotificationsApi } from '../../core/notifications.api';
 
 /** Shell chrome — Materio-like vertical sidebar + content. */
 @Component({
@@ -18,10 +19,20 @@ import {
 export class MainLayoutComponent implements OnInit {
   readonly lang = inject(LanguageStore);
   readonly session = inject(SessionApi);
+  private readonly notificationsApi = inject(NotificationsApi);
   readonly sidebarCollapsed = signal(false);
+  readonly inboxOpen = signal(false);
+  readonly unreadCount = signal(0);
+  readonly notifications = signal<CrmNotification[]>([]);
 
   ngOnInit(): void {
-    this.session.load().subscribe();
+    this.session.load().subscribe({
+      next: () => {
+        if (this.session.session()) {
+          this.refreshNotifications();
+        }
+      },
+    });
   }
 
   get showAgentNav(): boolean {
@@ -42,5 +53,46 @@ export class MainLayoutComponent implements OnInit {
 
   signOut(): void {
     this.session.logout().subscribe();
+  }
+
+  toggleInbox(event: Event): void {
+    event.stopPropagation();
+    const next = !this.inboxOpen();
+    this.inboxOpen.set(next);
+    if (next) {
+      this.refreshNotifications();
+    }
+  }
+
+  markRead(item: CrmNotification, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (item.readAt) {
+      return;
+    }
+    this.notificationsApi.markRead(item.id).subscribe({
+      next: (row) => {
+        this.notifications.update((list) =>
+          list.map((n) => (n.id === row.id ? row : n)),
+        );
+        this.unreadCount.update((c) => Math.max(0, c - 1));
+      },
+    });
+  }
+
+  @HostListener('document:click')
+  closeInbox(): void {
+    this.inboxOpen.set(false);
+  }
+
+  private refreshNotifications(): void {
+    this.notificationsApi.unreadCount().subscribe({
+      next: (r) => this.unreadCount.set(r.count),
+      error: () => this.unreadCount.set(0),
+    });
+    this.notificationsApi.list().subscribe({
+      next: (rows) => this.notifications.set(rows),
+      error: () => this.notifications.set([]),
+    });
   }
 }
