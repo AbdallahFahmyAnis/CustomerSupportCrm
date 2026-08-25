@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ArticleDetail, ArticleSummary } from './articles.models';
+import { ArticleDetail, ArticleSummary, KnowledgeSearchHit } from './articles.models';
 
 /** SDD CRM-021 — knowledge articles via gateway. */
 @Injectable({ providedIn: 'root' })
@@ -11,6 +11,21 @@ export class ArticlesApi {
   search(q = ''): Observable<ArticleSummary[]> {
     const qs = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
     return this.http.get<ArticleSummary[]>(`/api/knowledge/articles${qs}`);
+  }
+
+  /** SDD CRM-022 — ranked search. */
+  rankedSearch(params: {
+    q: string;
+    kind?: string;
+    status?: string;
+    publishedOnly?: boolean;
+  }): Observable<KnowledgeSearchHit[]> {
+    const qs = new URLSearchParams();
+    qs.set('q', params.q);
+    if (params.kind) qs.set('kind', params.kind);
+    if (params.status) qs.set('status', params.status);
+    if (params.publishedOnly) qs.set('publishedOnly', 'true');
+    return this.http.get<KnowledgeSearchHit[]>(`/api/knowledge/search?${qs.toString()}`);
   }
 
   get(id: string): Observable<ArticleDetail> {

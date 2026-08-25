@@ -31,6 +31,26 @@ public sealed class KnowledgeAuthoringTests : IClassFixture<KnowledgeApiFactory>
     }
 
     [Fact]
+    [Trait("Story", "CRM-022")]
+    public async Task Ranked_search_requires_query_and_ranks_title_hits()
+    {
+        var bad = await _client.GetAsync("/api/knowledge/search");
+        bad.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var hits = await _client.GetFromJsonAsync<List<KnowledgeSearchHitDto>>(
+            "/api/knowledge/search?q=password&publishedOnly=true");
+        hits.Should().NotBeNull();
+        hits!.Should().NotBeEmpty();
+        hits[0].Title.Should().ContainEquivalentOf("password");
+        hits[0].Score.Should().BeGreaterThan(0);
+        hits[0].Snippet.Should().NotBeNullOrWhiteSpace();
+
+        var solutions = await _client.GetFromJsonAsync<List<KnowledgeSearchHitDto>>(
+            "/api/knowledge/search?q=invoice&kind=Solution");
+        solutions!.Should().OnlyContain(h => h.Kind == "Solution");
+    }
+
+    [Fact]
     [Trait("Story", "CRM-021")]
     public async Task Create_update_and_reject_invalid()
     {

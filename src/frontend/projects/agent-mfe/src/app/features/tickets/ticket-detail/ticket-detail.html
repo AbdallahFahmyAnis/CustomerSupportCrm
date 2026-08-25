@@ -47,6 +47,30 @@
       </div>
     }
 
+    <div class="knowledge-panel card">
+      <h2>Knowledge</h2>
+      <form class="knowledge-form" (ngSubmit)="searchKnowledge()">
+        <input name="kq" [(ngModel)]="knowledgeQ" placeholder="Search published articles…" />
+        <button type="submit" class="btn">Search</button>
+      </form>
+      @if (knowledgeError) {
+        <p class="error">{{ knowledgeError }}</p>
+      }
+      @if (knowledgeHits().length === 0) {
+        <p class="muted">No hits yet.</p>
+      } @else {
+        <ul class="knowledge-hits">
+          @for (h of knowledgeHits(); track h.id) {
+            <li>
+              <a [href]="'/knowledge/' + h.id" target="_blank" rel="noopener">{{ h.title }}</a>
+              <span class="meta">{{ h.kind }} · score {{ h.score }}</span>
+              <p>{{ h.snippet }}</p>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
     <div class="panels">
       <form class="card" (ngSubmit)="saveClass()">
         <h2>Classification</h2>

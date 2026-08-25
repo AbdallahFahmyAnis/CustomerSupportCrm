@@ -60,6 +60,39 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
         return rows.OrderByDescending(a => a.UpdatedAt).Select(FromRow).ToList();
     }
 
+    /// <summary>SDD CRM-022 — ranked search with optional filters.</summary>
+    public IReadOnlyList<KnowledgeSearchHit> RankedSearch(
+        string query,
+        string? kind,
+        string? status,
+        bool publishedOnly)
+    {
+        using var db = factory.CreateDbContext();
+        IEnumerable<ArticleRow> rows = db.Articles.AsNoTracking().ToList();
+        if (!string.IsNullOrWhiteSpace(kind))
+        {
+            rows = rows.Where(a => a.Kind.Equals(kind.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (publishedOnly)
+        {
+            rows = rows.Where(a => a.Status.Equals("Published", StringComparison.OrdinalIgnoreCase));
+        }
+        else if (!string.IsNullOrWhiteSpace(status))
+        {
+            rows = rows.Where(a => a.Status.Equals(status.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        return rows
+            .Select(FromRow)
+            .Select(a => KnowledgeSearchRanker.Rank(a, query))
+            .Where(h => h is not null)
+            .Select(h => h!)
+            .OrderByDescending(h => h.Score)
+            .ThenByDescending(h => h.UpdatedAt)
+            .ToList();
+    }
+
     public Article? Get(Guid id)
     {
         using var db = factory.CreateDbContext();

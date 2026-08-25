@@ -1,13 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ArticlesApi } from './articles.api';
-import { ArticleDetail, ArticleSummary } from './articles.models';
+import { ArticleDetail, ArticleSummary, KnowledgeSearchHit } from './articles.models';
 
-/** SDD CRM-021 — Feature-Based + Signals store. */
+/** SDD CRM-021 / CRM-022 — Feature-Based + Signals store. */
 @Injectable({ providedIn: 'root' })
 export class ArticlesStore {
   private readonly api = inject(ArticlesApi);
 
   readonly items = signal<ArticleSummary[]>([]);
+  readonly searchHits = signal<KnowledgeSearchHit[]>([]);
   readonly selected = signal<ArticleDetail | null>(null);
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -24,6 +25,27 @@ export class ArticlesStore {
       error: () => {
         this.error.set('Could not load articles.');
         this.loading.set(false);
+      },
+    });
+  }
+
+  rankedSearch(params: {
+    q: string;
+    kind?: string;
+    status?: string;
+    publishedOnly?: boolean;
+  }): void {
+    this.loading.set(true);
+    this.error.set('');
+    this.api.rankedSearch(params).subscribe({
+      next: (rows) => {
+        this.searchHits.set(rows);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(err?.error?.error ?? 'Search failed.');
+        this.loading.set(false);
+        this.searchHits.set([]);
       },
     });
   }

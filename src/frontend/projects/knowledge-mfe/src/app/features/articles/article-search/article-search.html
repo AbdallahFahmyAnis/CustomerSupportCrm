@@ -1,0 +1,63 @@
+<section class="page">
+  <header class="row">
+    <div>
+      <h1>Search knowledge</h1>
+      <p class="lede">Ranked results across FAQs, articles, solutions, and guides</p>
+    </div>
+    <a routerLink="/knowledge" class="btn secondary">All articles</a>
+  </header>
+
+  <form class="filters" (ngSubmit)="run()">
+    <label>
+      Query
+      <input name="q" [(ngModel)]="q" required placeholder="e.g. password" />
+    </label>
+    <label>
+      Kind
+      <select name="kind" [(ngModel)]="kind">
+        <option value="">Any</option>
+        @for (k of kinds; track k) {
+          <option [value]="k">{{ k }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      Status
+      <select name="status" [(ngModel)]="status" [disabled]="publishedOnly">
+        <option value="">Any</option>
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </label>
+    <label class="check">
+      <input type="checkbox" name="pub" [(ngModel)]="publishedOnly" />
+      Published only
+    </label>
+    <button type="submit" class="btn" [disabled]="store.loading()">Search</button>
+  </form>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+  @if (store.loading()) {
+    <p>Searching…</p>
+  } @else if (store.searchHits().length === 0) {
+    <p class="muted">No hits yet — run a search.</p>
+  } @else {
+    <ul class="hits">
+      @for (h of store.searchHits(); track h.id) {
+        <li>
+          <a [routerLink]="['/knowledge', h.id]">
+            <div class="hit-top">
+              <strong>{{ h.title }}</strong>
+              <span class="score">score {{ h.score }}</span>
+            </div>
+            <p class="snippet">{{ h.snippet }}</p>
+            <span class="meta">{{ h.kind }} · {{ h.status }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

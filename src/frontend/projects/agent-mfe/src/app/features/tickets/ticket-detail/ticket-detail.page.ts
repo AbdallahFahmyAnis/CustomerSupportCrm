@@ -49,6 +49,11 @@ export class TicketDetailPage implements OnInit {
   private id = '';
 
   readonly sla = signal<SlaEvaluation | null>(null);
+  knowledgeQ = '';
+  readonly knowledgeHits = signal<
+    { id: string; title: string; kind: string; status: string; score: number; snippet: string }[]
+  >([]);
+  knowledgeError = '';
 
   readonly emailMessages = computed<CrmEmailMessage[]>(() =>
     this.store
@@ -194,6 +199,22 @@ export class TicketDetailPage implements OnInit {
     this.api.runAutomation(this.id).subscribe({
       next: () => this.store.refreshDetail(this.id),
       error: (err) => this.store.error.set(err?.error?.error ?? 'Automation failed.'),
+    });
+  }
+
+  searchKnowledge(): void {
+    const q = this.knowledgeQ.trim();
+    this.knowledgeError = '';
+    if (!q) {
+      this.knowledgeError = 'Enter a search query.';
+      return;
+    }
+    this.api.searchKnowledge(q).subscribe({
+      next: (rows) => this.knowledgeHits.set(rows),
+      error: (err) => {
+        this.knowledgeError = err?.error?.error ?? 'Knowledge search failed.';
+        this.knowledgeHits.set([]);
+      },
     });
   }
 }

@@ -4,7 +4,10 @@
       <h1>Knowledge base</h1>
       <p class="lede">FAQs, articles, solutions, and guides</p>
     </div>
-    <a routerLink="/knowledge/new" class="btn">New article</a>
+    <div class="header-actions">
+      <a routerLink="/knowledge/search" class="btn secondary">Search</a>
+      <a routerLink="/knowledge/new" class="btn">New article</a>
+    </div>
   </header>
 
   <form class="filter" (ngSubmit)="search()">

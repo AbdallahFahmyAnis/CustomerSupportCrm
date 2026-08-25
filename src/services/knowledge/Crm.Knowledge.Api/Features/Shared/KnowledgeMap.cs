@@ -22,6 +22,15 @@ public static class KnowledgeMap
         a.CreatedBy,
         a.CreatedAt,
         a.UpdatedAt);
+
+    public static KnowledgeSearchHitDto SearchHit(KnowledgeSearchHit hit) => new(
+        hit.Id.ToString(),
+        hit.Title,
+        hit.Kind,
+        hit.Status,
+        hit.Score,
+        hit.Snippet,
+        hit.UpdatedAt);
 }
 
 internal static class KnowledgeHttp
