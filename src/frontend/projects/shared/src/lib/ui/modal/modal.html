@@ -1,0 +1,24 @@
+@if (open()) {
+  <div class="crm-modal-backdrop" (click)="onBackdrop($event)" role="presentation">
+    <div
+      class="crm-modal"
+      [class.crm-modal--sm]="size() === 'sm'"
+      [class.crm-modal--lg]="size() === 'lg'"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="title()"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="crm-modal__header">
+        <h2>{{ title() }}</h2>
+        <button type="button" class="crm-modal__close" (click)="close()" aria-label="Close">×</button>
+      </header>
+      <div class="crm-modal__body">
+        <ng-content />
+      </div>
+      <footer class="crm-modal__footer">
+        <ng-content select="[crmModalActions]" />
+      </footer>
+    </div>
+  </div>
+}

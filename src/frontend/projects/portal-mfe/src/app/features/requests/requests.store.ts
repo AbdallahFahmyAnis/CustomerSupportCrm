@@ -46,6 +46,11 @@ export class RequestsStore {
     });
   }
 
+  clearLastResult(): void {
+    this._lastResult.set(null);
+    this._submitError.set(null);
+  }
+
   track(email: string): void {
     this._trackEmail.set(email);
     this._tracking.set(true);

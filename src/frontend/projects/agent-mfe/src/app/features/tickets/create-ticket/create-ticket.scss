@@ -1,35 +1,137 @@
 .page {
-  padding: 1.25rem;
-  max-width: 36rem;
+  max-width: none;
+  width: 100%;
 }
 
-.form {
-  display: grid;
-  gap: 0.85rem;
+.crumb-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--crm-text-muted);
 }
 
-label {
-  display: grid;
-  gap: 0.35rem;
+.crumb-nav a {
   font-weight: 600;
 }
 
-input,
-select,
-textarea {
-  padding: 0.45rem 0.6rem;
-  font: inherit;
+.crumb-nav .sep {
+  opacity: 0.55;
 }
 
-.btn {
-  background: #2563eb;
+.crumb-nav .current {
+  color: var(--crm-text);
+  font-weight: 600;
+}
+
+.step-intro {
+  margin-bottom: 1rem;
+}
+
+.step-intro h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.muted {
+  margin: 0;
+  color: var(--crm-text-muted);
+  font-size: 0.875rem;
+}
+
+.field-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.95rem;
+  width: 100%;
+}
+
+.field-stack label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+.field-stack input,
+.field-stack select,
+.field-stack textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 2.5rem;
+}
+
+.field-stack textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.review-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.review-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius-sm);
+  background: linear-gradient(135deg, rgba(140, 87, 255, 0.08), transparent 55%);
+}
+
+.review-hero .avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--crm-radius-sm);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
   color: #fff;
-  border: 0;
-  border-radius: 0.375rem;
-  padding: 0.55rem 0.9rem;
-  width: fit-content;
+  background: linear-gradient(160deg, #8c57ff, #c855ff);
+}
+
+.review-hero strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.review-hero .muted {
+  margin-top: 0.15rem;
+}
+
+.review-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.review-table th,
+.review-table td {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--crm-border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.review-table th {
+  width: 28%;
+  color: var(--crm-text-muted);
+  font-weight: 600;
+  background: transparent;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.875rem;
+}
+
+.review-table td {
+  font-weight: 500;
+  word-break: break-word;
 }
 
 .error {
-  color: #b91c1c;
+  margin-bottom: 0.75rem;
 }

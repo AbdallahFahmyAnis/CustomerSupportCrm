@@ -1,7 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { SessionApi } from 'shared';
+import {
+  CrmDataCardDirective,
+  CrmDataCellDirective,
+  CrmDataToolbarDirective,
+  CrmDataViewColumn,
+  CrmDataViewComponent,
+  CrmDataViewMode,
+  SessionApi,
+} from 'shared';
 import { TicketPriorityBadgeComponent } from '../components/ticket-priority-badge/ticket-priority-badge.component';
 import { TicketsStore } from '../tickets.store';
 
@@ -9,7 +17,15 @@ import { TicketsStore } from '../tickets.store';
 @Component({
   selector: 'app-ticket-list-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, TicketPriorityBadgeComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    TicketPriorityBadgeComponent,
+    CrmDataViewComponent,
+    CrmDataToolbarDirective,
+    CrmDataCellDirective,
+    CrmDataCardDirective,
+  ],
   templateUrl: './ticket-list.html',
   styleUrls: ['./ticket-list.scss'],
 })
@@ -18,6 +34,16 @@ export class TicketListPage implements OnInit {
   private readonly session = inject(SessionApi);
   q = '';
   mine = false;
+  viewMode: CrmDataViewMode = 'list';
+
+  readonly columns: CrmDataViewColumn[] = [
+    { key: 'ticketNumber', header: 'ID' },
+    { key: 'subject', header: 'Subject' },
+    { key: 'customerName', header: 'Customer' },
+    { key: 'priority', header: 'Priority' },
+    { key: 'status', header: 'Status' },
+    { key: 'assignedAgentName', header: 'Assignee' },
+  ];
 
   ngOnInit(): void {
     this.store.loadOptions();

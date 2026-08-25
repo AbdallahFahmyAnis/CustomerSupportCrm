@@ -1,0 +1,138 @@
+.crm-wizard {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.crm-wizard__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+
+.crm-wizard__step-btn {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  text-align: start;
+  background: var(--crm-paper);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  padding: 0.85rem 1rem;
+  font: inherit;
+  color: var(--crm-text-muted);
+  cursor: pointer;
+  box-shadow: var(--crm-shadow);
+}
+
+.crm-wizard__step.is-active .crm-wizard__step-btn {
+  border-color: var(--crm-primary);
+  color: var(--crm-text);
+  box-shadow: 0 0.25rem 1rem rgba(140, 87, 255, 0.18);
+}
+
+.crm-wizard__step.is-done .crm-wizard__step-btn {
+  border-color: rgba(40, 199, 111, 0.45);
+}
+
+.crm-wizard__num {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--crm-primary-soft);
+  color: var(--crm-primary);
+}
+
+.crm-wizard__step.is-active .crm-wizard__num {
+  background: var(--crm-primary);
+  color: #fff;
+}
+
+.crm-wizard__step.is-done .crm-wizard__num {
+  background: rgba(40, 199, 111, 0.16);
+  color: #1f9d57;
+}
+
+.crm-wizard__meta {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.crm-wizard__meta strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.crm-wizard__meta small {
+  font-size: 0.78rem;
+  color: var(--crm-text-muted);
+}
+
+.crm-wizard__panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.crm-wizard__body {
+  padding: 1.35rem 1.35rem 0.5rem;
+}
+
+.crm-wizard__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.35rem 1.25rem;
+  border-top: 1px solid var(--crm-border);
+}
+
+.crm-wizard__body .form-grid,
+.crm-wizard__body form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.crm-wizard__body label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.crm-wizard__body .review-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.crm-wizard__body .review-table th,
+.crm-wizard__body .review-table td {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--crm-border);
+  text-align: start;
+}
+
+.crm-wizard__body .review-table th {
+  width: 40%;
+  color: var(--crm-text-muted);
+  font-weight: 600;
+  background: transparent;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .crm-wizard__steps {
+    grid-template-columns: 1fr;
+  }
+}

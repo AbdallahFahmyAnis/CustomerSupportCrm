@@ -33,4 +33,8 @@ export class UsersApi {
   roles(): Observable<RoleSummary[]> {
     return this.http.get<RoleSummary[]>('/api/identity/roles');
   }
+
+  permissions(): Observable<{ permissions: string[] }> {
+    return this.http.get<{ permissions: string[] }>('/api/identity/permissions');
+  }
 }

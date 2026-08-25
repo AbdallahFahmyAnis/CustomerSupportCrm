@@ -1,23 +1,39 @@
-<section class="track">
-  <p class="back"><a routerLink="/portal">← Portal home</a></p>
-  <h1>Track my requests</h1>
-  <p class="hint">Enter the email you used when submitting.</p>
+<section class="page">
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/portal">Portal</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Track requests</span>
+  </nav>
 
-  <form (ngSubmit)="search()">
-    <label>
-      Email
-      <input
-        name="email"
-        type="email"
-        [(ngModel)]="email"
-        required
-        autocomplete="email"
-      />
-    </label>
-    <button type="submit" [disabled]="store.tracking()">
-      {{ store.tracking() ? 'Searching…' : 'Find requests' }}
-    </button>
-  </form>
+  <header class="row">
+    <div>
+      <h1>Track my requests</h1>
+      <p class="lede">Enter the email you used when submitting.</p>
+    </div>
+  </header>
+
+  <div class="settings-card track-card">
+    <form class="settings-form" (ngSubmit)="search()">
+      <div class="settings-form-grid">
+        <label class="full">
+          Email
+          <input
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            required
+            autocomplete="email"
+            placeholder="you@example.com"
+          />
+        </label>
+      </div>
+      <div class="settings-actions">
+        <button type="submit" class="btn" [disabled]="store.tracking()">
+          {{ store.tracking() ? 'Searching…' : 'Find requests' }}
+        </button>
+      </div>
+    </form>
+  </div>
 
   @if (store.trackError(); as err) {
     <p class="error" role="alert">{{ err }}</p>
@@ -25,12 +41,12 @@
 
   @if (!store.tracking() && store.trackEmail()) {
     @if (store.hasRequests()) {
-      <ul class="list">
+      <ul class="request-list">
         @for (row of store.requests(); track row.requestId) {
-          <li>
+          <li class="request-card">
             <div class="row-head">
               <strong>{{ row.ticketNumber }}</strong>
-              <span class="status">{{ row.status }}</span>
+              <span class="badge-soft">{{ row.status }}</span>
             </div>
             <div class="subject">{{ row.subject }}</div>
             <div class="meta">{{ row.createdAt | date: 'medium' }}</div>
@@ -38,7 +54,7 @@
         }
       </ul>
     } @else {
-      <p class="empty">No requests found for that email.</p>
+      <p class="muted">No requests found for that email.</p>
     }
   }
 </section>

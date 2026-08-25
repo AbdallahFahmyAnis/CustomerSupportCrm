@@ -1,33 +1,47 @@
 <section class="page">
   <header class="row">
-    <h1>Customers</h1>
+    <div>
+      <h1>Customers</h1>
+      <p class="lede">Contacts and account profiles</p>
+    </div>
     <a routerLink="/agent/customers/new" class="btn">Create customer</a>
   </header>
-  <form class="row" (ngSubmit)="load()">
-    <input name="q" [(ngModel)]="q" placeholder="Search name, id, organization" />
-    <button type="submit" class="btn secondary">Search</button>
-  </form>
+
+  <crm-data-view
+    title="Customer list"
+    subtitle="List or grid of profiles"
+    [items]="customers()"
+    [columns]="columns"
+    trackKey="id"
+    [(viewMode)]="viewMode"
+  >
+    <ng-template crmDataToolbar>
+      <form class="toolbar-form" (ngSubmit)="load()">
+        <input name="q" [(ngModel)]="q" placeholder="Search name, id, organization" />
+        <button type="submit" class="btn secondary">Search</button>
+      </form>
+    </ng-template>
+
+    <ng-template crmDataCell="displayName" let-c>
+      <a [routerLink]="['/agent/customers', c.id]">{{ c.displayName }}</a>
+    </ng-template>
+
+    <ng-template crmDataCell="status" let-c>
+      <span class="badge-soft">{{ c.status }}</span>
+    </ng-template>
+
+    <ng-template crmDataCard let-c>
+      <div class="cust-card">
+        <div class="avatar">{{ (c.displayName || '?').charAt(0) }}</div>
+        <a [routerLink]="['/agent/customers', c.id]"><strong>{{ c.displayName }}</strong></a>
+        <span class="muted">{{ c.uniqueIdentifier }}</span>
+        <span>{{ c.organization || '—' }}</span>
+        <span class="badge-soft">{{ c.status }}</span>
+      </div>
+    </ng-template>
+  </crm-data-view>
+
   @if (error()) {
     <p class="error">{{ error() }}</p>
   }
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Unique ID</th>
-        <th>Organization</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (c of customers(); track c.id) {
-        <tr>
-          <td><a [routerLink]="['/agent/customers', c.id]">{{ c.displayName }}</a></td>
-          <td>{{ c.uniqueIdentifier }}</td>
-          <td>{{ c.organization || '—' }}</td>
-          <td>{{ c.status }}</td>
-        </tr>
-      }
-    </tbody>
-  </table>
 </section>

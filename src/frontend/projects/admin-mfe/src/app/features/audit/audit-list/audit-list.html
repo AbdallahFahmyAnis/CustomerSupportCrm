@@ -1,47 +1,67 @@
 <section class="page">
   <header class="row">
-    <h1>Audit log</h1>
+    <div>
+      <h1>Audit log</h1>
+      <p class="lede">Security-sensitive events</p>
+    </div>
   </header>
 
-  <form class="row" (ngSubmit)="search()">
-    <input name="q" [(ngModel)]="q" placeholder="Search action, email, detail" />
-    <button type="submit" class="btn secondary">Search</button>
-  </form>
+  <crm-data-view
+    title="Events"
+    subtitle="Filter by text and date range"
+    [items]="filteredEntries()"
+    [columns]="columns"
+    trackKey="id"
+    [(viewMode)]="viewMode"
+  >
+    <ng-template crmDataToolbar>
+      <form class="toolbar-form" (ngSubmit)="search()">
+        <input name="q" [(ngModel)]="q" placeholder="Search action, email, detail" />
+        <crm-date-field label="From" name="from" [(value)]="fromDate" [max]="toDate || null" />
+        <crm-date-field label="To" name="to" [(value)]="toDate" [min]="fromDate || null" />
+        <button type="submit" class="btn secondary">Search</button>
+      </form>
+    </ng-template>
+
+    <ng-template crmDataCell="occurredAt" let-e>
+      {{ e.occurredAt | date: 'yyyy-MM-dd HH:mm:ss' : 'UTC' }}
+    </ng-template>
+
+    <ng-template crmDataCell="actorEmail" let-e>
+      {{ e.actorEmail || '—' }}
+    </ng-template>
+
+    <ng-template crmDataCell="targetEmail" let-e>
+      {{ e.targetEmail || '—' }}
+    </ng-template>
+
+    <ng-template crmDataCell="detail" let-e>
+      {{ e.detail || '—' }}
+    </ng-template>
+
+    <ng-template crmDataCell="success" let-e>
+      <span class="badge-soft" [class.ok]="e.success" [class.bad]="!e.success">
+        {{ e.success ? 'OK' : 'Failed' }}
+      </span>
+    </ng-template>
+
+    <ng-template crmDataCard let-e>
+      <div class="audit-card">
+        <strong>{{ e.action }}</strong>
+        <span class="muted">{{ e.occurredAt | date: 'medium' : 'UTC' }}</span>
+        <span>{{ e.actorEmail || '—' }} → {{ e.targetEmail || '—' }}</span>
+        <span class="muted">{{ e.detail || '—' }}</span>
+        <span class="badge-soft" [class.ok]="e.success" [class.bad]="!e.success">
+          {{ e.success ? 'OK' : 'Failed' }}
+        </span>
+      </div>
+    </ng-template>
+  </crm-data-view>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
-
   @if (store.loading()) {
     <p>Loading…</p>
   }
-
-  <table>
-    <thead>
-      <tr>
-        <th>When (UTC)</th>
-        <th>Action</th>
-        <th>Actor</th>
-        <th>Target</th>
-        <th>Detail</th>
-        <th>Result</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (e of store.entries(); track e.id) {
-        <tr>
-          <td>{{ e.occurredAt | date: 'yyyy-MM-dd HH:mm:ss' : 'UTC' }}</td>
-          <td>{{ e.action }}</td>
-          <td>{{ e.actorEmail || '—' }}</td>
-          <td>{{ e.targetEmail || '—' }}</td>
-          <td>{{ e.detail || '—' }}</td>
-          <td>{{ e.success ? 'OK' : 'Failed' }}</td>
-        </tr>
-      } @empty {
-        <tr>
-          <td colspan="6">No audit events.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
 </section>

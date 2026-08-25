@@ -1,0 +1,22 @@
+<label class="crm-date-field">
+  @if (label()) {
+    <span class="crm-date-field__label">{{ label() }}</span>
+  }
+  <span class="crm-date-field__control">
+    <span class="crm-date-field__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75">
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M3 10h18M8 3v4M16 3v4" />
+      </svg>
+    </span>
+    <input
+      type="date"
+      class="crm-date-field__input"
+      [name]="name()"
+      [ngModel]="value()"
+      (ngModelChange)="value.set($event)"
+      [attr.min]="min()"
+      [attr.max]="max()"
+    />
+  </span>
+</label>

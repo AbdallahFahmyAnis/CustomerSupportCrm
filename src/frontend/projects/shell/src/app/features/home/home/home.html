@@ -1,24 +1,57 @@
-<section class="home">
-  <p>{{ lang.t('homeLead') }}</p>
-  @if (!session.session()) {
-    <form (ngSubmit)="signIn()">
-      <label>
-        {{ lang.t('email') }}
-        <input name="email" [(ngModel)]="email" autocomplete="username" />
-      </label>
-      <label>
-        {{ lang.t('password') }}
-        <input
-          name="password"
-          type="password"
-          [(ngModel)]="password"
-          autocomplete="current-password"
-        />
-      </label>
-      <button type="submit">{{ lang.t('signIn') }}</button>
-      @if (error) {
-        <p class="error">{{ error }}</p>
+@if (!session.session()) {
+  <div class="auth-basic">
+    <section class="auth-panel">
+      <img class="logo" src="/brand/azm-squad.png" alt="AZM Squad" width="160" height="160" />
+      <h1>Welcome to CRM! 👋</h1>
+      <p class="lead">{{ lang.t('homeLead') }}</p>
+
+      <form class="auth-form" (ngSubmit)="signIn()">
+        <label>
+          {{ lang.t('email') }}
+          <input name="email" [(ngModel)]="email" autocomplete="username" placeholder="agent@crm.local" />
+        </label>
+        <label>
+          {{ lang.t('password') }}
+          <input
+            name="password"
+            type="password"
+            [(ngModel)]="password"
+            autocomplete="current-password"
+            placeholder="············"
+          />
+        </label>
+        <button type="submit" class="btn">{{ lang.t('signIn') }}</button>
+        @if (error) {
+          <p class="error">{{ error }}</p>
+        }
+      </form>
+    </section>
+  </div>
+} @else {
+  <section class="workspace">
+    <header class="row">
+      <div>
+        <h1>{{ lang.t('product') }}</h1>
+        <p class="lede">{{ lang.t('homeLead') }}</p>
+      </div>
+    </header>
+    <div class="action-grid home-actions">
+      @if (showAgent) {
+        <a routerLink="/agent" class="action-tile">
+          <strong>Agent workspace</strong>
+          <span>Customers, tickets, and channels</span>
+        </a>
+        <a routerLink="/portal" class="action-tile">
+          <strong>Portal</strong>
+          <span>Submit and track customer requests</span>
+        </a>
       }
-    </form>
-  }
-</section>
+      @if (showAdmin) {
+        <a routerLink="/admin" class="action-tile">
+          <strong>Administration</strong>
+          <span>Users, roles, audit, and settings</span>
+        </a>
+      }
+    </div>
+  </section>
+}

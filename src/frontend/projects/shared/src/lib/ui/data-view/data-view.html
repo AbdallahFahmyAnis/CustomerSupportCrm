@@ -1,0 +1,98 @@
+<section class="dv">
+  <header class="dv-head">
+    <div class="dv-titles">
+      @if (title()) {
+        <h2>{{ title() }}</h2>
+      }
+      @if (subtitle()) {
+        <p>{{ subtitle() }}</p>
+      }
+    </div>
+    <div class="dv-toggle" role="group" aria-label="View mode">
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="viewMode() === 'list'"
+        (click)="setMode('list')"
+        title="List view"
+      >
+        ☰ List
+      </button>
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="viewMode() === 'grid'"
+        (click)="setMode('grid')"
+        title="Grid view"
+      >
+        ▦ Grid
+      </button>
+    </div>
+  </header>
+
+  @if (toolbar) {
+    <div class="dv-toolbar">
+      <ng-container *ngTemplateOutlet="toolbar.template" />
+    </div>
+  }
+
+  @if (items().length === 0) {
+    <p class="dv-empty">{{ emptyText() }}</p>
+  } @else if (viewMode() === 'list') {
+    <div class="dv-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            @for (col of columns(); track col.key) {
+              <th [class]="col.className || ''">{{ col.header }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of items(); track trackOf($index, row)) {
+            <tr>
+              @for (col of columns(); track col.key) {
+                <td [class]="col.className || ''">
+                  @if (cellFor(col.key); as cell) {
+                    <ng-container
+                      *ngTemplateOutlet="cell.template; context: { $implicit: row }"
+                    />
+                  } @else {
+                    {{ valueOf(row, col.key) }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="dv-grid">
+      @for (row of items(); track trackOf($index, row)) {
+        <article class="dv-card">
+          @if (cardTpl) {
+            <ng-container *ngTemplateOutlet="cardTpl.template; context: { $implicit: row }" />
+          } @else {
+            <div class="dv-card-fallback">
+              @for (col of columns(); track col.key) {
+                <div class="dv-field">
+                  <span class="k">{{ col.header }}</span>
+                  <span class="v">
+                    @if (cellFor(col.key); as cell) {
+                      <ng-container
+                        *ngTemplateOutlet="cell.template; context: { $implicit: row }"
+                      />
+                    } @else {
+                      {{ valueOf(row, col.key) }}
+                    }
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </article>
+      }
+    </div>
+  }
+</section>

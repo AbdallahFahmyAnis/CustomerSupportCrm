@@ -1,0 +1,46 @@
+.crm-date-field {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  min-width: 10.5rem;
+}
+
+.crm-date-field__label {
+  color: var(--crm-text);
+}
+
+.crm-date-field__control {
+  position: relative;
+  display: block;
+}
+
+.crm-date-field__icon {
+  position: absolute;
+  inset-inline-start: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--crm-primary);
+  pointer-events: none;
+  display: inline-flex;
+}
+
+.crm-date-field__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline-start: 2.35rem !important;
+  min-height: 2.5rem;
+  background:
+    linear-gradient(180deg, rgba(140, 87, 255, 0.04), transparent 55%),
+    var(--crm-paper);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius-sm);
+  font: inherit;
+  color: var(--crm-text);
+}
+
+.crm-date-field__input:focus {
+  outline: none;
+  border-color: var(--crm-primary);
+  box-shadow: 0 0 0 0.2rem var(--crm-primary-soft);
+}

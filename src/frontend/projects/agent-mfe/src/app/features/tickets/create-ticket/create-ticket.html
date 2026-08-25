@@ -1,54 +1,136 @@
 <section class="page">
-  <p><a routerLink="/agent/tickets">← Tickets</a></p>
-  <h1>Create ticket</h1>
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/agent/tickets">Tickets</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Create</span>
+  </nav>
+
+  <header class="row">
+    <div>
+      <h1>Create ticket</h1>
+      <p class="lede">Customer, details, classification, then review</p>
+    </div>
+  </header>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
 
-  <form class="form" (ngSubmit)="submit()">
-    <label>
-      Customer search
-      <input
-        name="cq"
-        [(ngModel)]="customerQuery"
-        (ngModelChange)="findCustomers()"
-        placeholder="Name or id"
-      />
-    </label>
-    <label>
-      Customer
-      <select name="customerId" [(ngModel)]="customerId" required>
-        <option value="" disabled>Select customer</option>
-        @for (c of customers; track c.id) {
-          <option [value]="c.id">{{ c.displayName }} ({{ c.uniqueIdentifier }})</option>
-        }
-      </select>
-    </label>
-    <label>
-      Subject
-      <input name="subject" [(ngModel)]="subject" required />
-    </label>
-    <label>
-      Description
-      <textarea name="description" [(ngModel)]="description" rows="4"></textarea>
-    </label>
-    <label>
-      Category
-      <select name="category" [(ngModel)]="category" required>
-        @for (c of store.options()?.categories ?? []; track c) {
-          <option [value]="c">{{ c }}</option>
-        }
-      </select>
-    </label>
-    <label>
-      Priority
-      <select name="priority" [(ngModel)]="priority" required>
-        @for (p of store.options()?.priorities ?? []; track p) {
-          <option [value]="p">{{ p }}</option>
-        }
-      </select>
-    </label>
-    <button type="submit" class="btn">Create</button>
-  </form>
+  <crm-wizard
+    [steps]="steps"
+    [(step)]="step"
+    [canNext]="canAdvance()"
+    finishLabel="Create ticket"
+    (finish)="submit()"
+  >
+    <ng-template crmWizardStep>
+      <div class="step-intro">
+        <h3>Select customer</h3>
+        <p class="muted">Search by name or identifier, then pick the customer.</p>
+      </div>
+      <div class="field-stack">
+        <label>
+          Customer search
+          <input
+            name="cq"
+            [(ngModel)]="customerQuery"
+            (ngModelChange)="findCustomers()"
+            placeholder="Name or unique id"
+          />
+        </label>
+        <label>
+          Customer
+          <select name="customerId" [(ngModel)]="customerId" required>
+            <option value="" disabled>Select customer</option>
+            @for (c of customers; track c.id) {
+              <option [value]="c.id">{{ c.displayName }} ({{ c.uniqueIdentifier }})</option>
+            }
+          </select>
+        </label>
+      </div>
+    </ng-template>
+
+    <ng-template crmWizardStep>
+      <div class="step-intro">
+        <h3>Ticket details</h3>
+        <p class="muted">Subject is required; description helps agents resolve faster.</p>
+      </div>
+      <div class="field-stack">
+        <label>
+          Subject
+          <input name="subject" [(ngModel)]="subject" required placeholder="Brief summary" />
+        </label>
+        <label>
+          Description
+          <textarea
+            name="description"
+            [(ngModel)]="description"
+            rows="5"
+            placeholder="Describe the issue or request…"
+          ></textarea>
+        </label>
+      </div>
+    </ng-template>
+
+    <ng-template crmWizardStep>
+      <div class="step-intro">
+        <h3>Classification</h3>
+        <p class="muted">Category and priority drive routing and SLA.</p>
+      </div>
+      <div class="field-stack">
+        <label>
+          Category
+          <select name="category" [(ngModel)]="category" required>
+            @for (c of store.options()?.categories ?? []; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Priority
+          <select name="priority" [(ngModel)]="priority" required>
+            @for (p of store.options()?.priorities ?? []; track p) {
+              <option [value]="p">{{ p }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    </ng-template>
+
+    <ng-template crmWizardStep>
+      <div class="review-panel">
+        <div class="review-hero">
+          <div class="avatar">T</div>
+          <div>
+            <strong>Almost done</strong>
+            <p class="muted">Confirm the ticket details, then create.</p>
+          </div>
+        </div>
+        <table class="review-table">
+          <tr>
+            <th>Customer</th>
+            <td>{{ selectedCustomerLabel }}</td>
+          </tr>
+          <tr>
+            <th>Subject</th>
+            <td>{{ subject }}</td>
+          </tr>
+          <tr>
+            <th>Description</th>
+            <td>{{ description.trim() || '—' }}</td>
+          </tr>
+          <tr>
+            <th>Category</th>
+            <td>{{ category }}</td>
+          </tr>
+          <tr>
+            <th>Priority</th>
+            <td>
+              <span class="badge-soft">{{ priority }}</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </ng-template>
+  </crm-wizard>
 </section>

@@ -1,22 +1,66 @@
-<header class="chrome">
-  <a routerLink="/" class="brand">{{ lang.t('product') }}</a>
-  <nav>
-    <a routerLink="/agent">{{ lang.t('agent') }}</a>
-    <a routerLink="/agent/customers">{{ lang.t('customers') }}</a>
-    <a routerLink="/agent/tickets">{{ lang.t('tickets') }}</a>
-    <a routerLink="/portal">{{ lang.t('portal') }}</a>
-    <a routerLink="/admin">{{ lang.t('admin') }}</a>
-    <a routerLink="/admin/users">{{ lang.t('users') }}</a>
-    <a routerLink="/knowledge">{{ lang.t('knowledge') }}</a>
-  </nav>
-  <div class="actions">
-    @if (session.session(); as user) {
-      <span>{{ lang.t('signedInAs') }} {{ user.name }}</span>
-      <button type="button" (click)="signOut()">{{ lang.t('signOut') }}</button>
-    }
-    <button type="button" (click)="lang.toggle()">{{ lang.t('languageToggle') }}</button>
+@if (session.session(); as user) {
+  <div class="app-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
+    <aside class="sidebar">
+      <div class="brand-row">
+        <a routerLink="/" class="brand">
+          <img class="brand-logo" src="/brand/azm-squad.png" alt="" width="36" height="36" />
+          <span class="brand-text">{{ lang.t('product') }}</span>
+        </a>
+        <button type="button" class="icon-btn ghost" (click)="toggleSidebar()" aria-label="Toggle menu">☰</button>
+      </div>
+
+      <nav class="side-nav">
+        @if (showAgentNav) {
+          <p class="nav-label">Workspace</p>
+          <a routerLink="/agent" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ lang.t('agent') }}</a>
+          <a routerLink="/agent/customers" routerLinkActive="active">{{ lang.t('customers') }}</a>
+          <a routerLink="/agent/tickets" routerLinkActive="active">{{ lang.t('tickets') }}</a>
+          <a routerLink="/portal" routerLinkActive="active">{{ lang.t('portal') }}</a>
+        }
+
+        @if (showAdminNav) {
+          <p class="nav-label">Admin</p>
+          <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ lang.t('admin') }}</a>
+          <a routerLink="/admin/users" routerLinkActive="active">{{ lang.t('users') }}</a>
+          <a routerLink="/admin/roles" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Roles</a>
+          <a routerLink="/admin/roles/permissions" routerLinkActive="active">Permissions</a>
+          <a routerLink="/admin/audit" routerLinkActive="active">Audit</a>
+          <a routerLink="/admin/settings" routerLinkActive="active">Settings</a>
+          <a routerLink="/knowledge" routerLinkActive="active">{{ lang.t('knowledge') }}</a>
+        }
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="user-chip">
+          <span class="avatar">{{ userInitial(user.name || user.email || '?') }}</span>
+          <div>
+            <strong>{{ user.name || user.email }}</strong>
+            <small>{{ user.role || user.email }}</small>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="content-column">
+      <header class="topbar">
+        <div class="topbar-start">
+          <button type="button" class="icon-btn" (click)="toggleSidebar()" aria-label="Menu">☰</button>
+          <span class="crumb">CRM</span>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="ghost-btn" (click)="lang.toggle()">{{ lang.t('languageToggle') }}</button>
+          <button type="button" class="ghost-btn" (click)="signOut()">{{ lang.t('signOut') }}</button>
+        </div>
+      </header>
+      <main class="content">
+        <router-outlet />
+      </main>
+    </div>
   </div>
-</header>
-<main>
-  <router-outlet />
-</main>
+} @else {
+  <div class="auth-shell">
+    <main class="auth-main">
+      <router-outlet />
+    </main>
+  </div>
+}

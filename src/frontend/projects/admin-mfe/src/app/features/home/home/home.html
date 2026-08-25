@@ -1,10 +1,31 @@
 <section class="workspace">
-  <h1>Administration</h1>
-  <p>Manage users, roles, permissions, audit logs, and system settings.</p>
-  <div class="actions">
-    <a routerLink="/admin/users" class="btn">Users</a>
-    <a routerLink="/admin/roles" class="btn">Roles</a>
-    <a routerLink="/admin/audit" class="btn">Audit</a>
-    <a routerLink="/admin/settings" class="btn">Settings</a>
+  <header class="row">
+    <div>
+      <h1>Administration</h1>
+      <p class="lede">Users, roles, audit, and system configuration.</p>
+    </div>
+  </header>
+
+  <div class="action-grid home-actions">
+    <a routerLink="/admin/users" class="action-tile featured">
+      <span class="tile-kicker">Security</span>
+      <strong>Users</strong>
+      <span>Create, assign roles, deactivate</span>
+    </a>
+    <a routerLink="/admin/roles" class="action-tile featured">
+      <span class="tile-kicker">Access</span>
+      <strong>Roles</strong>
+      <span>Permissions by role</span>
+    </a>
+    <a routerLink="/admin/audit" class="action-tile featured">
+      <span class="tile-kicker">Compliance</span>
+      <strong>Audit</strong>
+      <span>Review security activity</span>
+    </a>
+    <a routerLink="/admin/settings" class="action-tile featured">
+      <span class="tile-kicker">Tenant</span>
+      <strong>Settings</strong>
+      <span>Organization and lockout policy</span>
+    </a>
   </div>
 </section>

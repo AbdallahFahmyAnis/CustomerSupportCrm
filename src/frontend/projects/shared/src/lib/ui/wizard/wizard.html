@@ -1,0 +1,42 @@
+<div class="crm-wizard">
+  <ol class="crm-wizard__steps" aria-label="Wizard steps">
+    @for (s of steps(); track $index; let i = $index) {
+      <li
+        class="crm-wizard__step"
+        [class.is-active]="i === step()"
+        [class.is-done]="i < step()"
+      >
+        <button type="button" class="crm-wizard__step-btn" (click)="go(i)" [disabled]="i > step()">
+          <span class="crm-wizard__num">{{ i + 1 | number: '2.0-0' }}</span>
+          <span class="crm-wizard__meta">
+            <strong>{{ s.title }}</strong>
+            @if (s.subtitle) {
+              <small>{{ s.subtitle }}</small>
+            }
+          </span>
+        </button>
+      </li>
+    }
+  </ol>
+
+  <div class="crm-wizard__panel card">
+    <div class="crm-wizard__body">
+      @if (activeTpl; as tpl) {
+        <ng-container *ngTemplateOutlet="tpl.template" />
+      }
+    </div>
+
+    <footer class="crm-wizard__footer">
+      <button type="button" class="btn secondary" (click)="back()" [disabled]="step() === 0">
+        Previous
+      </button>
+      @if (step() < steps().length - 1) {
+        <button type="button" class="btn" (click)="next()" [disabled]="!canNext()">Next</button>
+      } @else {
+        <button type="button" class="btn" (click)="finish.emit()" [disabled]="!canNext() || finishDisabled()">
+          {{ finishLabel() }}
+        </button>
+      }
+    </footer>
+  </div>
+</div>

@@ -2,26 +2,54 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import {
+  CrmModalComponent,
+  CrmWizardComponent,
+  CrmWizardStep,
+  CrmWizardStepDirective,
+} from 'shared';
 import { DuplicateWarning } from '../customers.models';
 import { CustomersApi } from '../customers.api';
 
-/** SDD CRM-001 — create customer command container. */
+/** SDD CRM-001 — create customer wizard (Materio create-deal shape). */
 @Component({
   selector: 'app-customer-create',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [
+    FormsModule,
+    RouterLink,
+    CrmWizardComponent,
+    CrmWizardStepDirective,
+    CrmModalComponent,
+  ],
   templateUrl: './create-customer.html',
   styleUrls: ['./create-customer.scss'],
 })
 export class CustomerCreateComponent {
   private readonly api = inject(CustomersApi);
   private readonly router = inject(Router);
+
+  step = 0;
   displayName = '';
   uniqueIdentifier = '';
   organization = '';
   status = 'Active';
+  dupOpen = false;
   readonly warning = signal<DuplicateWarning | null>(null);
   readonly error = signal('');
+
+  readonly steps: CrmWizardStep[] = [
+    { title: 'Profile', subtitle: 'Name and identifier' },
+    { title: 'Organization', subtitle: 'Org and status' },
+    { title: 'Review', subtitle: 'Confirm and create' },
+  ];
+
+  canAdvance(): boolean {
+    if (this.step === 0) {
+      return !!this.displayName.trim() && !!this.uniqueIdentifier.trim();
+    }
+    return true;
+  }
 
   save(): void {
     this.warning.set(null);
@@ -38,6 +66,7 @@ export class CustomerCreateComponent {
         error: (err: HttpErrorResponse) => {
           if (err.status === 409) {
             this.warning.set(err.error as DuplicateWarning);
+            this.dupOpen = true;
             return;
           }
           this.error.set('Save failed.');

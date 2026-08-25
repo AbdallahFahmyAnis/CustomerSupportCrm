@@ -1,21 +1,27 @@
 <section class="page">
-  <h1>Roles &amp; permissions</h1>
+  <header class="row">
+    <div>
+      <h1>Roles List</h1>
+      <p class="lede">
+        A role provides access to predefined menus and features so administrators can grant what each user needs.
+      </p>
+    </div>
+    <a routerLink="/admin/roles/permissions" class="btn secondary">Permissions</a>
+  </header>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
 
-  <div class="grid">
+  <div class="role-grid">
     @for (r of store.roles(); track r.name) {
-      <article>
-        <h2>{{ r.name }}</h2>
-        <p>{{ r.description }}</p>
-        <ul>
-          @for (p of r.permissions; track p) {
-            <li><span class="chip">{{ p }}</span></li>
-          }
-        </ul>
-      </article>
+      <crm-role-card
+        [name]="r.name"
+        [description]="r.description"
+        [permissions]="r.permissions"
+        [userCountLabel]="r.permissions.length + ' permissions'"
+        (edit)="openPermissions()"
+      />
     }
   </div>
 </section>
