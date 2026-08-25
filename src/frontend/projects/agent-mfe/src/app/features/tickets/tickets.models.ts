@@ -45,6 +45,13 @@ export interface TicketTask {
   updatedAt: string;
 }
 
+/** SDD CRM-015 — canned reply. */
+export interface QuickReply {
+  id: string;
+  title: string;
+  body: string;
+}
+
 export interface TicketDetail extends TicketSummary {
   description?: string | null;
   createdAt: string;

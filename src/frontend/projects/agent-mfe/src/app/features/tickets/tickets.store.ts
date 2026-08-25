@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { ChannelMessageDto, TicketDetail, TicketOptions, TicketSummary, TicketTask } from './tickets.models';
+import { ChannelMessageDto, QuickReply, TicketDetail, TicketOptions, TicketSummary, TicketTask } from './tickets.models';
 import { TicketsApi } from './tickets.api';
 
 /** SDD CRM-004…007 / CRM-008 — feature store (Feature-Based + Signals). */
@@ -11,6 +11,7 @@ export class TicketsStore {
   readonly selected = signal<TicketDetail | null>(null);
   readonly channelMessages = signal<ChannelMessageDto[]>([]);
   readonly options = signal<TicketOptions | null>(null);
+  readonly quickReplies = signal<QuickReply[]>([]);
   readonly loading = signal(false);
   readonly error = signal('');
   readonly query = signal('');
@@ -24,6 +25,10 @@ export class TicketsStore {
     this.api.options().subscribe({
       next: (opts) => this.options.set(opts),
       error: () => this.error.set('Could not load ticket options.'),
+    });
+    this.api.listQuickReplies().subscribe({
+      next: (rows) => this.quickReplies.set(rows ?? []),
+      error: () => this.quickReplies.set([]),
     });
   }
 

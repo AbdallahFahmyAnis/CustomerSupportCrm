@@ -49,6 +49,8 @@ export class TicketDetailPage implements OnInit {
   replyChannel: 'whatsapp' | 'chat' | 'sms' = 'chat';
   chatDraft = '';
   emailDraft = '';
+  emailQuickId = '';
+  chatQuickId = '';
   private routeId = '';
   /** Ticket id for template actions (CRM-014). */
   get id(): string {
@@ -281,5 +283,19 @@ export class TicketDetailPage implements OnInit {
         this.taskDue = '';
       },
     );
+  }
+
+  /** SDD CRM-015 — insert catalog body into compose draft. */
+  insertQuick(target: 'email' | 'chat', replyId: string): void {
+    if (!replyId) return;
+    const reply = this.store.quickReplies().find((q) => q.id === replyId);
+    if (!reply) return;
+    if (target === 'email') {
+      this.emailDraft = this.emailDraft ? `${this.emailDraft}\n\n${reply.body}` : reply.body;
+      this.emailQuickId = '';
+    } else {
+      this.chatDraft = this.chatDraft ? `${this.chatDraft}\n\n${reply.body}` : reply.body;
+      this.chatQuickId = '';
+    }
   }
 }

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CustomerOption, ChannelMessageDto, SlaEvaluation, TicketDetail, TicketNote, TicketOptions, TicketSummary, TicketTask } from './tickets.models';
+import { CustomerOption, ChannelMessageDto, QuickReply, SlaEvaluation, TicketDetail, TicketNote, TicketOptions, TicketSummary, TicketTask } from './tickets.models';
 
 /** SDD CRM-004 — tickets command/query API via gateway. */
 @Injectable({ providedIn: 'root' })
@@ -10,6 +10,11 @@ export class TicketsApi {
 
   options(): Observable<TicketOptions> {
     return this.http.get<TicketOptions>('/api/tickets/options');
+  }
+
+  /** SDD CRM-015 */
+  listQuickReplies(): Observable<QuickReply[]> {
+    return this.http.get<QuickReply[]>('/api/tickets/quick-replies');
   }
 
   search(q = '', assignedTo?: string): Observable<TicketSummary[]> {

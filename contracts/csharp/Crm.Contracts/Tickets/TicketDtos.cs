@@ -98,3 +98,6 @@ public sealed record CreateTicketTaskRequest(
     DateTimeOffset? DueAt,
     string? AssigneeUserId,
     string? AssigneeName);
+
+/// <summary>SDD CRM-015 — shared canned reply.</summary>
+public sealed record QuickReplyDto(string Id, string Title, string Body);

@@ -135,6 +135,17 @@ public sealed class TicketLifecycleTests : IClassFixture<TicketsApiFactory>
     }
 
     [Fact]
+    [Trait("Story", "CRM-015")]
+    public async Task Quick_replies_catalog_returns_shared_seed()
+    {
+        var replies = await _client.GetFromJsonAsync<List<QuickReplyDto>>("/api/tickets/quick-replies");
+        replies.Should().NotBeNull();
+        replies!.Count.Should().BeGreaterThanOrEqualTo(3);
+        replies.Should().Contain(r => r.Title.Contains("Billing", StringComparison.OrdinalIgnoreCase));
+        replies.Should().OnlyContain(r => !string.IsNullOrWhiteSpace(r.Body));
+    }
+
+    [Fact]
     [Trait("Story", "CRM-016")]
     public async Task Internal_note_with_mention_persists_on_detail()
     {

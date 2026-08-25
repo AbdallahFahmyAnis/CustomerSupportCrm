@@ -174,6 +174,17 @@
     </div>
 
     <h2>Email</h2>
+    <div class="card quick-replies">
+      <label>
+        Quick reply
+        <select name="emailQuick" [(ngModel)]="emailQuickId" (ngModelChange)="insertQuick('email', $event)">
+          <option value="">Insert into email…</option>
+          @for (q of store.quickReplies(); track q.id) {
+            <option [value]="q.id">{{ q.title }}</option>
+          }
+        </select>
+      </label>
+    </div>
     <crm-email
       [subject]="t.subject"
       [messages]="emailMessages()"
@@ -186,6 +197,17 @@
     />
 
     <h2>Messaging</h2>
+    <div class="card quick-replies">
+      <label>
+        Quick reply
+        <select name="chatQuick" [(ngModel)]="chatQuickId" (ngModelChange)="insertQuick('chat', $event)">
+          <option value="">Insert into message…</option>
+          @for (q of store.quickReplies(); track q.id) {
+            <option [value]="q.id">{{ q.title }}</option>
+          }
+        </select>
+      </label>
+    </div>
     <crm-chat
       [title]="t.customerName"
       [subtitle]="t.ticketNumber + ' · channel thread'"

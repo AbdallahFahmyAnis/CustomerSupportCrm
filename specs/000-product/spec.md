@@ -42,12 +42,12 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/023-ticket-collaboration` — CRM-016 internal notes + @mentions
 - [x] `specs/025-agent-workspace` — CRM-013 my tickets + customer summary on detail
 - [x] `specs/026-ticket-tasks` — CRM-014 ticket tasks + due-today home
+- [x] `specs/027-quick-replies` — CRM-015 shared quick reply catalog
 
 ## Next
 
-1. CRM-015 quick replies when ready
-2. CRM-030 customer feedback when ready
-3. Inbound webhooks / signature verification for providers
+1. CRM-030 customer feedback when ready
+2. Inbound webhooks / signature verification for providers
 
 ## Constraints
 
