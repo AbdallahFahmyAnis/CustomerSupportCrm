@@ -7,11 +7,12 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Crm.Identity.Api.Infrastructure.Persistence;
 
-/// <summary>SDD CRM-035 / CRM-037 — seed roles, demo users, OpenIddict gateway client.</summary>
+/// <summary>SDD CRM-035 / CRM-037 / CRM-036 — seed roles, demo users, OpenIddict gateway client, audit samples.</summary>
 public sealed class IdentityDataSeeder(
     RoleManager<IdentityRole<Guid>> roles,
     UserManager<ApplicationUser> users,
     IOpenIddictApplicationManager applications,
+    IdentityAppDbContext db,
     IConfiguration config)
 {
     public const string PermissionClaimType = "permission";
@@ -67,11 +68,48 @@ public sealed class IdentityDataSeeder(
                 cancellationToken);
 
             await EnsureGatewayClientAsync(cancellationToken);
+            await EnsureDemoAuditAsync(cancellationToken);
         }
         catch
         {
             // never brick startup
         }
+    }
+
+    private async Task EnsureDemoAuditAsync(CancellationToken cancellationToken)
+    {
+        if (await db.AuditLogs.AnyAsync(cancellationToken))
+        {
+            return;
+        }
+
+        var adminId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+        var now = DateTimeOffset.UtcNow;
+        db.AuditLogs.AddRange(
+            new AuditLogEntry
+            {
+                Id = Guid.NewGuid(),
+                OccurredAt = now.AddMinutes(-30),
+                Action = AuditActions.Login,
+                ActorUserId = adminId,
+                ActorEmail = "admin@crm.local",
+                TargetUserId = adminId,
+                TargetEmail = "admin@crm.local",
+                Detail = "Seeded demo login",
+                Success = true
+            },
+            new AuditLogEntry
+            {
+                Id = Guid.NewGuid(),
+                OccurredAt = now.AddMinutes(-20),
+                Action = AuditActions.UserCreated,
+                ActorUserId = adminId,
+                ActorEmail = "admin@crm.local",
+                TargetEmail = "agent@crm.local",
+                Detail = "Role=Agent (seed)",
+                Success = true
+            });
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task EnsureRoleAsync(

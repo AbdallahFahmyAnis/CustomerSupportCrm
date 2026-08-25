@@ -141,6 +141,46 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
         roles.Should().Contain(r => r.Name == "Agent");
     }
 
+    [Fact]
+    [Trait("Story", "CRM-036")]
+    public async Task Admin_can_list_audit_and_see_login_and_user_events()
+    {
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Role");
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Id");
+        _client.DefaultRequestHeaders.Add("X-Crm-User-Role", "Admin");
+        _client.DefaultRequestHeaders.Add("X-Crm-User-Id", "33333333-3333-3333-3333-333333333333");
+
+        var email = $"audit-{Guid.NewGuid():N}@crm.local";
+        var create = await _client.PostAsJsonAsync("/api/identity/users",
+            new CreateUserRequest(email, "Audit Target", "Crm!123", "Agent"));
+        create.EnsureSuccessStatusCode();
+
+        var login = await _client.PostAsJsonAsync("/api/identity/token",
+            new DevLoginRequest(email, "Crm!123"));
+        login.EnsureSuccessStatusCode();
+
+        var audit = await _client.GetFromJsonAsync<List<AuditLogDto>>("/api/identity/audit");
+        audit.Should().NotBeNull();
+        audit!.Should().Contain(e => e.Action == "UserCreated" && e.TargetEmail == email && e.Success);
+        audit.Should().Contain(e => e.Action == "Login" && e.ActorEmail == email && e.Success);
+
+        var filtered = await _client.GetFromJsonAsync<List<AuditLogDto>>($"/api/identity/audit?q={Uri.EscapeDataString(email)}");
+        filtered!.Should().OnlyContain(e =>
+            (e.ActorEmail != null && e.ActorEmail.Contains(email, StringComparison.OrdinalIgnoreCase)) ||
+            (e.TargetEmail != null && e.TargetEmail.Contains(email, StringComparison.OrdinalIgnoreCase)) ||
+            (e.Detail != null && e.Detail.Contains(email, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-036")]
+    public async Task Non_admin_cannot_list_audit()
+    {
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Role");
+        _client.DefaultRequestHeaders.Add("X-Crm-User-Role", "Agent");
+        var response = await _client.GetAsync("/api/identity/audit");
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
     private static int UserAccountMaxAttempts() => 5;
 }
 

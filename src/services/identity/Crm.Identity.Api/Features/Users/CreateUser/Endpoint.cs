@@ -16,7 +16,8 @@ public sealed class CreateUserEndpoint : IEndpoint
                 return AdminHttp.ForbiddenAdmin();
             }
 
-            var result = await mediator.Send(new CreateUserCommand(body.Email, body.DisplayName, body.Password, body.Role));
+            var result = await mediator.Send(new CreateUserCommand(
+                body.Email, body.DisplayName, body.Password, body.Role, AdminHttp.ActorId(http)));
             return result.Error is not null
                 ? Results.BadRequest(new { error = result.Error })
                 : Results.Created($"/api/identity/users/{result.User!.Id}", result.User);

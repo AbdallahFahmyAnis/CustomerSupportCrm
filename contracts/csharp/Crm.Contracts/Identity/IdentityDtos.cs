@@ -22,3 +22,13 @@ public sealed record RoleSummaryDto(
     IReadOnlyList<string> Permissions);
 
 public sealed record PermissionCatalogDto(IReadOnlyList<string> Permissions);
+
+/// <summary>SDD CRM-036 / specs/011-audit-logs.</summary>
+public sealed record AuditLogDto(
+    string Id,
+    DateTimeOffset OccurredAt,
+    string Action,
+    string? ActorEmail,
+    string? TargetEmail,
+    string? Detail,
+    bool Success);

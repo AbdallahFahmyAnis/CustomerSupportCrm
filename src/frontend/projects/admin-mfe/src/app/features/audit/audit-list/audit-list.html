@@ -1,0 +1,47 @@
+<section class="page">
+  <header class="row">
+    <h1>Audit log</h1>
+  </header>
+
+  <form class="row" (ngSubmit)="search()">
+    <input name="q" [(ngModel)]="q" placeholder="Search action, email, detail" />
+    <button type="submit" class="btn secondary">Search</button>
+  </form>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+
+  @if (store.loading()) {
+    <p>Loading…</p>
+  }
+
+  <table>
+    <thead>
+      <tr>
+        <th>When (UTC)</th>
+        <th>Action</th>
+        <th>Actor</th>
+        <th>Target</th>
+        <th>Detail</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (e of store.entries(); track e.id) {
+        <tr>
+          <td>{{ e.occurredAt | date: 'yyyy-MM-dd HH:mm:ss' : 'UTC' }}</td>
+          <td>{{ e.action }}</td>
+          <td>{{ e.actorEmail || '—' }}</td>
+          <td>{{ e.targetEmail || '—' }}</td>
+          <td>{{ e.detail || '—' }}</td>
+          <td>{{ e.success ? 'OK' : 'Failed' }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6">No audit events.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

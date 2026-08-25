@@ -1,4 +1,5 @@
 using Crm.Contracts.Identity;
+using Crm.Identity.Api.Domain;
 using Crm.Identity.Api.Infrastructure;
 using MediatR;
 
@@ -23,8 +24,27 @@ public sealed class UpdateUserRoleHandler(IdentityDirectory directory)
                 return new UpdateUserRoleResponse(null, "User not found.");
             }
 
+            var previous = user.Role;
             user.AssignRole(request.Role);
             await directory.UpdateAsync(user, cancellationToken);
+
+            string? actorEmail = null;
+            if (request.ActorId is { } actorId)
+            {
+                var actor = await directory.GetUserAsync(actorId, cancellationToken);
+                actorEmail = actor?.Email;
+            }
+
+            await directory.AppendAuditAsync(
+                AuditActions.RoleChanged,
+                true,
+                request.ActorId,
+                actorEmail,
+                user.Id,
+                user.Email,
+                $"{previous} → {user.Role}",
+                cancellationToken);
+
             return new UpdateUserRoleResponse(
                 new UserSummaryDto(user.Id.ToString(), user.Email, user.DisplayName, user.Role, user.IsActive),
                 null);
