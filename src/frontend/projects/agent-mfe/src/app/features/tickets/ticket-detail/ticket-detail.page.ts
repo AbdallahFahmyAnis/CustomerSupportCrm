@@ -54,6 +54,7 @@ export class TicketDetailPage implements OnInit {
     { id: string; title: string; kind: string; status: string; score: number; snippet: string }[]
   >([]);
   knowledgeError = '';
+  noteDraft = '';
 
   readonly emailMessages = computed<CrmEmailMessage[]>(() =>
     this.store
@@ -215,6 +216,24 @@ export class TicketDetailPage implements OnInit {
         this.knowledgeError = err?.error?.error ?? 'Knowledge search failed.';
         this.knowledgeHits.set([]);
       },
+    });
+  }
+
+  /** SDD CRM-016 — insert @Agent Name into the note draft. */
+  insertMention(name: string): void {
+    const token = `@${name}`;
+    const draft = this.noteDraft.trim();
+    this.noteDraft = draft ? `${draft} ${token} ` : `${token} `;
+  }
+
+  saveNote(): void {
+    const body = this.noteDraft.trim();
+    if (!body) {
+      this.store.error.set('Note body is required.');
+      return;
+    }
+    this.store.addNote(this.id, body, () => {
+      this.noteDraft = '';
     });
   }
 }

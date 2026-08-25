@@ -39,11 +39,11 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/020-knowledge-search` — CRM-022 ranked knowledge search + agent panel
 - [x] `specs/021-notifications` — CRM-020 in-app notifications inbox + shell bell
 - [x] `specs/022-portal-faqs` — CRM-029 portal FAQ browse + detail
+- [x] `specs/023-ticket-collaboration` — CRM-016 internal notes + @mentions
 
 ## Next
 
-1. CRM-016@ / richer collaboration when ready
-2. Inbound webhooks / signature verification for providers
+1. Inbound webhooks / signature verification for providers
 
 ## Constraints
 

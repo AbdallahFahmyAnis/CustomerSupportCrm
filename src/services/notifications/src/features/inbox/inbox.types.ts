@@ -13,3 +13,15 @@ export class MarkReadCommand {
     public readonly id: string,
   ) {}
 }
+
+/** SDD CRM-016 — create notification from producers. */
+export class CreateNotificationCommand {
+  constructor(
+    public readonly userId: string,
+    public readonly title: string,
+    public readonly body: string,
+    public readonly kind: string,
+    public readonly href?: string,
+  ) {}
+}
+

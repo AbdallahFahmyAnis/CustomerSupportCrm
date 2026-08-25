@@ -1,5 +1,5 @@
 /** SDD CRM-020 — in-app notification entity. */
-export type NotificationKind = 'assignment' | 'sla' | 'system';
+export type NotificationKind = 'assignment' | 'sla' | 'system' | 'mention';
 
 export interface NotificationRecord {
   id: string;

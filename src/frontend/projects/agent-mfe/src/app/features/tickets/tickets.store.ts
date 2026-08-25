@@ -148,4 +148,17 @@ export class TicketsStore {
         ),
     });
   }
+
+  /** SDD CRM-016 — add internal note then refresh detail. */
+  addNote(ticketId: string, body: string, onDone?: () => void): void {
+    this.error.set('');
+    this.api.addNote(ticketId, body).subscribe({
+      next: () => {
+        this.refreshDetail(ticketId);
+        onDone?.();
+      },
+      error: (err) =>
+        this.error.set(err?.error?.error ?? err?.error?.message ?? 'Could not save note.'),
+    });
+  }
 }
