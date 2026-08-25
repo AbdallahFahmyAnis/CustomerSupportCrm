@@ -139,6 +139,20 @@
     </div>
 
     <div class="knowledge-panel card">
+      <h2>AI classification</h2>
+      <button type="button" class="btn" (click)="loadAiCategory()" [disabled]="aiBusy()">
+        Suggest category
+      </button>
+      @if (aiCategory(); as c) {
+        <p class="muted">
+          {{ c.category }} · {{ c.priority }}
+          <span>(confidence {{ c.confidence | number: '1.0-2' }})</span>
+        </p>
+        <button type="button" class="btn" (click)="applyAiCategory()">Apply</button>
+      }
+    </div>
+
+    <div class="knowledge-panel card">
       <h2>Knowledge</h2>
       <form class="knowledge-form" (ngSubmit)="searchKnowledge()">
         <input name="kq" [(ngModel)]="knowledgeQ" placeholder="Search published articles…" />

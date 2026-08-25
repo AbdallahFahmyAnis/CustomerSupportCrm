@@ -50,12 +50,12 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/032-management-dashboard` — CRM-034 admin KPI dashboard
 - [x] `specs/033-ai-ticket-summaries` — CRM-023 Nest AI + ticket summaries
 - [x] `specs/034-ai-suggested-replies` — CRM-024 suggested replies
+- [x] `specs/035-ai-auto-categorize` — CRM-025 auto-categorize
 
 ## Next
 
-1. CRM-025 auto-categorize when ready
-2. CRM-026 portal chatbot when ready
-3. CRM-038 external APIs when ready
+1. CRM-026 portal chatbot when ready
+2. CRM-038 external APIs when ready
 
 ## Constraints
 

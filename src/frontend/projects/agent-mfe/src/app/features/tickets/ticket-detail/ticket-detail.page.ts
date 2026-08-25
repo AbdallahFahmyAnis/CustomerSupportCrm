@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -29,6 +29,7 @@ import { TicketsStore } from '../tickets.store';
     CrmEmailComponent,
     CrmTimelineComponent,
     DatePipe,
+    DecimalPipe,
   ],
   templateUrl: './ticket-detail.html',
   styleUrls: ['./ticket-detail.scss'],
@@ -72,6 +73,9 @@ export class TicketDetailPage implements OnInit {
   readonly aiError = signal('');
   readonly aiSummary = signal<{ summary: string; highlights: string[] } | null>(null);
   readonly aiSuggestions = signal<{ title: string; body: string }[]>([]);
+  readonly aiCategory = signal<{ category: string; priority: string; confidence: number } | null>(
+    null,
+  );
 
   readonly emailMessages = computed<CrmEmailMessage[]>(() =>
     this.store
@@ -341,5 +345,29 @@ export class TicketDetailPage implements OnInit {
     } else {
       this.chatDraft = this.chatDraft ? `${this.chatDraft}\n\n${body}` : body;
     }
+  }
+
+  /** SDD CRM-025 */
+  loadAiCategory(): void {
+    this.aiBusy.set(true);
+    this.aiError.set('');
+    this.api.categorize(this.id).subscribe({
+      next: (row) => {
+        this.aiCategory.set(row);
+        this.aiBusy.set(false);
+      },
+      error: () => {
+        this.aiError.set('Could not suggest classification.');
+        this.aiBusy.set(false);
+      },
+    });
+  }
+
+  applyAiCategory(): void {
+    const row = this.aiCategory();
+    if (!row) return;
+    this.category = row.category;
+    this.priority = row.priority;
+    this.saveClass();
   }
 }
