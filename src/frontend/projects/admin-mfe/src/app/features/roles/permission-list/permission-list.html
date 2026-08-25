@@ -1,0 +1,43 @@
+<section class="page">
+  <header class="row">
+    <div>
+      <h1>Permissions</h1>
+      <p class="lede">Permission catalog and which roles include each permission.</p>
+    </div>
+    <a routerLink="/admin/roles" class="btn secondary">← Roles</a>
+  </header>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <crm-data-view
+    title="Permission list"
+    subtitle="Materio-style access permissions table"
+    [items]="rows()"
+    [columns]="columns"
+    trackKey="name"
+    [(viewMode)]="viewMode"
+  >
+    <ng-template crmDataCell="roles" let-row>
+      <div class="role-chips">
+        @for (r of row.roles; track r) {
+          <span class="badge-soft">{{ r }}</span>
+        } @empty {
+          <span class="muted">—</span>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template crmDataCard let-row>
+      <div class="perm-card">
+        <strong>{{ row.name }}</strong>
+        <div class="role-chips">
+          @for (r of row.roles; track r) {
+            <span class="badge-soft">{{ r }}</span>
+          }
+        </div>
+      </div>
+    </ng-template>
+  </crm-data-view>
+</section>

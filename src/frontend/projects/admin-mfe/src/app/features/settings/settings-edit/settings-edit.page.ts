@@ -46,4 +46,16 @@ export class SettingsEditPage implements OnInit {
       lockoutMinutes: Number(this.lockoutMinutes),
     });
   }
+
+  reset(): void {
+    const row = this.store.settings();
+    if (!row) {
+      return;
+    }
+    this.organizationName = row.organizationName;
+    this.supportEmail = row.supportEmail;
+    this.defaultCulture = row.defaultCulture;
+    this.maxFailedLoginAttempts = row.maxFailedLoginAttempts;
+    this.lockoutMinutes = row.lockoutMinutes;
+  }
 }

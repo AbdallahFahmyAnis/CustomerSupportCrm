@@ -1,48 +1,79 @@
 <section class="page">
   <header class="row">
-    <h1>Users</h1>
+    <div>
+      <h1>Users</h1>
+      <p class="lede">Accounts, roles, and access</p>
+    </div>
     <a routerLink="/admin/users/new" class="btn">Create user</a>
   </header>
 
-  <form class="row" (ngSubmit)="search()">
-    <input name="q" [(ngModel)]="q" placeholder="Search email, name, role" />
-    <button type="submit" class="btn secondary">Search</button>
-  </form>
+  <crm-data-view
+    title="Filters"
+    subtitle="Search and switch list / grid"
+    [items]="store.users()"
+    [columns]="columns"
+    trackKey="id"
+    [(viewMode)]="viewMode"
+  >
+    <ng-template crmDataToolbar>
+      <form class="toolbar-form" (ngSubmit)="search()">
+        <input name="q" [(ngModel)]="q" placeholder="Search email, name, role" />
+        <button type="submit" class="btn secondary">Search</button>
+      </form>
+    </ng-template>
+
+    <ng-template crmDataCell="role" let-u>
+      <select [ngModel]="u.role" (ngModelChange)="onRoleChange(u.id, $event)" [name]="'role-' + u.id">
+        @for (r of store.roles(); track r.name) {
+          <option [value]="r.name">{{ r.name }}</option>
+        }
+      </select>
+    </ng-template>
+
+    <ng-template crmDataCell="isActive" let-u>
+      <span class="badge-soft" [class.ok]="u.isActive" [class.bad]="!u.isActive">
+        {{ u.isActive ? 'Active' : 'Inactive' }}
+      </span>
+    </ng-template>
+
+    <ng-template crmDataCell="actions" let-u>
+      @if (u.isActive) {
+        <button type="button" class="link" (click)="askDeactivate(u)">Deactivate</button>
+      }
+    </ng-template>
+
+    <ng-template crmDataCard let-u>
+      <div class="user-card">
+        <div class="avatar">{{ (u.displayName || '?').charAt(0) }}</div>
+        <strong>{{ u.displayName }}</strong>
+        <span class="muted">{{ u.email }}</span>
+        <select [ngModel]="u.role" (ngModelChange)="onRoleChange(u.id, $event)" [name]="'g-role-' + u.id">
+          @for (r of store.roles(); track r.name) {
+            <option [value]="r.name">{{ r.name }}</option>
+          }
+        </select>
+        <span class="badge-soft" [class.ok]="u.isActive" [class.bad]="!u.isActive">
+          {{ u.isActive ? 'Active' : 'Inactive' }}
+        </span>
+        @if (u.isActive) {
+          <button type="button" class="link" (click)="askDeactivate(u)">Deactivate</button>
+        }
+      </div>
+    </ng-template>
+  </crm-data-view>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (u of store.users(); track u.id) {
-        <tr>
-          <td>{{ u.displayName }}</td>
-          <td>{{ u.email }}</td>
-          <td>
-            <select [ngModel]="u.role" (ngModelChange)="onRoleChange(u.id, $event)" [name]="'role-' + u.id">
-              @for (r of store.roles(); track r.name) {
-                <option [value]="r.name">{{ r.name }}</option>
-              }
-            </select>
-          </td>
-          <td>{{ u.isActive ? 'Active' : 'Inactive' }}</td>
-          <td>
-            @if (u.isActive) {
-              <button type="button" class="link" (click)="deactivate(u.id)">Deactivate</button>
-            }
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
+  <crm-modal [(open)]="confirmOpen" title="Deactivate user" size="sm">
+    <p>
+      Deactivate <strong>{{ pendingUser?.displayName }}</strong>
+      ({{ pendingUser?.email }})? They will no longer be able to sign in.
+    </p>
+    <div crmModalActions>
+      <button type="button" class="btn secondary" (click)="confirmOpen = false">Cancel</button>
+      <button type="button" class="btn danger" (click)="confirmDeactivate()">Deactivate</button>
+    </div>
+  </crm-modal>
 </section>

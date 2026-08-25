@@ -1,0 +1,14 @@
+.role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.muted {
+  color: var(--crm-text-muted);
+}
+
+.perm-card {
+  display: grid;
+  gap: 0.55rem;
+}

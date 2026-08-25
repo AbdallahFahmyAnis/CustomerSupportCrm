@@ -1,82 +1,174 @@
 <section class="page">
-  <a routerLink="/agent/customers">← Customers</a>
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/agent/customers">Customers</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">{{ customer()?.displayName || 'Detail' }}</span>
+  </nav>
+
   @if (customer(); as c) {
-    <header class="row">
-      <div>
-        <h1>{{ c.displayName }}</h1>
-        <p>{{ c.uniqueIdentifier }} · {{ c.organization || 'No organization' }} · {{ c.status }}</p>
+    <div class="settings-card customer-sheet">
+      <div class="settings-hero">
+        <div class="avatar">{{ (c.displayName || '?').charAt(0).toUpperCase() }}</div>
+        <div class="meta">
+          <strong>{{ c.displayName }}</strong>
+          <p class="meta-line">
+            <span>{{ c.uniqueIdentifier }}</span>
+            <span class="dot-sep">·</span>
+            <span>{{ c.organization || 'No organization' }}</span>
+            <span class="dot-sep">·</span>
+            <span class="badge-soft" [class.ok]="c.status === 'Active'" [class.bad]="c.status !== 'Active'">
+              {{ c.status }}
+            </span>
+          </p>
+        </div>
+        <a class="btn secondary" [routerLink]="['/agent/customers', c.id, 'edit']">Edit</a>
       </div>
-      <a class="btn" [routerLink]="['/agent/customers', c.id, 'edit']">Edit</a>
-    </header>
 
-    <div class="grid">
-      <article>
-        <h2>Contacts</h2>
-        <ul>
-          @for (contact of c.contacts; track contact.id) {
-            <li [class.inactive]="!contact.isActive">
-              <strong>{{ contact.type }}</strong>: {{ contact.value }}
-              @if (contact.isPrimary) {
-                <em>primary</em>
-              }
-              @if (!contact.isActive) {
-                <em>inactive</em>
-              }
-              @if (contact.isActive) {
-                <button type="button" class="link" (click)="deactivate(contact.id)">Deactivate</button>
-              }
-            </li>
-          }
-        </ul>
-        <form class="stack" (ngSubmit)="addContact()">
-          <select name="type" [(ngModel)]="contactType">
-            <option value="email">email</option>
-            <option value="phone">phone</option>
-            <option value="whatsapp">whatsapp</option>
-            <option value="address">address</option>
-          </select>
-          <input name="value" [(ngModel)]="contactValue" placeholder="Value" required />
-          <label><input type="checkbox" name="primary" [(ngModel)]="contactPrimary" /> Primary</label>
-          <button type="submit" class="btn secondary">Add contact</button>
-        </form>
-      </article>
+      <div class="sheet-tabs" role="tablist">
+        <button
+          type="button"
+          class="sheet-tab"
+          role="tab"
+          [class.active]="tab === 'contacts'"
+          (click)="tab = 'contacts'"
+        >
+          Contacts
+        </button>
+        <button
+          type="button"
+          class="sheet-tab"
+          role="tab"
+          [class.active]="tab === 'activity'"
+          (click)="tab = 'activity'"
+        >
+          Notes & files
+        </button>
+        <button
+          type="button"
+          class="sheet-tab"
+          role="tab"
+          [class.active]="tab === 'timeline'"
+          (click)="tab = 'timeline'"
+        >
+          Timeline
+        </button>
+      </div>
 
-      <article>
-        <h2>Notes</h2>
-        <form class="stack" (ngSubmit)="addNote()">
-          <textarea name="note" [(ngModel)]="noteBody" rows="3" required></textarea>
-          <button type="submit" class="btn secondary">Add note</button>
-        </form>
-      </article>
+      <div class="sheet-body">
+        @if (tab === 'contacts') {
+          <div class="contact-list">
+            @for (contact of c.contacts; track contact.id) {
+              <div class="contact-row" [class.inactive]="!contact.isActive">
+                <div class="contact-main">
+                  <span class="type">{{ contact.type }}</span>
+                  <span class="value">{{ contact.value }}</span>
+                  <span class="flags">
+                    @if (contact.isPrimary) {
+                      <span class="badge-soft">primary</span>
+                    }
+                    @if (!contact.isActive) {
+                      <span class="badge-soft bad">inactive</span>
+                    }
+                  </span>
+                </div>
+                <div class="contact-actions">
+                  @if (contact.isActive) {
+                    <button type="button" class="link" (click)="askDeactivate(contact.id)">Deactivate</button>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <p class="muted">No contacts yet.</p>
+            }
+          </div>
 
-      <article>
-        <h2>Attachments</h2>
-        <input type="file" (change)="onFile($event)" />
-        <ul>
-          @for (a of c.attachments; track a.id) {
-            <li>
-              <a [href]="api.attachmentUrl(c.id, a.id)" target="_blank" rel="noopener">{{ a.fileName }}</a>
-            </li>
-          }
-        </ul>
-      </article>
+          <form class="add-contact" (ngSubmit)="addContact()">
+            <div class="field">
+              <label for="contact-type">Type</label>
+              <select id="contact-type" name="type" [(ngModel)]="contactType">
+                <option value="email">email</option>
+                <option value="phone">phone</option>
+                <option value="whatsapp">whatsapp</option>
+                <option value="address">address</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="contact-value">Value</label>
+              <input id="contact-value" name="value" [(ngModel)]="contactValue" placeholder="Value" required />
+            </div>
+            <div class="field check">
+              <label class="check-inline">
+                <input type="checkbox" name="primary" [(ngModel)]="contactPrimary" />
+                Primary
+              </label>
+            </div>
+            <div class="field action">
+              <button type="submit" class="btn">Add contact</button>
+            </div>
+          </form>
+        }
 
-      <article class="full">
-        <h2>Timeline</h2>
-        <ul class="timeline">
-          @for (item of c.timeline; track item.id) {
-            <li>
-              <span class="kind">{{ item.kind }}</span>
-              <span>{{ item.summary }}</span>
-              <time>{{ item.occurredAt | date: 'medium' }}</time>
-            </li>
-          }
-        </ul>
-      </article>
+        @if (tab === 'activity') {
+          <div class="split">
+            <form class="stack-form" (ngSubmit)="addNote()">
+              <h3>Add note</h3>
+              <textarea name="note" [(ngModel)]="noteBody" rows="4" required placeholder="Write a note…"></textarea>
+              <button type="submit" class="btn">Add note</button>
+            </form>
+
+            <div class="stack-form">
+              <h3>Attachments</h3>
+              <label class="file-drop">
+                <input type="file" (change)="onFile($event)" />
+                <span>Choose a file to upload</span>
+              </label>
+              <ul class="file-list">
+                @for (a of c.attachments; track a.id) {
+                  <li>
+                    <a [href]="api.attachmentUrl(c.id, a.id)" target="_blank" rel="noopener">{{ a.fileName }}</a>
+                  </li>
+                } @empty {
+                  <li class="muted">No attachments.</li>
+                }
+              </ul>
+            </div>
+          </div>
+        }
+
+        @if (tab === 'timeline') {
+          <ol class="crm-timeline">
+            @for (item of c.timeline; track item.id) {
+              <li>
+                <span class="dot" aria-hidden="true"></span>
+                <div>
+                  <span class="kind">{{ item.kind }}</span>
+                  <p>{{ item.summary }}</p>
+                  <time>{{ item.occurredAt | date: 'medium' }}</time>
+                </div>
+              </li>
+            } @empty {
+              <li class="empty">
+                <span class="dot" aria-hidden="true"></span>
+                <div>
+                  <p class="muted">No timeline events yet.</p>
+                </div>
+              </li>
+            }
+          </ol>
+        }
+      </div>
     </div>
   } @else if (error()) {
     <p class="error">{{ error() }}</p>
   } @else {
     <p>Loading…</p>
   }
+
+  <crm-modal [(open)]="confirmOpen" title="Deactivate contact" size="sm">
+    <p>Deactivate this contact? It will no longer be used as a primary channel.</p>
+    <div crmModalActions>
+      <button type="button" class="btn secondary" (click)="confirmOpen = false">Cancel</button>
+      <button type="button" class="btn danger" (click)="confirmDeactivate()">Deactivate</button>
+    </div>
+  </crm-modal>
 </section>

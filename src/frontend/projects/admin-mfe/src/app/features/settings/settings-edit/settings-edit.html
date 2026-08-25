@@ -1,6 +1,10 @@
 <section class="page">
-  <h1>System settings</h1>
-  <p class="lede">Organization identity and login lockout policy.</p>
+  <header class="row">
+    <div>
+      <h1>Account settings</h1>
+      <p class="lede">Organization identity and login lockout policy</p>
+    </div>
+  </header>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
@@ -11,47 +15,65 @@
   @if (store.loading()) {
     <p>Loading…</p>
   } @else {
-    <form class="form" (ngSubmit)="submit()">
-      <label>
-        Organization name
-        <input name="organizationName" [(ngModel)]="organizationName" required />
-      </label>
-      <label>
-        Support email
-        <input name="supportEmail" type="email" [(ngModel)]="supportEmail" required />
-      </label>
-      <label>
-        Default culture
-        <select name="defaultCulture" [(ngModel)]="defaultCulture" required>
-          <option value="en">English (en)</option>
-          <option value="ar">Arabic (ar)</option>
-        </select>
-      </label>
-      <label>
-        Max failed login attempts
-        <input
-          name="maxFailedLoginAttempts"
-          type="number"
-          min="1"
-          max="20"
-          [(ngModel)]="maxFailedLoginAttempts"
-          required
-        />
-      </label>
-      <label>
-        Lockout minutes
-        <input
-          name="lockoutMinutes"
-          type="number"
-          min="1"
-          max="1440"
-          [(ngModel)]="lockoutMinutes"
-          required
-        />
-      </label>
-      <button type="submit" class="btn" [disabled]="store.saving()">
-        {{ store.saving() ? 'Saving…' : 'Save' }}
-      </button>
-    </form>
+    <div class="settings-card">
+      <div class="settings-hero">
+        <div class="avatar">{{ (organizationName || 'O').charAt(0).toUpperCase() }}</div>
+        <div class="meta">
+          <strong>{{ organizationName || 'Organization' }}</strong>
+          <p>{{ supportEmail || 'Support contact and lockout defaults' }}</p>
+        </div>
+      </div>
+
+      <form class="settings-form" (ngSubmit)="submit()">
+        <div class="settings-form-grid">
+          <label>
+            Organization name
+            <input name="organizationName" [(ngModel)]="organizationName" required />
+          </label>
+          <label>
+            Support email
+            <input name="supportEmail" type="email" [(ngModel)]="supportEmail" required />
+          </label>
+          <label>
+            Default culture
+            <select name="defaultCulture" [(ngModel)]="defaultCulture" required>
+              <option value="en">English (en)</option>
+              <option value="ar">Arabic (ar)</option>
+            </select>
+          </label>
+          <label>
+            Max failed login attempts
+            <input
+              name="maxFailedLoginAttempts"
+              type="number"
+              min="1"
+              max="20"
+              [(ngModel)]="maxFailedLoginAttempts"
+              required
+            />
+          </label>
+          <label>
+            Lockout minutes
+            <input
+              name="lockoutMinutes"
+              type="number"
+              min="1"
+              max="1440"
+              [(ngModel)]="lockoutMinutes"
+              required
+            />
+          </label>
+        </div>
+
+        <div class="settings-actions">
+          <button type="submit" class="btn" [disabled]="store.saving()">
+            {{ store.saving() ? 'Saving…' : 'Save changes' }}
+          </button>
+          <button type="button" class="btn secondary" (click)="reset()" [disabled]="store.saving()">
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
   }
 </section>

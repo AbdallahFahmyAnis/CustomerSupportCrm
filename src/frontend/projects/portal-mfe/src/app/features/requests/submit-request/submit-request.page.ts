@@ -27,4 +27,12 @@ export class SubmitRequestPage {
       message: this.message,
     });
   }
+
+  resetForm(): void {
+    this.name = '';
+    this.email = '';
+    this.subject = '';
+    this.message = '';
+    this.store.clearLastResult();
+  }
 }

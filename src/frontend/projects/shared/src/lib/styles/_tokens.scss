@@ -1,0 +1,23 @@
+/* CRM UI tokens — Materio-inspired admin shape (original styles, not ThemeSelection assets). */
+:root {
+  --crm-primary: #8c57ff;
+  --crm-primary-hover: #7e4eef;
+  --crm-primary-soft: rgba(140, 87, 255, 0.12);
+  --crm-success: #28c76f;
+  --crm-warning: #ff9f43;
+  --crm-danger: #ff4c51;
+  --crm-info: #00bad1;
+  --crm-bg: #f4f5fa;
+  --crm-paper: #ffffff;
+  --crm-sidebar: #2f2b3d;
+  --crm-sidebar-text: #e7e3fc;
+  --crm-sidebar-muted: #b0acc7;
+  --crm-text: #2f2b3d;
+  --crm-text-muted: #6d6b7c;
+  --crm-border: rgba(47, 43, 61, 0.12);
+  --crm-shadow: 0 0.25rem 1.25rem rgba(47, 43, 61, 0.08);
+  --crm-radius: 0.625rem;
+  --crm-radius-sm: 0.5rem;
+  --crm-font: "Public Sans", "Segoe UI", Tahoma, sans-serif;
+  --crm-sidebar-width: 16.25rem;
+}

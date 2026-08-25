@@ -2,53 +2,68 @@
   <header class="row">
     <div>
       <h1>Tickets</h1>
-      <p>{{ store.urgentCount() }} high/urgent in view</p>
+      <p class="lede">{{ store.urgentCount() }} high/urgent in view</p>
     </div>
     <a routerLink="/agent/tickets/new" class="btn">Create ticket</a>
   </header>
 
-  <form class="row" (ngSubmit)="search()">
-    <input name="q" [(ngModel)]="q" placeholder="Search id, customer, subject" />
-    <label class="check">
-      <input type="checkbox" name="mine" [(ngModel)]="mine" (change)="search()" />
-      Assigned to me
-    </label>
-    <button type="submit" class="btn secondary">Search</button>
-  </form>
+  <crm-data-view
+    title="Ticket queue"
+    subtitle="List or grid"
+    [items]="store.tickets()"
+    [columns]="columns"
+    trackKey="id"
+    [(viewMode)]="viewMode"
+  >
+    <ng-template crmDataToolbar>
+      <form class="toolbar-form" (ngSubmit)="search()">
+        <input name="q" [(ngModel)]="q" placeholder="Search id, customer, subject" />
+        <label class="check">
+          <input type="checkbox" name="mine" [(ngModel)]="mine" (change)="search()" />
+          Assigned to me
+        </label>
+        <button type="submit" class="btn secondary">Search</button>
+      </form>
+    </ng-template>
+
+    <ng-template crmDataCell="ticketNumber" let-t>
+      <a [routerLink]="['/agent/tickets', t.id]">{{ t.ticketNumber }}</a>
+    </ng-template>
+
+    <ng-template crmDataCell="customerName" let-t>
+      <a [routerLink]="['/agent/customers', t.customerId]">{{ t.customerName }}</a>
+    </ng-template>
+
+    <ng-template crmDataCell="priority" let-t>
+      <app-ticket-priority-badge
+        [priority]="t.priority"
+        [hot]="t.priority === 'High' || t.priority === 'Urgent'"
+      />
+    </ng-template>
+
+    <ng-template crmDataCell="status" let-t>
+      {{ t.status }}@if (t.isEscalated) { · escalated }
+    </ng-template>
+
+    <ng-template crmDataCell="assignedAgentName" let-t>
+      {{ t.assignedAgentName || 'Unassigned' }}
+    </ng-template>
+
+    <ng-template crmDataCard let-t>
+      <div class="ticket-card" [class.hot]="t.priority === 'High' || t.priority === 'Urgent'">
+        <a [routerLink]="['/agent/tickets', t.id]"><strong>{{ t.ticketNumber }}</strong></a>
+        <span>{{ t.subject }}</span>
+        <a [routerLink]="['/agent/customers', t.customerId]" class="muted">{{ t.customerName }}</a>
+        <app-ticket-priority-badge
+          [priority]="t.priority"
+          [hot]="t.priority === 'High' || t.priority === 'Urgent'"
+        />
+        <span class="muted">{{ t.status }} · {{ t.assignedAgentName || 'Unassigned' }}</span>
+      </div>
+    </ng-template>
+  </crm-data-view>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
-
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Subject</th>
-        <th>Customer</th>
-        <th>Priority</th>
-        <th>Status</th>
-        <th>Assignee</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (t of store.tickets(); track t.id) {
-        <tr [class.hot-row]="t.priority === 'High' || t.priority === 'Urgent'">
-          <td><a [routerLink]="['/agent/tickets', t.id]">{{ t.ticketNumber }}</a></td>
-          <td>{{ t.subject }}</td>
-          <td>
-            <a [routerLink]="['/agent/customers', t.customerId]">{{ t.customerName }}</a>
-          </td>
-          <td>
-            <app-ticket-priority-badge
-              [priority]="t.priority"
-              [hot]="t.priority === 'High' || t.priority === 'Urgent'"
-            />
-          </td>
-          <td>{{ t.status }}@if (t.isEscalated) { · escalated }</td>
-          <td>{{ t.assignedAgentName || 'Unassigned' }}</td>
-        </tr>
-      }
-    </tbody>
-  </table>
 </section>

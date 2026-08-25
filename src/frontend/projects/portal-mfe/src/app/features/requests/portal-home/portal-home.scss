@@ -1,35 +1,29 @@
-.portal-home {
-  max-width: 40rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.workspace {
+  max-width: 48rem;
 }
 
-.portal-home h1 {
-  margin: 0 0 0.5rem;
-  font-size: 1.75rem;
+.home-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.portal-home p {
-  margin: 0 0 1.5rem;
-  color: #445;
-}
-
-.actions {
+.action-tile.featured {
+  min-height: 8.5rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.35rem;
 }
 
-.actions a {
-  display: inline-block;
-  padding: 0.65rem 1rem;
-  border: 1px solid #2a5;
-  border-radius: 4px;
-  color: #163;
-  text-decoration: none;
-  background: #f4faf6;
+.tile-kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--crm-primary);
 }
 
-.actions a:hover {
-  background: #e6f5eb;
+@media (max-width: 640px) {
+  .home-actions {
+    grid-template-columns: 1fr;
+  }
 }

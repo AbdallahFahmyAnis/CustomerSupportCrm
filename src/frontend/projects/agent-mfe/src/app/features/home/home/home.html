@@ -1,8 +1,21 @@
 <section class="workspace">
-  <h1>Agent workspace</h1>
-  <p>Work customer records and tickets from here.</p>
-  <div class="actions">
-    <a routerLink="/agent/customers" class="btn">Open customers</a>
-    <a routerLink="/agent/tickets" class="btn">Open tickets</a>
+  <header class="row">
+    <div>
+      <h1>Agent workspace</h1>
+      <p class="lede">Customer context and ticket queue in one place.</p>
+    </div>
+  </header>
+
+  <div class="action-grid home-actions">
+    <a routerLink="/agent/customers" class="action-tile featured">
+      <span class="tile-kicker">Profiles</span>
+      <strong>Customers</strong>
+      <span>Search profiles, contacts, and history</span>
+    </a>
+    <a routerLink="/agent/tickets" class="action-tile featured">
+      <span class="tile-kicker">Queue</span>
+      <strong>Tickets</strong>
+      <span>Work the queue and reply on channel</span>
+    </a>
   </div>
 </section>

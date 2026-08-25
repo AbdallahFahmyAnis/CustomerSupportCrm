@@ -1,6 +1,14 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import {
+  CrmDataCardDirective,
+  CrmDataCellDirective,
+  CrmDataToolbarDirective,
+  CrmDataViewColumn,
+  CrmDataViewComponent,
+  CrmDataViewMode,
+} from 'shared';
 import { CustomerSummary } from '../customers.models';
 import { CustomersApi } from '../customers.api';
 
@@ -8,7 +16,14 @@ import { CustomersApi } from '../customers.api';
 @Component({
   selector: 'app-customer-list',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [
+    FormsModule,
+    RouterLink,
+    CrmDataViewComponent,
+    CrmDataToolbarDirective,
+    CrmDataCellDirective,
+    CrmDataCardDirective,
+  ],
   templateUrl: './customer-list.html',
   styleUrls: ['./customer-list.scss'],
 })
@@ -17,6 +32,14 @@ export class CustomerListComponent implements OnInit {
   readonly customers = signal<CustomerSummary[]>([]);
   readonly error = signal('');
   q = '';
+  viewMode: CrmDataViewMode = 'list';
+
+  readonly columns: CrmDataViewColumn[] = [
+    { key: 'displayName', header: 'Name' },
+    { key: 'uniqueIdentifier', header: 'Unique ID' },
+    { key: 'organization', header: 'Organization' },
+    { key: 'status', header: 'Status' },
+  ];
 
   ngOnInit(): void {
     this.load();

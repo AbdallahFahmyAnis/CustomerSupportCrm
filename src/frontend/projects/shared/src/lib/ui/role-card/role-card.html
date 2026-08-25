@@ -1,0 +1,24 @@
+<article class="role-card">
+  <div class="role-top">
+    <div class="avatars" aria-hidden="true">
+      <span class="av a1">A</span>
+      <span class="av a2">B</span>
+      <span class="av a3">C</span>
+      <span class="av more">+3</span>
+    </div>
+    @if (userCountLabel()) {
+      <span class="count">{{ userCountLabel() }}</span>
+    }
+  </div>
+  <h3>{{ name() }}</h3>
+  <p>{{ description() || 'Role permissions below.' }}</p>
+  <div class="perms">
+    @for (p of permissions().slice(0, 4); track p) {
+      <span class="chip">{{ p }}</span>
+    }
+    @if (permissions().length > 4) {
+      <span class="chip more">+{{ permissions().length - 4 }}</span>
+    }
+  </div>
+  <button type="button" class="edit" (click)="edit.emit()">Edit Role</button>
+</article>

@@ -1,72 +1,41 @@
-.track {
-  max-width: 40rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.page {
+  max-width: 44rem;
 }
 
-.back {
-  margin: 0 0 1rem;
-}
-
-.back a {
-  color: #246;
-  text-decoration: none;
-}
-
-h1 {
-  margin: 0 0 0.35rem;
-}
-
-.hint {
-  margin: 0 0 1.25rem;
-  color: #556;
-}
-
-form {
+.crumb-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: end;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--crm-text-muted);
+}
+
+.crumb-nav a {
+  font-weight: 600;
+}
+
+.crumb-nav .sep {
+  opacity: 0.55;
+}
+
+.crumb-nav .current {
+  color: var(--crm-text);
+  font-weight: 600;
+}
+
+.track-card {
+  max-width: none;
   margin-bottom: 1.25rem;
 }
 
-label {
-  display: grid;
-  gap: 0.35rem;
-  flex: 1 1 14rem;
-  font-size: 0.9rem;
+.btn:disabled {
+  opacity: 0.7;
+  cursor: default;
 }
 
-input {
-  padding: 0.5rem 0.6rem;
-  border: 1px solid #ccd;
-  border-radius: 4px;
-  font: inherit;
-}
-
-button {
-  padding: 0.55rem 1rem;
-  border: 0;
-  border-radius: 4px;
-  background: #1a7a45;
-  color: #fff;
-  font: inherit;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.65;
-}
-
-.error {
-  color: #a11;
-}
-
-.empty {
-  color: #667;
-}
-
-.list {
+.request-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -74,30 +43,29 @@ button:disabled {
   gap: 0.75rem;
 }
 
-.list li {
-  padding: 0.85rem 1rem;
-  border: 1px solid #dde;
-  border-radius: 4px;
-  background: #fafbfc;
+.request-card {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  background: var(--crm-paper);
+  box-shadow: var(--crm-shadow);
 }
 
 .row-head {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.25rem;
-}
-
-.status {
-  font-size: 0.85rem;
-  color: #246;
+  margin-bottom: 0.35rem;
 }
 
 .subject {
   margin-bottom: 0.25rem;
+  font-weight: 500;
 }
 
-.meta {
-  font-size: 0.8rem;
-  color: #778;
+.meta,
+.muted {
+  font-size: 0.85rem;
+  color: var(--crm-text-muted);
 }
