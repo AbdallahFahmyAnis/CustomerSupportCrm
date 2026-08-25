@@ -124,7 +124,9 @@ public sealed class CustomerApiFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Customers:DataPath"] = _dataPath
+                ["Customers:DataPath"] = _dataPath,
+                ["Customers:Provider"] = "Sqlite",
+                ["ConnectionStrings:Customers"] = string.Empty
             });
         });
     }
