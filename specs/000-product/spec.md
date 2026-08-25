@@ -58,11 +58,11 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/040-erp-webhook-stub` — CRM-039 ERP outbound webhook stub
 - [x] `specs/041-external-openapi` — CRM-038 OpenAPI for external v1
 - [x] `specs/042-persist-ai-summary` — CRM-023 persist AI summaries on ticket
+- [x] `specs/043-chat-session-memory` — CRM-026 portal chat multi-turn memory
 
 ## Next
 
-1. Chat session memory (043) when ready
-2. ERP webhook retries (044) when ready
+1. ERP webhook retries (044) when ready
 
 ## Constraints
 

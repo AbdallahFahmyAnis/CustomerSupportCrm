@@ -11,6 +11,7 @@ import { SuggestRepliesRoute } from '../features/suggestions/suggest-replies/rou
 import { GenerateSummaryHandler } from '../features/summaries/generate-summary/handler';
 import { GenerateSummaryRoute } from '../features/summaries/generate-summary/route';
 import { DownstreamClient } from '../infrastructure/http/downstream.client';
+import { ChatSessionStore } from '../infrastructure/chat/chat-session.store';
 
 /** SDD CRM-023…026 — AI composition root. */
 @Module({
@@ -24,6 +25,7 @@ import { DownstreamClient } from '../infrastructure/http/downstream.client';
   ],
   providers: [
     DownstreamClient,
+    ChatSessionStore,
     GetHealthHandler,
     GenerateSummaryHandler,
     SuggestRepliesHandler,
