@@ -99,7 +99,7 @@
           <li>
             <span class="badge">{{ m.channel }} · {{ m.direction }}</span>
             @if (m.fromEmail) {
-              <span class="meta">from {{ m.fromEmail }}</span>
+              <span class="meta">{{ m.direction === 'Inbound' ? 'from' : 'via' }} {{ m.fromEmail }}</span>
             }
             <p class="msg-body">{{ m.body }}</p>
             <span class="meta">{{ m.createdAt | date: 'short' }}</span>
@@ -107,6 +107,15 @@
         }
       </ul>
     }
+
+    <form class="card reply" (ngSubmit)="sendReply()">
+      <h2>Email reply</h2>
+      <label>
+        Message
+        <textarea name="replyBody" rows="4" [(ngModel)]="replyBody" placeholder="Write a reply to the customer…"></textarea>
+      </label>
+      <button type="submit" class="btn">Send email reply</button>
+    </form>
 
     <h2>History</h2>
     <ul class="history">

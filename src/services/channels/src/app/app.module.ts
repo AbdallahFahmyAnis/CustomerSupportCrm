@@ -14,9 +14,15 @@ import { ListPortalRequestsService } from '../features/portal/list-requests/serv
 import { ListTicketMessagesRoute } from '../features/messages/list-ticket-messages/route';
 import { ListTicketMessagesHandler } from '../features/messages/list-ticket-messages/handler';
 import { ListTicketMessagesService } from '../features/messages/list-ticket-messages/service';
+import { ReplyEmailRoute } from '../features/messages/reply-email/route';
+import { ReplyEmailHandler } from '../features/messages/reply-email/handler';
+import { ReplyEmailService } from '../features/messages/reply-email/service';
 import { ChannelsStore } from '../infrastructure/database/channels.store';
 import { DownstreamClient } from '../infrastructure/http/downstream.client';
 import { DevEmailProvider } from '../infrastructure/email/dev-email.provider';
+import { SmtpEmailProvider } from '../infrastructure/email/smtp-email.provider';
+import { EMAIL_PROVIDER } from '../infrastructure/email/email-provider';
+import { channelsConfig } from './config';
 
 @Module({
   imports: [CqrsModule],
@@ -26,6 +32,7 @@ import { DevEmailProvider } from '../infrastructure/email/dev-email.provider';
     IngestEmailRoute,
     ListPortalRequestsRoute,
     ListTicketMessagesRoute,
+    ReplyEmailRoute,
   ],
   providers: [
     GetHealthHandler,
@@ -37,9 +44,18 @@ import { DevEmailProvider } from '../infrastructure/email/dev-email.provider';
     ListPortalRequestsService,
     ListTicketMessagesHandler,
     ListTicketMessagesService,
+    ReplyEmailHandler,
+    ReplyEmailService,
     ChannelsStore,
     DownstreamClient,
     DevEmailProvider,
+    SmtpEmailProvider,
+    {
+      provide: EMAIL_PROVIDER,
+      useFactory: (dev: DevEmailProvider, smtp: SmtpEmailProvider) =>
+        channelsConfig.smtpHost ? smtp : dev,
+      inject: [DevEmailProvider, SmtpEmailProvider],
+    },
   ],
 })
 export class AppModule {}

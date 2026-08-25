@@ -94,4 +94,16 @@ export class TicketsStore {
       error: (err) => this.error.set(err?.error?.error ?? 'Refresh failed.'),
     });
   }
+
+  replyEmail(ticketId: string, body: string, onDone?: () => void): void {
+    this.error.set('');
+    this.api.replyEmail(ticketId, body).subscribe({
+      next: () => {
+        this.loadChannelMessages(ticketId);
+        onDone?.();
+      },
+      error: (err) =>
+        this.error.set(err?.error?.message ?? err?.error?.error ?? 'Reply failed.'),
+    });
+  }
 }

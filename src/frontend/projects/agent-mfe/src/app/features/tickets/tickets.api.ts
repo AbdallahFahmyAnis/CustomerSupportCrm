@@ -28,6 +28,13 @@ export class TicketsApi {
     return this.http.get<ChannelMessageDto[]>(`/api/channels/tickets/${ticketId}/messages`);
   }
 
+  replyEmail(ticketId: string, body: string, to?: string): Observable<{ messageId: string; to: string }> {
+    return this.http.post<{ messageId: string; to: string }>(
+      `/api/channels/tickets/${ticketId}/messages/email`,
+      { body, to },
+    );
+  }
+
   create(body: {
     customerId: string;
     customerName: string;

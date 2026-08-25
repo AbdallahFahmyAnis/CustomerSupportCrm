@@ -24,6 +24,7 @@ export class TicketDetailPage implements OnInit {
   agentId = '';
   status = '';
   escalateTo = '';
+  replyBody = '';
   private id = '';
 
   constructor() {
@@ -70,6 +71,17 @@ export class TicketDetailPage implements OnInit {
     this.api.escalate(this.id, agent?.id, agent?.name).subscribe({
       next: () => this.store.refreshDetail(this.id),
       error: (err) => this.store.error.set(err?.error?.error ?? 'Escalate failed.'),
+    });
+  }
+
+  sendReply(): void {
+    const body = this.replyBody.trim();
+    if (!body) {
+      this.store.error.set('Reply body is required.');
+      return;
+    }
+    this.store.replyEmail(this.id, body, () => {
+      this.replyBody = '';
     });
   }
 }

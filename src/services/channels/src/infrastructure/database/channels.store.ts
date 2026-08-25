@@ -105,6 +105,28 @@ export class ChannelsStore implements OnModuleInit {
     this.saveJson();
   }
 
+  async addMessage(message: ChannelMessage): Promise<void> {
+    if (this.messagesRepo) {
+      await this.messagesRepo.save({
+        ...message,
+        fromEmail: message.fromEmail ?? null,
+      });
+      return;
+    }
+
+    this.data.messages.push(message);
+    this.saveJson();
+  }
+
+  async findRequestByTicketId(ticketId: string): Promise<PortalRequest | null> {
+    if (this.requestsRepo) {
+      const row = await this.requestsRepo.findOne({ where: { ticketId } });
+      return row ? this.toRequest(row) : null;
+    }
+
+    return this.data.requests.find((r) => r.ticketId === ticketId) ?? null;
+  }
+
   private toRequest(r: PortalRequestEntity): PortalRequest {
     return {
       id: r.id,

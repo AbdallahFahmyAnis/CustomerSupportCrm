@@ -105,4 +105,66 @@ export class DownstreamClient {
       return null;
     }
   }
+
+  async getTicket(ticketId: string): Promise<{
+    id: string;
+    subject: string;
+    customerId: string;
+    customerName: string;
+  } | null> {
+    try {
+      const res = await fetch(`${this.ticketsBase}/api/tickets/${ticketId}`);
+      if (!res.ok) {
+        return null;
+      }
+      const ticket = (await res.json()) as {
+        id: string;
+        subject: string;
+        customerId: string;
+        customerName: string;
+      };
+      return ticket;
+    } catch {
+      return null;
+    }
+  }
+
+  async getCustomerEmail(customerId: string): Promise<string | null> {
+    try {
+      const res = await fetch(`${this.customersBase}/api/customers/${customerId}`);
+      if (!res.ok) {
+        return null;
+      }
+      const detail = (await res.json()) as {
+        uniqueIdentifier?: string;
+        contacts?: { type: string; value: string; isPrimary: boolean; isActive: boolean }[];
+      };
+      const primaryEmail = detail.contacts?.find(
+        (c) =>
+          c.isActive &&
+          c.type === 'Email' &&
+          c.isPrimary &&
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value),
+      )?.value;
+      if (primaryEmail) {
+        return primaryEmail.trim().toLowerCase();
+      }
+      const anyEmail = detail.contacts?.find(
+        (c) =>
+          c.isActive &&
+          c.type === 'Email' &&
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value),
+      )?.value;
+      if (anyEmail) {
+        return anyEmail.trim().toLowerCase();
+      }
+      const uid = detail.uniqueIdentifier?.trim().toLowerCase() ?? '';
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(uid)) {
+        return uid;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
 }
