@@ -100,6 +100,44 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
         return row is null ? null : FromRow(row);
     }
 
+    /// <summary>SDD CRM-029 — published FAQ summaries for the customer portal.</summary>
+    public IReadOnlyList<Article> ListPortalFaqs(string? q)
+    {
+        using var db = factory.CreateDbContext();
+        IEnumerable<ArticleRow> rows = db.Articles.AsNoTracking().ToList()
+            .Where(a =>
+                a.Kind.Equals("Faq", StringComparison.OrdinalIgnoreCase) &&
+                a.Status.Equals("Published", StringComparison.OrdinalIgnoreCase));
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = q.Trim();
+            rows = rows.Where(a =>
+                a.Title.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                a.Body.Contains(term, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return rows.OrderByDescending(a => a.UpdatedAt).Select(FromRow).ToList();
+    }
+
+    /// <summary>SDD CRM-029 — published FAQ detail only (null if Draft or non-Faq).</summary>
+    public Article? GetPortalFaq(Guid id)
+    {
+        var article = Get(id);
+        if (article is null)
+        {
+            return null;
+        }
+
+        if (!article.Kind.Equals("Faq", StringComparison.OrdinalIgnoreCase) ||
+            !article.Status.Equals("Published", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return article;
+    }
+
     public void Insert(Article article)
     {
         using var db = factory.CreateDbContext();
