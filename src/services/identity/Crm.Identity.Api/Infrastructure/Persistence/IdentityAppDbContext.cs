@@ -16,6 +16,7 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
     public DbSet<StoredRefreshToken> RefreshTokens => Set<StoredRefreshToken>();
     public DbSet<RevokedAccessToken> RevokedAccessTokens => Set<RevokedAccessToken>();
     public DbSet<AuditLogEntry> AuditLogs => Set<AuditLogEntry>();
+    public DbSet<SystemSettings> SystemSettings => Set<SystemSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -56,6 +57,18 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
             e.Property(x => x.Detail).HasMaxLength(1000);
             e.Property(x => x.OccurredAt).IsRequired();
             e.Property(x => x.Success).IsRequired();
+        });
+
+        builder.Entity<SystemSettings>(e =>
+        {
+            e.ToTable("SystemSettings");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.OrganizationName).HasMaxLength(200).IsRequired();
+            e.Property(x => x.SupportEmail).HasMaxLength(256).IsRequired();
+            e.Property(x => x.DefaultCulture).HasMaxLength(10).IsRequired();
+            e.Property(x => x.MaxFailedLoginAttempts).IsRequired();
+            e.Property(x => x.LockoutMinutes).IsRequired();
+            e.Property(x => x.UpdatedAt).IsRequired();
         });
     }
 }

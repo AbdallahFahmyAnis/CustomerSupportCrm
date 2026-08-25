@@ -32,3 +32,19 @@ public sealed record AuditLogDto(
     string? TargetEmail,
     string? Detail,
     bool Success);
+
+/// <summary>SDD CRM-037 / specs/012-system-config.</summary>
+public sealed record SystemSettingsDto(
+    string OrganizationName,
+    string SupportEmail,
+    string DefaultCulture,
+    int MaxFailedLoginAttempts,
+    int LockoutMinutes,
+    DateTimeOffset UpdatedAt);
+
+public sealed record UpdateSystemSettingsRequest(
+    string OrganizationName,
+    string SupportEmail,
+    string DefaultCulture,
+    int MaxFailedLoginAttempts,
+    int LockoutMinutes);
