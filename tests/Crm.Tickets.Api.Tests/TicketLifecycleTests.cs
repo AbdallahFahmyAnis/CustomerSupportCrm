@@ -123,7 +123,9 @@ public sealed class TicketsApiFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Tickets:DataPath"] = _dataPath
+                ["Tickets:DataPath"] = _dataPath,
+                ["Tickets:Provider"] = "Sqlite",
+                ["ConnectionStrings:Tickets"] = string.Empty
             });
         });
     }
