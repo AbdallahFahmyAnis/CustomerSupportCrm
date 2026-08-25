@@ -15,6 +15,10 @@ public static class ExternalApiEndpoints
         group.MapGet("/openapi.yaml", () =>
             Results.Text(ExternalApiOpenApi.Yaml, "application/yaml"));
 
+        // SDD CRM-038 deferred / 045 — public Swagger UI (no API key).
+        group.MapGet("/docs", () =>
+            Results.Content(ExternalApiSwaggerUi.Html, "text/html; charset=utf-8"));
+
         group.MapPost("/tickets", async (HttpRequest request, IHttpClientFactory httpFactory, IConfiguration config) =>
         {
             if (!Authorize(request, config))

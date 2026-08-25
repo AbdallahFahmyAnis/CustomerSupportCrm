@@ -19,5 +19,6 @@ Configured as `ExternalApi:ApiKey` in `appsettings.json` (demo value only).
 | `GET` | `/api/external/v1/tickets/{id}` | Tickets get |
 | `GET` | `/api/external/v1/customers?q=` | Customers search |
 | `GET` | `/api/external/v1/openapi.yaml` | OpenAPI 3 (public, no key) |
+| `GET` | `/api/external/v1/docs` | Swagger UI (public, no key) |
 
-OpenAPI: see `/api/external/v1/openapi.yaml` or the YAML embedded in `ExternalApiOpenApi`.
+OpenAPI: browse [Swagger UI](/api/external/v1/docs) or fetch `/api/external/v1/openapi.yaml` (`ExternalApiOpenApi`).
