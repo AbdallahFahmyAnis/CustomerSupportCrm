@@ -146,6 +146,41 @@ public sealed class TicketLifecycleTests : IClassFixture<TicketsApiFactory>
     }
 
     [Fact]
+    [Trait("Story", "CRM-030")]
+    public async Task Feedback_requires_resolved_and_rejects_duplicate()
+    {
+        var created = await CreateAsync("Feedback Co", "Need CSAT later");
+        var open = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/feedback",
+            new SubmitTicketFeedbackRequest(created.Id, null, 5, "Too soon"));
+        open.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var resolve = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/status",
+            new ChangeStatusRequest("InProgress"));
+        resolve.EnsureSuccessStatusCode();
+        resolve = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/status",
+            new ChangeStatusRequest("Resolved"));
+        resolve.EnsureSuccessStatusCode();
+
+        var badRating = await _client.PostAsJsonAsync("/api/tickets/feedback",
+            new SubmitTicketFeedbackRequest(null, created.TicketNumber, 0, null));
+        badRating.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var ok = await _client.PostAsJsonAsync("/api/tickets/feedback",
+            new SubmitTicketFeedbackRequest(null, created.TicketNumber, 4, "Helpful agent"));
+        ok.EnsureSuccessStatusCode();
+        var fb = await ok.Content.ReadFromJsonAsync<TicketFeedbackDto>();
+        fb!.Rating.Should().Be(4);
+
+        var dup = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/feedback",
+            new SubmitTicketFeedbackRequest(created.Id, null, 3, "again"));
+        dup.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var detail = await _client.GetFromJsonAsync<TicketDetailDto>($"/api/tickets/{created.Id}");
+        detail!.Feedback.Should().NotBeNull();
+        detail.Feedback!.Comment.Should().Be("Helpful agent");
+    }
+
+    [Fact]
     [Trait("Story", "CRM-016")]
     public async Task Internal_note_with_mention_persists_on_detail()
     {

@@ -45,6 +45,14 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
                 );
                 CREATE INDEX IF NOT EXISTS "IX_TicketTasks_TicketId" ON "TicketTasks" ("TicketId");
                 CREATE INDEX IF NOT EXISTS "IX_TicketTasks_AssigneeUserId" ON "TicketTasks" ("AssigneeUserId");
+                CREATE TABLE IF NOT EXISTS "TicketFeedback" (
+                    "Id" TEXT NOT NULL CONSTRAINT "PK_TicketFeedback" PRIMARY KEY,
+                    "TicketId" TEXT NOT NULL,
+                    "Rating" INTEGER NOT NULL,
+                    "Comment" TEXT NULL,
+                    "CreatedAt" TEXT NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_TicketFeedback_TicketId" ON "TicketFeedback" ("TicketId");
                 """);
         }
         catch
@@ -221,6 +229,21 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             history);
     }
 
+    /// <summary>SDD CRM-030 — lookup by ticket number (portal feedback).</summary>
+    public Ticket? GetByTicketNumber(string ticketNumber)
+    {
+        if (string.IsNullOrWhiteSpace(ticketNumber))
+        {
+            return null;
+        }
+
+        using var db = factory.CreateDbContext();
+        var num = ticketNumber.Trim().ToLower();
+        var row = db.Tickets.AsNoTracking()
+            .FirstOrDefault(t => t.TicketNumber.ToLower() == num);
+        return row is null ? null : Get(row.Id);
+    }
+
     /// <summary>SDD CRM-016 — list internal notes for a ticket (newest first).</summary>
     public IReadOnlyList<TicketNote> ListNotes(Guid ticketId)
     {
@@ -303,6 +326,27 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         row.AssigneeName = task.AssigneeName;
         row.Status = task.Status;
         row.UpdatedAt = task.UpdatedAt;
+        db.SaveChanges();
+    }
+
+    /// <summary>SDD CRM-030</summary>
+    public TicketFeedback? GetFeedback(Guid ticketId)
+    {
+        using var db = factory.CreateDbContext();
+        var row = db.TicketFeedback.AsNoTracking().FirstOrDefault(f => f.TicketId == ticketId);
+        return row is null ? null : FromFeedbackRow(row);
+    }
+
+    /// <summary>SDD CRM-030</summary>
+    public void InsertFeedback(TicketFeedback feedback)
+    {
+        using var db = factory.CreateDbContext();
+        if (db.TicketFeedback.Any(f => f.TicketId == feedback.TicketId))
+        {
+            throw new InvalidOperationException("Feedback already exists for this ticket.");
+        }
+
+        db.TicketFeedback.Add(ToFeedbackRow(feedback));
         db.SaveChanges();
     }
 
@@ -409,4 +453,16 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             row.Status,
             row.CreatedAt,
             row.UpdatedAt);
+
+    private static TicketFeedbackRow ToFeedbackRow(TicketFeedback f) => new()
+    {
+        Id = f.Id,
+        TicketId = f.TicketId,
+        Rating = f.Rating,
+        Comment = f.Comment,
+        CreatedAt = f.CreatedAt
+    };
+
+    private static TicketFeedback FromFeedbackRow(TicketFeedbackRow row) =>
+        TicketFeedback.Rehydrate(row.Id, row.TicketId, row.Rating, row.Comment, row.CreatedAt);
 }

@@ -52,12 +52,22 @@ export interface QuickReply {
   body: string;
 }
 
+/** SDD CRM-030 — customer CSAT. */
+export interface TicketFeedback {
+  id: string;
+  ticketId: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+}
+
 export interface TicketDetail extends TicketSummary {
   description?: string | null;
   createdAt: string;
   updatedAt: string;
   history: TicketHistory[];
   notes?: TicketNote[];
+  feedback?: TicketFeedback | null;
 }
 
 export interface TicketOptions {

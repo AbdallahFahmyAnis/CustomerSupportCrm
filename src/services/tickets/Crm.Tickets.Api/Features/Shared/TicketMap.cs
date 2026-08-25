@@ -18,7 +18,10 @@ internal static class TicketMap
         t.AssignedAgentName,
         t.IsEscalated);
 
-    public static TicketDetailDto Detail(Ticket t, IReadOnlyList<TicketNote>? notes = null) => new(
+    public static TicketDetailDto Detail(
+        Ticket t,
+        IReadOnlyList<TicketNote>? notes = null,
+        TicketFeedback? feedback = null) => new(
         t.Id.ToString(),
         t.TicketNumber,
         t.CustomerId.ToString(),
@@ -52,7 +55,15 @@ internal static class TicketMap
                 n.AuthorUserId,
                 n.MentionedUserIds,
                 n.CreatedAt))
-            .ToList());
+            .ToList(),
+        feedback is null
+            ? null
+            : new TicketFeedbackDto(
+                feedback.Id.ToString(),
+                feedback.TicketId.ToString(),
+                feedback.Rating,
+                feedback.Comment,
+                feedback.CreatedAt));
 }
 
 internal static class TicketHttp

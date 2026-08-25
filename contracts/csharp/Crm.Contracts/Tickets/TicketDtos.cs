@@ -29,7 +29,8 @@ public sealed record TicketDetailDto(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     IReadOnlyList<TicketHistoryDto> History,
-    IReadOnlyList<TicketNoteDto> Notes);
+    IReadOnlyList<TicketNoteDto> Notes,
+    TicketFeedbackDto? Feedback = null);
 
 /// <summary>SDD CRM-016 — internal agent note on a ticket.</summary>
 public sealed record TicketNoteDto(
@@ -41,6 +42,20 @@ public sealed record TicketNoteDto(
     DateTimeOffset CreatedAt);
 
 public sealed record AddTicketNoteRequest(string Body);
+
+/// <summary>SDD CRM-030 — customer CSAT on a ticket.</summary>
+public sealed record TicketFeedbackDto(
+    string Id,
+    string TicketId,
+    int Rating,
+    string? Comment,
+    DateTimeOffset CreatedAt);
+
+public sealed record SubmitTicketFeedbackRequest(
+    string? TicketId,
+    string? TicketNumber,
+    int Rating,
+    string? Comment);
 
 public sealed record TicketHistoryDto(
     string Id,

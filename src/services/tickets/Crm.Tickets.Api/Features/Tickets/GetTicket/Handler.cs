@@ -16,6 +16,7 @@ public sealed class GetTicketHandler(TicketsDb db) : IRequestHandler<GetTicketQu
         }
 
         var notes = db.ListNotes(request.Id);
-        return Task.FromResult<TicketDetailDto?>(TicketMap.Detail(ticket, notes));
+        var feedback = db.GetFeedback(request.Id);
+        return Task.FromResult<TicketDetailDto?>(TicketMap.Detail(ticket, notes, feedback));
     }
 }

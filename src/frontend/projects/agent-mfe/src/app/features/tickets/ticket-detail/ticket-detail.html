@@ -64,6 +64,17 @@
       }
     </aside>
 
+    @if (t.feedback; as fb) {
+      <div class="card csat-card">
+        <h2>Customer feedback</h2>
+        <p class="csat-rating"><strong>{{ fb.rating }}</strong> / 5</p>
+        @if (fb.comment) {
+          <p>{{ fb.comment }}</p>
+        }
+        <p class="meta">Submitted {{ fb.createdAt | date: 'short' }}</p>
+      </div>
+    }
+
     @if (sla(); as s) {
       <div class="sla-strip" [class.breached]="s.firstResponseBreached || s.resolutionBreached">
         <div>
