@@ -47,11 +47,13 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/029-ticket-reports` — CRM-031 ticket volume reports
 - [x] `specs/030-sla-performance` — CRM-032 SLA / agent performance
 - [x] `specs/031-csat-reports` — CRM-033 CSAT aggregates
+- [x] `specs/032-management-dashboard` — CRM-034 admin KPI dashboard
 
 ## Next
 
-1. CRM-034 management dashboard when ready
-2. Inbound webhooks / AI when ready
+1. AI features (CRM-023…) when ready
+2. CRM-038 external APIs when ready
+3. Inbound webhooks / provider signatures when ready
 
 ## Constraints
 

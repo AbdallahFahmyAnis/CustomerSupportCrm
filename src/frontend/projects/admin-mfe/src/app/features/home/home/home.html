@@ -2,9 +2,37 @@
   <header class="row">
     <div>
       <h1>Administration</h1>
-      <p class="lede">Users, roles, audit, and system configuration.</p>
+      <p class="lede">Users, roles, audit, configuration — and a 30-day health snapshot.</p>
     </div>
   </header>
+
+  <section class="dashboard" aria-label="Management dashboard">
+    <div class="dash-head">
+      <h2>Operations snapshot</h2>
+      <a routerLink="/admin/reports">Open reports</a>
+    </div>
+    @if (reports.loading() && !reports.summary()) {
+      <p class="muted">Loading KPIs…</p>
+    }
+    <div class="kpi-row">
+      <a class="kpi" routerLink="/admin/reports">
+        <span>Open tickets</span>
+        <strong>{{ reports.summary()?.open ?? '—' }}</strong>
+      </a>
+      <a class="kpi" routerLink="/admin/reports">
+        <span>Escalated</span>
+        <strong>{{ reports.summary()?.escalated ?? '—' }}</strong>
+      </a>
+      <a class="kpi" routerLink="/admin/reports/sla">
+        <span>SLA breach %</span>
+        <strong>{{ reports.sla() ? reports.sla()!.breachPercent + '%' : '—' }}</strong>
+      </a>
+      <a class="kpi" routerLink="/admin/reports/csat">
+        <span>CSAT avg</span>
+        <strong>{{ reports.csat()?.averageRating ?? '—' }}</strong>
+      </a>
+    </div>
+  </section>
 
   <div class="action-grid home-actions">
     <a routerLink="/admin/users" class="action-tile featured">
