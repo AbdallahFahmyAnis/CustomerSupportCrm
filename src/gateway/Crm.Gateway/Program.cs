@@ -252,6 +252,9 @@ app.MapGet("/api/session", (ClaimsPrincipal user) =>
     });
 });
 
+// SDD CRM-038 — machine API (API key) before catch-all reverse proxy.
+Crm.Gateway.ExternalApiEndpoints.Map(app);
+
 app.MapReverseProxy();
 
 app.Run();
