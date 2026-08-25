@@ -12,4 +12,9 @@ export const REPORTS_ROUTES: Routes = [
     loadComponent: () =>
       import('./sla-performance/sla-performance.page').then((m) => m.SlaPerformancePage),
   },
+  {
+    path: 'csat',
+    loadComponent: () =>
+      import('./csat-report/csat-report.page').then((m) => m.CsatReportPage),
+  },
 ];

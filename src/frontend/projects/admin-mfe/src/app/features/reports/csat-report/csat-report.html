@@ -1,0 +1,52 @@
+<section class="page">
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/admin">Admin</a>
+    <span class="sep">/</span>
+    <a routerLink="/admin/reports">Reports</a>
+    <span class="sep">/</span>
+    <span class="current">CSAT</span>
+  </nav>
+
+  <header class="row">
+    <div>
+      <h1>Customer satisfaction</h1>
+      <p class="lede">Average rating and distribution from ticket feedback.</p>
+    </div>
+  </header>
+
+  <form class="filters" (ngSubmit)="reload()">
+    <label>From <input type="date" name="from" [(ngModel)]="from" /></label>
+    <label>To <input type="date" name="to" [(ngModel)]="to" /></label>
+    <button type="submit" class="btn" [disabled]="store.loading()">Apply</button>
+  </form>
+
+  @if (store.error(); as err) {
+    <p class="error">{{ err }}</p>
+  }
+
+  @if (store.csat(); as c) {
+    <div class="kpi-row">
+      <div class="kpi"><span>Responses</span><strong>{{ c.count }}</strong></div>
+      <div class="kpi"><span>Average</span><strong>{{ c.averageRating }}</strong></div>
+    </div>
+    <p class="meta">{{ c.from | date: 'mediumDate' }} – {{ c.to | date: 'mediumDate' }}</p>
+
+    <h2>Distribution</h2>
+    <table>
+      @for (d of c.distribution; track d.rating) {
+        <tr><td>{{ d.rating }} ★</td><td>{{ d.count }}</td></tr>
+      }
+    </table>
+
+    <h2>By agent</h2>
+    <table>
+      @for (a of c.byAgent; track a.agentId ?? a.agentName ?? 'none') {
+        <tr>
+          <td>{{ a.agentName || 'Unassigned' }}</td>
+          <td>{{ a.count }}</td>
+          <td>{{ a.averageRating }}</td>
+        </tr>
+      }
+    </table>
+  }
+</section>

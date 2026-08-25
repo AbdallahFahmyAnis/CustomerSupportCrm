@@ -212,6 +212,27 @@ public sealed class TicketLifecycleTests : IClassFixture<TicketsApiFactory>
     }
 
     [Fact]
+    [Trait("Story", "CRM-033")]
+    public async Task Csat_report_includes_submitted_feedback()
+    {
+        var created = await CreateAsync("Csat Co", "Need feedback aggregate");
+        await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/status", new ChangeStatusRequest("InProgress"));
+        await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/status", new ChangeStatusRequest("Resolved"));
+        var submitted = await _client.PostAsJsonAsync("/api/tickets/feedback",
+            new SubmitTicketFeedbackRequest(null, created.TicketNumber, 5, "Great"));
+        submitted.EnsureSuccessStatusCode();
+
+        var from = DateTimeOffset.UtcNow.AddDays(-1).ToString("O");
+        var to = DateTimeOffset.UtcNow.AddDays(1).ToString("O");
+        var report = await _client.GetFromJsonAsync<CsatReportDto>(
+            $"/api/tickets/reports/csat?from={Uri.EscapeDataString(from)}&to={Uri.EscapeDataString(to)}");
+        report.Should().NotBeNull();
+        report!.Count.Should().BeGreaterThanOrEqualTo(1);
+        report.AverageRating.Should().BeGreaterThan(0);
+        report.Distribution.Should().Contain(d => d.Rating == 5 && d.Count >= 1);
+    }
+
+    [Fact]
     [Trait("Story", "CRM-016")]
     public async Task Internal_note_with_mention_persists_on_detail()
     {
