@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "start": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "test": "node -r ts-node/register/transpile-only --test test/*.test.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
