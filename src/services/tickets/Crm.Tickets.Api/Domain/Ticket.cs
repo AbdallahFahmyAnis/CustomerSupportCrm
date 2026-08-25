@@ -18,6 +18,10 @@ public sealed class Ticket
     public string? AssignedAgentName { get; private set; }
     public bool IsEscalated { get; private set; }
     public Guid? DepartmentId { get; private set; }
+    /// <summary>SDD CRM-023 polish / 042</summary>
+    public string? AiSummary { get; private set; }
+    public string? AiSummaryHighlightsJson { get; private set; }
+    public DateTimeOffset? AiSummaryAt { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
@@ -80,7 +84,10 @@ public sealed class Ticket
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
         IEnumerable<TicketHistoryEntry>? history = null,
-        Guid? departmentId = null)
+        Guid? departmentId = null,
+        string? aiSummary = null,
+        string? aiSummaryHighlightsJson = null,
+        DateTimeOffset? aiSummaryAt = null)
     {
         var ticket = new Ticket
         {
@@ -97,6 +104,9 @@ public sealed class Ticket
             AssignedAgentName = assignedAgentName,
             IsEscalated = isEscalated,
             DepartmentId = departmentId,
+            AiSummary = aiSummary,
+            AiSummaryHighlightsJson = aiSummaryHighlightsJson,
+            AiSummaryAt = aiSummaryAt,
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
         };
@@ -113,6 +123,16 @@ public sealed class Ticket
     {
         DepartmentId = departmentId;
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>SDD CRM-023 polish / 042</summary>
+    public void SetAiSummary(string summary, string? highlightsJson)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(summary);
+        AiSummary = summary.Trim();
+        AiSummaryHighlightsJson = string.IsNullOrWhiteSpace(highlightsJson) ? null : highlightsJson.Trim();
+        AiSummaryAt = DateTimeOffset.UtcNow;
+        UpdatedAt = AiSummaryAt.Value;
     }
 
     public void Classify(string category, string priority, string actor)

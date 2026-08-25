@@ -88,21 +88,37 @@ export function categorizeTicket(ticket: TicketSnapshot): {
   return { category, priority, confidence };
 }
 
-/** SDD CRM-026 — FAQ-backed chatbot reply. */
+/** SDD CRM-026 — FAQ-backed chatbot reply (optional prior turns for polish / 043). */
 export function chatReply(
   message: string,
   faqs: { id: string; title: string }[],
+  priorTurns: { role: 'user' | 'assistant'; text: string }[] = [],
 ): { reply: string; sources: { id: string; title: string }[] } {
-  const q = message.trim().toLowerCase();
+  const priorUser = priorTurns
+    .filter((t) => t.role === 'user')
+    .map((t) => t.text)
+    .join(' ');
+  const q = `${priorUser} ${message}`.trim().toLowerCase();
   const hits = faqs.filter((f) => {
     const t = f.title.toLowerCase();
     return q.split(/\s+/).some((w) => w.length > 3 && t.includes(w));
   });
   if (hits.length > 0) {
     const top = hits.slice(0, 2);
+    const followUp =
+      priorTurns.length > 0
+        ? ' (continuing from our earlier messages)'
+        : '';
     return {
-      reply: `Based on our FAQs, you may find these helpful: ${top.map((h) => h.title).join('; ')}. If that doesn't resolve it, submit a portal request.`,
+      reply: `Based on our FAQs${followUp}, you may find these helpful: ${top.map((h) => h.title).join('; ')}. If that doesn't resolve it, submit a portal request.`,
       sources: top,
+    };
+  }
+  if (priorTurns.length > 0) {
+    return {
+      reply:
+        'Still here from our earlier chat. Try asking about passwords, billing, or tickets — or open Submit a request from the portal home.',
+      sources: [],
     };
   }
   return {

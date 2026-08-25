@@ -68,6 +68,10 @@ export interface TicketDetail extends TicketSummary {
   history: TicketHistory[];
   notes?: TicketNote[];
   feedback?: TicketFeedback | null;
+  /** SDD CRM-023 polish / 042 */
+  aiSummary?: string | null;
+  aiHighlights?: string[] | null;
+  aiSummaryAt?: string | null;
 }
 
 export interface TicketOptions {

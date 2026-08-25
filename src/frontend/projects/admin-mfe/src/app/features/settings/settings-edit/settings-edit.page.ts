@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, effect, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SettingsStore } from '../settings.store';
@@ -6,7 +7,7 @@ import { SettingsStore } from '../settings.store';
 @Component({
   selector: 'app-settings-edit-page',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DatePipe],
   templateUrl: './settings-edit.html',
   styleUrls: ['./settings-edit.scss'],
 })
@@ -43,6 +44,10 @@ export class SettingsEditPage implements OnInit {
 
   ngOnInit(): void {
     this.store.load();
+  }
+
+  refreshDeliveries(): void {
+    this.store.loadErpDeliveries();
   }
 
   submit(): void {

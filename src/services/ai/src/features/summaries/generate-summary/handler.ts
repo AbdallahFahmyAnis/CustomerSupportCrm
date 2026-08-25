@@ -14,6 +14,11 @@ export class GenerateSummaryHandler implements ICommandHandler<GenerateSummaryCo
     const ticket = await this.downstream.getTicket(command.ticketId);
     if (!ticket) throw new NotFoundException('Ticket not found.');
     const result = summarizeTicket(ticket);
+    try {
+      await this.downstream.saveAiSummary(ticket.id, result.summary, result.highlights);
+    } catch {
+      // Best-effort persist; still return generated summary to the agent.
+    }
     return { ticketId: ticket.id, ...result };
   }
 }

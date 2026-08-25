@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Crm.Contracts.Tickets;
 using Crm.Tickets.Api.Domain;
 
@@ -65,7 +66,27 @@ internal static class TicketMap
                 feedback.Rating,
                 feedback.Comment,
                 feedback.CreatedAt),
-        t.DepartmentId?.ToString());
+        t.DepartmentId?.ToString(),
+        t.AiSummary,
+        ParseHighlights(t.AiSummaryHighlightsJson),
+        t.AiSummaryAt);
+
+    static IReadOnlyList<string>? ParseHighlights(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(json);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
 
 internal static class TicketHttp

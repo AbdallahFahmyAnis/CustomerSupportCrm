@@ -9,7 +9,7 @@ export type AssistantTurn = {
   sources?: ChatSource[];
 };
 
-/** SDD CRM-026 */
+/** SDD CRM-026 polish / 043 — keep and resend sessionId from first reply. */
 @Injectable({ providedIn: 'root' })
 export class AssistantStore {
   private readonly api = inject(AssistantApi);

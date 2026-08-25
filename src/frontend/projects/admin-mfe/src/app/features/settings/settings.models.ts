@@ -10,3 +10,10 @@ export interface SystemSettings {
   logoUrl?: string;
   erpWebhookUrl?: string;
 }
+
+/** SDD CRM-039 polish / 044 */
+export interface ErpDelivery {
+  ticketId: string;
+  status: string;
+  at: string;
+}
