@@ -88,3 +88,57 @@ test('email reply accepts valid body', () => {
   const err = validateReplyEmailInput('ticket-1', { body: 'We are on it.' });
   assert.equal(err, null);
 });
+
+const {
+  validateWhatsAppIngestInput,
+  normalizePhone,
+} = require('../src/features/intake/ingest-whatsapp/schema');
+const {
+  validateReplyWhatsAppInput,
+} = require('../src/features/messages/reply-whatsapp/schema');
+
+/** SDD CRM-009 — WhatsApp ingest validation. */
+test('whatsapp ingest rejects missing fields', () => {
+  const err = validateWhatsAppIngestInput({
+    from: '',
+    body: 'Hi',
+  });
+  assert.equal(err, 'from (phone) and body are required.');
+});
+
+test('whatsapp ingest rejects short phone', () => {
+  const err = validateWhatsAppIngestInput({
+    from: '123',
+    body: 'Hi',
+  });
+  assert.equal(err, 'from must be a valid phone number.');
+});
+
+test('whatsapp ingest accepts valid payload', () => {
+  const err = validateWhatsAppIngestInput({
+    from: '+15551234567',
+    body: 'Need help with my order',
+    name: 'Ada',
+  });
+  assert.equal(err, null);
+  assert.equal(normalizePhone('+1 (555) 123-4567'), '+15551234567');
+});
+
+/** SDD CRM-009 — WhatsApp reply validation. */
+test('whatsapp reply rejects empty body', () => {
+  const err = validateReplyWhatsAppInput('ticket-1', { body: '  ' });
+  assert.equal(err, 'body is required.');
+});
+
+test('whatsapp reply rejects bad to', () => {
+  const err = validateReplyWhatsAppInput('ticket-1', {
+    body: 'Hello',
+    to: '12',
+  });
+  assert.equal(err, 'to must be a valid phone number.');
+});
+
+test('whatsapp reply accepts valid body', () => {
+  const err = validateReplyWhatsAppInput('ticket-1', { body: 'We are on it.' });
+  assert.equal(err, null);
+});

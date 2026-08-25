@@ -106,4 +106,18 @@ export class TicketsStore {
         this.error.set(err?.error?.message ?? err?.error?.error ?? 'Reply failed.'),
     });
   }
+
+  replyWhatsApp(ticketId: string, body: string, onDone?: () => void): void {
+    this.error.set('');
+    this.api.replyWhatsApp(ticketId, body).subscribe({
+      next: () => {
+        this.loadChannelMessages(ticketId);
+        onDone?.();
+      },
+      error: (err) =>
+        this.error.set(
+          err?.error?.message ?? err?.error?.error ?? 'WhatsApp reply failed.',
+        ),
+    });
+  }
 }

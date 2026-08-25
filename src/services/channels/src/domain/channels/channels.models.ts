@@ -14,7 +14,7 @@ export interface PortalRequest {
 export interface ChannelMessage {
   id: string;
   ticketId: string;
-  channel: 'WebForm' | 'Email';
+  channel: 'WebForm' | 'Email' | 'WhatsApp';
   direction: 'Inbound' | 'Outbound';
   body: string;
   fromEmail: string;

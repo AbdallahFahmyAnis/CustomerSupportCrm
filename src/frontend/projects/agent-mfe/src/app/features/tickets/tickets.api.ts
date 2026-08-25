@@ -35,6 +35,13 @@ export class TicketsApi {
     );
   }
 
+  replyWhatsApp(ticketId: string, body: string, to?: string): Observable<{ messageId: string; to: string }> {
+    return this.http.post<{ messageId: string; to: string }>(
+      `/api/channels/tickets/${ticketId}/messages/whatsapp`,
+      { body, to },
+    );
+  }
+
   create(body: {
     customerId: string;
     customerName: string;
