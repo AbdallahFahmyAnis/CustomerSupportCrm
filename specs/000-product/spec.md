@@ -61,12 +61,12 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/043-chat-session-memory` — CRM-026 portal chat multi-turn memory
 - [x] `specs/044-erp-webhook-retries` — CRM-039 ERP webhook retries + delivery log
 - [x] `specs/045-external-swagger-ui` — CRM-038 Swagger UI for external v1
+- [x] `specs/046-stream-ai-summary` — CRM-023 streaming AI summaries
 
 ## Next
 
-1. Streaming AI summaries (046)
-2. Durable chat sessions (047)
-3. ERP outbox UI + auth headers (048)
+1. Durable chat sessions (047)
+2. ERP outbox UI + auth headers (048)
 
 ## Constraints
 

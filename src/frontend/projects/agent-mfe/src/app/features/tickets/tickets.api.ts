@@ -170,6 +170,57 @@ export class TicketsApi {
     );
   }
 
+  /** SDD CRM-023 deferred / 046 — SSE token stream then final summary. */
+  async streamSummary(
+    ticketId: string,
+    onToken: (text: string) => void,
+  ): Promise<{ ticketId: string; summary: string; highlights: string[] }> {
+    const res = await fetch(`/api/ai/tickets/${ticketId}/summary/stream`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { Accept: 'text/event-stream' },
+    });
+    if (!res.ok || !res.body) {
+      throw new Error(`stream failed: ${res.status}`);
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let done: { ticketId: string; summary: string; highlights: string[] } | null = null;
+    while (true) {
+      const { value, done: eof } = await reader.read();
+      if (eof) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() ?? '';
+      for (const part of parts) {
+        const line = part
+          .split('\n')
+          .find((l) => l.startsWith('data: '));
+        if (!line) continue;
+        const payload = JSON.parse(line.slice(6)) as {
+          type: string;
+          text?: string;
+          ticketId?: string;
+          summary?: string;
+          highlights?: string[];
+        };
+        if (payload.type === 'token' && payload.text) {
+          onToken(payload.text);
+        }
+        if (payload.type === 'done' && payload.summary) {
+          done = {
+            ticketId: payload.ticketId ?? ticketId,
+            summary: payload.summary,
+            highlights: payload.highlights ?? [],
+          };
+        }
+      }
+    }
+    if (!done) throw new Error('stream ended without done event');
+    return done;
+  }
+
   /** SDD CRM-024 */
   suggestReplies(ticketId: string): Observable<{ title: string; body: string }[]> {
     return this.http.post<{ title: string; body: string }[]>(`/api/ai/tickets/${ticketId}/suggestions`, {});

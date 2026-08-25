@@ -10,6 +10,7 @@ import { SuggestRepliesHandler } from '../features/suggestions/suggest-replies/h
 import { SuggestRepliesRoute } from '../features/suggestions/suggest-replies/route';
 import { GenerateSummaryHandler } from '../features/summaries/generate-summary/handler';
 import { GenerateSummaryRoute } from '../features/summaries/generate-summary/route';
+import { StreamSummaryRoute } from '../features/summaries/stream-summary/route';
 import { DownstreamClient } from '../infrastructure/http/downstream.client';
 import { ChatSessionStore } from '../infrastructure/chat/chat-session.store';
 
@@ -19,6 +20,7 @@ import { ChatSessionStore } from '../infrastructure/chat/chat-session.store';
   controllers: [
     GetHealthRoute,
     GenerateSummaryRoute,
+    StreamSummaryRoute,
     SuggestRepliesRoute,
     AutoCategorizeRoute,
     PortalChatRoute,

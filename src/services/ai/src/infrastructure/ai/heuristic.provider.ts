@@ -20,6 +20,18 @@ export function summarizeTicket(ticket: TicketSnapshot): {
   return { summary, highlights };
 }
 
+/** SDD CRM-023 deferred / 046 — split summary into streamable token chunks. */
+export function streamSummaryChunks(summary: string, chunkSize = 8): string[] {
+  const words = summary.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const chunks: string[] = [];
+  for (let i = 0; i < words.length; i += chunkSize) {
+    const slice = words.slice(i, i + chunkSize).join(' ');
+    chunks.push(i === 0 ? slice : ` ${slice}`);
+  }
+  return chunks;
+}
+
 /** SDD CRM-024 — canned reply suggestions from ticket keywords. */
 export function suggestReplies(ticket: TicketSnapshot): {
   title: string;

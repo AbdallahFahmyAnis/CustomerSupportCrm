@@ -313,20 +313,27 @@ export class TicketDetailPage implements OnInit {
     }
   }
 
-  /** SDD CRM-023 */
+  /** SDD CRM-023 deferred / 046 — stream tokens then finalize. */
   generateAiSummary(): void {
     this.aiBusy.set(true);
     this.aiError.set('');
-    this.api.generateSummary(this.id).subscribe({
-      next: (row) => {
+    this.aiSummary.set({ summary: '', highlights: [] });
+    void this.api
+      .streamSummary(this.id, (text) => {
+        const cur = this.aiSummary();
+        this.aiSummary.set({
+          summary: (cur?.summary ?? '') + text,
+          highlights: cur?.highlights ?? [],
+        });
+      })
+      .then((row) => {
         this.aiSummary.set({ summary: row.summary, highlights: row.highlights ?? [] });
         this.aiBusy.set(false);
-      },
-      error: () => {
+      })
+      .catch(() => {
         this.aiError.set('Could not generate summary. Is the AI service running?');
         this.aiBusy.set(false);
-      },
-    });
+      });
   }
 
   /** SDD CRM-024 */
