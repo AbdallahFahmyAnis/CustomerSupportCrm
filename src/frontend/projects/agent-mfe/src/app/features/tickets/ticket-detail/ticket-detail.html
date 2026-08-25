@@ -90,7 +90,19 @@
       </form>
     </div>
 
-    <h2>Channel conversation</h2>
+    <h2>Email</h2>
+    <crm-email
+      [subject]="t.subject"
+      [messages]="emailMessages()"
+      [replyToLabel]="emailReplyLabel()"
+      [(draft)]="emailDraft"
+      placeholder="Write your email reply…"
+      sendLabel="Send"
+      emptyText="No email messages on this ticket yet."
+      (send)="onEmailSend($event)"
+    />
+
+    <h2>Messaging</h2>
     <crm-chat
       [title]="t.customerName"
       [subtitle]="t.ticketNumber + ' · channel thread'"
@@ -99,6 +111,7 @@
       [(draft)]="chatDraft"
       placeholder="Write a reply…"
       sendLabel="Send"
+      emptyText="No chat, WhatsApp, or SMS messages yet."
       (send)="onChatSend($event)"
     >
       <div crmChatComposeExtra class="channel-pick">
@@ -106,7 +119,6 @@
           Channel
           <select name="replyChannel" [(ngModel)]="replyChannel">
             <option value="chat">Live chat</option>
-            <option value="email">Email</option>
             <option value="whatsapp">WhatsApp</option>
             <option value="sms">SMS</option>
           </select>
