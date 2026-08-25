@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
+  CrmDataActionsDirective,
   CrmDataCardDirective,
   CrmDataCellDirective,
   CrmDataToolbarDirective,
@@ -21,6 +22,7 @@ import { UsersStore } from '../users.store';
     FormsModule,
     RouterLink,
     CrmDataViewComponent,
+    CrmDataActionsDirective,
     CrmDataToolbarDirective,
     CrmDataCellDirective,
     CrmDataCardDirective,
@@ -34,6 +36,8 @@ export class UserListPage implements OnInit {
   q = '';
   viewMode: CrmDataViewMode = 'list';
   confirmOpen = false;
+  editOpen = false;
+  editRole = '';
   pendingUser: UserSummary | null = null;
 
   readonly columns: CrmDataViewColumn[] = [
@@ -54,8 +58,20 @@ export class UserListPage implements OnInit {
     this.store.loadUsers();
   }
 
-  onRoleChange(id: string, role: string): void {
-    this.store.setRole(id, role);
+  askEdit(user: UserSummary): void {
+    this.pendingUser = user;
+    this.editRole = user.role;
+    this.editOpen = true;
+  }
+
+  confirmEdit(): void {
+    const id = this.pendingUser?.id;
+    const role = this.editRole.trim();
+    this.editOpen = false;
+    this.pendingUser = null;
+    if (id && role) {
+      this.store.setRole(id, role);
+    }
   }
 
   askDeactivate(user: UserSummary): void {

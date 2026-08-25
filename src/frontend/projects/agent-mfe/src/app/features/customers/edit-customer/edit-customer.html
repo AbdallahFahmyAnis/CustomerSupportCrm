@@ -1,11 +1,22 @@
 <section class="page">
-  <p><a [routerLink]="['/agent/customers', id]">← Back</a></p>
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/agent/customers">Customers</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <a [routerLink]="['/agent/customers', id]">Detail</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Edit</span>
+  </nav>
+
   <header class="row">
     <div>
       <h1>Edit customer</h1>
-      <p class="lede">Update profile and organization details</p>
+      <p class="lede">Update profile and organization, then confirm</p>
     </div>
   </header>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
 
   <crm-wizard
     [steps]="steps"
@@ -15,60 +26,83 @@
     (finish)="save()"
   >
     <ng-template crmWizardStep>
-      <div class="form-grid">
+      <div class="step-intro">
+        <h3>Customer details</h3>
+        <p class="muted">Name and unique identifier are required. Organization is optional.</p>
+      </div>
+      <div class="field-stack">
         <label>
           Name
-          <input name="displayName" [(ngModel)]="displayName" required />
+          <input
+            name="displayName"
+            [(ngModel)]="displayName"
+            required
+            placeholder="Display name"
+            autocomplete="organization"
+          />
         </label>
         <label>
           Unique identifier
-          <input name="uniqueIdentifier" [(ngModel)]="uniqueIdentifier" required />
+          <input
+            name="uniqueIdentifier"
+            [(ngModel)]="uniqueIdentifier"
+            required
+            placeholder="Email, phone, or account id"
+            autocomplete="off"
+          />
         </label>
+        <div class="field-row">
+          <label>
+            Organization
+            <input
+              name="organization"
+              [(ngModel)]="organization"
+              placeholder="Company or team (optional)"
+            />
+          </label>
+          <label>
+            Status
+            <select name="status" [(ngModel)]="status">
+              <option>Active</option>
+              <option>Inactive</option>
+            </select>
+          </label>
+        </div>
       </div>
     </ng-template>
 
     <ng-template crmWizardStep>
-      <div class="form-grid">
-        <label>
-          Organization
-          <input name="organization" [(ngModel)]="organization" />
-        </label>
-        <label>
-          Status
-          <select name="status" [(ngModel)]="status">
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-        </label>
+      <div class="review-panel">
+        <div class="review-hero">
+          <div class="avatar">{{ avatarLetter }}</div>
+          <div>
+            <strong>Review changes</strong>
+            <p class="muted">Confirm the updated details, then save.</p>
+          </div>
+        </div>
+        <table class="review-table">
+          <tr>
+            <th>Name</th>
+            <td>{{ displayName.trim() || '—' }}</td>
+          </tr>
+          <tr>
+            <th>Unique identifier</th>
+            <td>{{ uniqueIdentifier.trim() || '—' }}</td>
+          </tr>
+          <tr>
+            <th>Organization</th>
+            <td>{{ organization.trim() || '—' }}</td>
+          </tr>
+          <tr>
+            <th>Status</th>
+            <td>
+              <span class="badge-soft" [class.is-inactive]="status !== 'Active'">{{ status }}</span>
+            </td>
+          </tr>
+        </table>
       </div>
-    </ng-template>
-
-    <ng-template crmWizardStep>
-      <h3 class="review-title">Review changes</h3>
-      <table class="review-table">
-        <tr>
-          <th>Name</th>
-          <td>{{ displayName }}</td>
-        </tr>
-        <tr>
-          <th>Unique identifier</th>
-          <td>{{ uniqueIdentifier }}</td>
-        </tr>
-        <tr>
-          <th>Organization</th>
-          <td>{{ organization || '—' }}</td>
-        </tr>
-        <tr>
-          <th>Status</th>
-          <td>{{ status }}</td>
-        </tr>
-      </table>
     </ng-template>
   </crm-wizard>
-
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
 
   <crm-modal [(open)]="dupOpen" title="Possible duplicate">
     <p>{{ warning()?.message }}</p>

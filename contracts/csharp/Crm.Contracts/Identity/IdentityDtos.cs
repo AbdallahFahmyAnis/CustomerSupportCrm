@@ -23,6 +23,12 @@ public sealed record RoleSummaryDto(
 
 public sealed record PermissionCatalogDto(IReadOnlyList<string> Permissions);
 
+public sealed record CreatePermissionRequest(string Name, string? Description);
+
+public sealed record UpdatePermissionRequest(string Name, string? Description);
+
+public sealed record UpdateRolePermissionsRequest(IReadOnlyList<string> Permissions);
+
 /// <summary>SDD CRM-036 / specs/011-audit-logs.</summary>
 public sealed record AuditLogDto(
     string Id,

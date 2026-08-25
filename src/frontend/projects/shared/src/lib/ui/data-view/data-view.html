@@ -8,25 +8,32 @@
         <p>{{ subtitle() }}</p>
       }
     </div>
-    <div class="dv-toggle" role="group" aria-label="View mode">
-      <button
-        type="button"
-        class="toggle-btn"
-        [class.active]="viewMode() === 'list'"
-        (click)="setMode('list')"
-        title="List view"
-      >
-        ☰ List
-      </button>
-      <button
-        type="button"
-        class="toggle-btn"
-        [class.active]="viewMode() === 'grid'"
-        (click)="setMode('grid')"
-        title="Grid view"
-      >
-        ▦ Grid
-      </button>
+    <div class="dv-head-actions">
+      @if (actions) {
+        <div class="dv-actions">
+          <ng-container *ngTemplateOutlet="actions.template" />
+        </div>
+      }
+      <div class="dv-toggle" role="group" aria-label="View mode">
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="viewMode() === 'list'"
+          (click)="setMode('list')"
+          title="List view"
+        >
+          ☰ List
+        </button>
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="viewMode() === 'grid'"
+          (click)="setMode('grid')"
+          title="Grid view"
+        >
+          ▦ Grid
+        </button>
+      </div>
     </div>
   </header>
 

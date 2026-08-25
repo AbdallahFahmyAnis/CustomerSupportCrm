@@ -17,6 +17,7 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
     public DbSet<RevokedAccessToken> RevokedAccessTokens => Set<RevokedAccessToken>();
     public DbSet<AuditLogEntry> AuditLogs => Set<AuditLogEntry>();
     public DbSet<SystemSettings> SystemSettings => Set<SystemSettings>();
+    public DbSet<PermissionDefinition> PermissionDefinitions => Set<PermissionDefinition>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -69,6 +70,15 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
             e.Property(x => x.MaxFailedLoginAttempts).IsRequired();
             e.Property(x => x.LockoutMinutes).IsRequired();
             e.Property(x => x.UpdatedAt).IsRequired();
+        });
+
+        builder.Entity<PermissionDefinition>(e =>
+        {
+            e.ToTable("PermissionDefinitions");
+            e.HasKey(x => x.Name);
+            e.Property(x => x.Name).HasMaxLength(120).IsRequired();
+            e.Property(x => x.Description).HasMaxLength(400).IsRequired();
+            e.Property(x => x.CreatedAt).IsRequired();
         });
     }
 }

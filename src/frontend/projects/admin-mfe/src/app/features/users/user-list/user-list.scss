@@ -8,16 +8,17 @@
 
 .toolbar-form input {
   flex: 1;
-  min-width: 12rem;
 }
 
-.link {
-  background: none;
-  border: 0;
-  color: var(--crm-danger);
-  cursor: pointer;
-  font: inherit;
-  padding: 0;
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--crm-primary);
+  background: var(--crm-primary-soft);
 }
 
 .user-card {
@@ -26,7 +27,8 @@
   justify-items: start;
 }
 
-.user-card .avatar {
+.user-card .avatar,
+.edit-hero .avatar {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
@@ -37,11 +39,51 @@
   font-weight: 700;
 }
 
-.user-card .muted {
+.user-card .muted,
+.edit-hero .muted,
+.hint {
   color: var(--crm-text-muted);
   font-size: 0.85rem;
 }
 
-select {
-  min-width: 7rem;
+.edit-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.edit-hero {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius-sm);
+  background: linear-gradient(135deg, rgba(140, 87, 255, 0.08), transparent 55%);
+}
+
+.edit-hero strong {
+  display: block;
+}
+
+.edit-hero .muted {
+  margin: 0.15rem 0 0;
+}
+
+.edit-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.edit-form select {
+  width: 100%;
+}
+
+.hint {
+  margin: 0;
+}
+
+.error {
+  margin-top: 0.75rem;
 }

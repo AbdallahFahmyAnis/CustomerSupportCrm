@@ -1,13 +1,15 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
+  CrmDataActionsDirective,
   CrmDataCardDirective,
   CrmDataCellDirective,
   CrmDataViewColumn,
   CrmDataViewComponent,
   CrmDataViewMode,
+  CrmModalComponent,
 } from 'shared';
-import { UsersApi } from '../../users/users.api';
 import { RolesStore } from '../roles.store';
 
 interface PermissionRow {
@@ -20,31 +22,38 @@ interface PermissionRow {
   selector: 'app-permission-list-page',
   standalone: true,
   imports: [
+    FormsModule,
     RouterLink,
     CrmDataViewComponent,
+    CrmDataActionsDirective,
     CrmDataCellDirective,
     CrmDataCardDirective,
+    CrmModalComponent,
   ],
   templateUrl: './permission-list.html',
   styleUrls: ['./permission-list.scss'],
 })
 export class PermissionListPage implements OnInit {
-  private readonly api = inject(UsersApi);
-  private readonly rolesStore = inject(RolesStore);
+  readonly store = inject(RolesStore);
 
-  readonly catalog = signal<string[]>([]);
-  readonly error = signal('');
   viewMode: CrmDataViewMode = 'list';
+  formOpen = false;
+  deleteOpen = false;
+  editingName: string | null = null;
+  pendingName = '';
+  formName = '';
+  formDescription = '';
 
   readonly columns: CrmDataViewColumn[] = [
     { key: 'name', header: 'Name' },
     { key: 'roles', header: 'Assigned to' },
+    { key: 'actions', header: 'Actions' },
   ];
 
   readonly rows = computed<PermissionRow[]>(() => {
-    const roles = this.rolesStore.roles();
-    const names = this.catalog().length
-      ? this.catalog()
+    const roles = this.store.roles();
+    const names = this.store.catalog().length
+      ? this.store.catalog()
       : [...new Set(roles.flatMap((r) => r.permissions))].sort();
     return names.map((name) => ({
       name,
@@ -53,10 +62,51 @@ export class PermissionListPage implements OnInit {
   });
 
   ngOnInit(): void {
-    this.rolesStore.load();
-    this.api.permissions().subscribe({
-      next: (dto) => this.catalog.set(dto.permissions ?? []),
-      error: () => this.error.set('Could not load permission catalog.'),
-    });
+    this.store.load();
+    this.store.loadCatalog();
+  }
+
+  askCreate(): void {
+    this.editingName = null;
+    this.formName = '';
+    this.formDescription = '';
+    this.formOpen = true;
+  }
+
+  askEdit(name: string): void {
+    this.editingName = name;
+    this.formName = name;
+    this.formDescription = '';
+    this.formOpen = true;
+  }
+
+  confirmForm(): void {
+    const name = this.formName.trim();
+    if (!name) {
+      return;
+    }
+    const description = this.formDescription.trim();
+    const current = this.editingName;
+    this.formOpen = false;
+    if (current) {
+      this.store.updatePermission(current, name, description);
+    } else {
+      this.store.createPermission(name, description);
+    }
+    this.editingName = null;
+  }
+
+  askDelete(name: string): void {
+    this.pendingName = name;
+    this.deleteOpen = true;
+  }
+
+  confirmDelete(): void {
+    const name = this.pendingName;
+    this.deleteOpen = false;
+    this.pendingName = '';
+    if (name) {
+      this.store.deletePermission(name);
+    }
   }
 }

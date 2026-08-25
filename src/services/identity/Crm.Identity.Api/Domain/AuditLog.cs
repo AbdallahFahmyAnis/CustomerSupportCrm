@@ -22,4 +22,8 @@ public static class AuditActions
     public const string RoleChanged = "RoleChanged";
     public const string UserDeactivated = "UserDeactivated";
     public const string SettingsUpdated = "SettingsUpdated";
+    public const string PermissionCreated = "PermissionCreated";
+    public const string PermissionUpdated = "PermissionUpdated";
+    public const string PermissionDeleted = "PermissionDeleted";
+    public const string RolePermissionsUpdated = "RolePermissionsUpdated";
 }

@@ -3,25 +3,68 @@
     <div>
       <h1>Roles List</h1>
       <p class="lede">
-        A role provides access to predefined menus and features so administrators can grant what each user needs.
+        A role provides access to predefined menus and features so administrators can grant what each
+        user needs.
       </p>
     </div>
-    <a routerLink="/admin/roles/permissions" class="btn secondary">Permissions</a>
   </header>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
 
-  <div class="role-grid">
-    @for (r of store.roles(); track r.name) {
-      <crm-role-card
-        [name]="r.name"
-        [description]="r.description"
-        [permissions]="r.permissions"
-        [userCountLabel]="r.permissions.length + ' permissions'"
-        (edit)="openPermissions()"
-      />
+  <section class="roles-panel card">
+    <header class="roles-panel__head">
+      <div>
+        <h2>Total users with their roles</h2>
+        <p>Find all of your company’s administrator accounts and their associate roles.</p>
+      </div>
+      <a routerLink="/admin/roles/permissions" class="btn">Permissions</a>
+    </header>
+
+    <div class="role-grid">
+      @for (r of store.roles(); track r.name) {
+        <crm-role-card
+          [name]="r.name"
+          [description]="r.description"
+          [permissions]="r.permissions"
+          [userCountLabel]="r.permissions.length + ' permissions'"
+          (edit)="askEditRole(r)"
+        />
+      }
+    </div>
+  </section>
+
+  <crm-modal [(open)]="editOpen" title="Edit role">
+    @if (pendingRole; as role) {
+      <div class="edit-role">
+        <div class="edit-hero">
+          <div class="avatar">{{ role.name.charAt(0) }}</div>
+          <div>
+            <strong>{{ role.name }}</strong>
+            <p class="muted">{{ role.description || 'Select permissions for this role.' }}</p>
+          </div>
+        </div>
+        <fieldset class="perm-checks">
+          <legend>Permissions</legend>
+          @for (p of store.catalog(); track p) {
+            <label class="check">
+              <input
+                type="checkbox"
+                [checked]="editSelected.has(p)"
+                (change)="togglePermission(p, $event)"
+              />
+              <span>{{ p }}</span>
+            </label>
+          } @empty {
+            <p class="muted">No permissions in catalog. Add some on the Permissions page.</p>
+          }
+        </fieldset>
+      </div>
     }
-  </div>
+    <div crmModalActions>
+      <button type="button" class="btn secondary" (click)="editOpen = false">Cancel</button>
+      <button type="button" class="btn" (click)="confirmEditRole()">Save changes</button>
+    </div>
+  </crm-modal>
 </section>

@@ -39,16 +39,19 @@ export class CustomerCreateComponent {
   readonly error = signal('');
 
   readonly steps: CrmWizardStep[] = [
-    { title: 'Profile', subtitle: 'Name and identifier' },
-    { title: 'Organization', subtitle: 'Org and status' },
+    { title: 'Details', subtitle: 'Profile and organization' },
     { title: 'Review', subtitle: 'Confirm and create' },
   ];
+
+  get avatarLetter(): string {
+    return (this.displayName.trim() || '?').charAt(0).toUpperCase();
+  }
 
   canAdvance(): boolean {
     if (this.step === 0) {
       return !!this.displayName.trim() && !!this.uniqueIdentifier.trim();
     }
-    return true;
+    return !!this.displayName.trim() && !!this.uniqueIdentifier.trim();
   }
 
   save(): void {
@@ -56,9 +59,9 @@ export class CustomerCreateComponent {
     this.error.set('');
     this.api
       .create({
-        displayName: this.displayName,
-        uniqueIdentifier: this.uniqueIdentifier,
-        organization: this.organization || undefined,
+        displayName: this.displayName.trim(),
+        uniqueIdentifier: this.uniqueIdentifier.trim(),
+        organization: this.organization.trim() || undefined,
         status: this.status,
       })
       .subscribe({

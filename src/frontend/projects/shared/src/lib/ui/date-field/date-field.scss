@@ -3,7 +3,6 @@
   gap: 0.35rem;
   font-weight: 600;
   font-size: 0.875rem;
-  min-width: 10.5rem;
 }
 
 .crm-date-field__label {
@@ -29,7 +28,6 @@
   width: 100%;
   box-sizing: border-box;
   padding-inline-start: 2.35rem !important;
-  min-height: 2.5rem;
   background:
     linear-gradient(180deg, rgba(140, 87, 255, 0.04), transparent 55%),
     var(--crm-paper);

@@ -19,6 +19,21 @@
   padding: 1rem 1.15rem 0.35rem;
 }
 
+.dv-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-left: auto;
+}
+
+.dv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .dv-titles h2 {
   margin: 0;
   font-size: 1.05rem;

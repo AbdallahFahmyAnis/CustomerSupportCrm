@@ -27,3 +27,12 @@ export class CrmDataCardDirective {
 export class CrmDataToolbarDirective {
   constructor(readonly template: TemplateRef<unknown>) {}
 }
+
+/** Header actions slot (e.g. Create): `<ng-template crmDataActions>` */
+@Directive({
+  selector: 'ng-template[crmDataActions]',
+  standalone: true,
+})
+export class CrmDataActionsDirective {
+  constructor(readonly template: TemplateRef<unknown>) {}
+}

@@ -1,24 +1,33 @@
 <section class="page">
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/admin/roles">Roles</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Permissions</span>
+  </nav>
+
   <header class="row">
     <div>
       <h1>Permissions</h1>
       <p class="lede">Permission catalog and which roles include each permission.</p>
     </div>
-    <a routerLink="/admin/roles" class="btn secondary">← Roles</a>
   </header>
 
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
   }
 
   <crm-data-view
     title="Permission list"
-    subtitle="Materio-style access permissions table"
+    subtitle="Add, edit, or remove catalog permissions"
     [items]="rows()"
     [columns]="columns"
     trackKey="name"
     [(viewMode)]="viewMode"
   >
+    <ng-template crmDataActions>
+      <button type="button" class="btn" (click)="askCreate()">Add permission</button>
+    </ng-template>
+
     <ng-template crmDataCell="roles" let-row>
       <div class="role-chips">
         @for (r of row.roles; track r) {
@@ -26,6 +35,37 @@
         } @empty {
           <span class="muted">—</span>
         }
+      </div>
+    </ng-template>
+
+    <ng-template crmDataCell="actions" let-row>
+      <div class="row-actions">
+        <button
+          type="button"
+          class="icon-btn"
+          title="Edit"
+          aria-label="Edit permission"
+          (click)="askEdit(row.name)"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="icon-btn danger"
+          title="Delete"
+          aria-label="Delete permission"
+          (click)="askDelete(row.name)"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <path d="M3 6h18" />
+            <path d="M8 6V4h8v2" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v6M14 11v6" />
+          </svg>
+        </button>
       </div>
     </ng-template>
 
@@ -37,7 +77,75 @@
             <span class="badge-soft">{{ r }}</span>
           }
         </div>
+        <div class="row-actions">
+          <button
+            type="button"
+            class="icon-btn"
+            title="Edit"
+            aria-label="Edit permission"
+            (click)="askEdit(row.name)"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="icon-btn danger"
+            title="Delete"
+            aria-label="Delete permission"
+            (click)="askDelete(row.name)"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <path d="M3 6h18" />
+              <path d="M8 6V4h8v2" />
+              <path d="M19 6l-1 14H6L5 6" />
+              <path d="M10 11v6M14 11v6" />
+            </svg>
+          </button>
+        </div>
       </div>
     </ng-template>
   </crm-data-view>
+
+  <crm-modal [(open)]="formOpen" [title]="editingName ? 'Edit permission' : 'Add permission'">
+    <div class="perm-form">
+      <label>
+        Name
+        <input
+          name="permName"
+          [(ngModel)]="formName"
+          placeholder="e.g. knowledge.read"
+          autocomplete="off"
+        />
+      </label>
+      <label>
+        Description
+        <input
+          name="permDesc"
+          [(ngModel)]="formDescription"
+          placeholder="Optional"
+          autocomplete="off"
+        />
+      </label>
+      <p class="hint">Use lowercase names like area.action (letters, digits, ., *, -).</p>
+    </div>
+    <div crmModalActions>
+      <button type="button" class="btn secondary" (click)="formOpen = false">Cancel</button>
+      <button type="button" class="btn" (click)="confirmForm()" [disabled]="!formName.trim()">
+        {{ editingName ? 'Save changes' : 'Create' }}
+      </button>
+    </div>
+  </crm-modal>
+
+  <crm-modal [(open)]="deleteOpen" title="Delete permission" size="sm">
+    <p>
+      Delete <strong>{{ pendingName }}</strong>? It will also be removed from any roles that use it.
+    </p>
+    <div crmModalActions>
+      <button type="button" class="btn secondary" (click)="deleteOpen = false">Cancel</button>
+      <button type="button" class="btn danger" (click)="confirmDelete()">Delete</button>
+    </div>
+  </crm-modal>
 </section>
