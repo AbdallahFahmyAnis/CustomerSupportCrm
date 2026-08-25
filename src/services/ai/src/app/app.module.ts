@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AutoCategorizeHandler } from '../features/categorize/auto-categorize/handler';
 import { AutoCategorizeRoute } from '../features/categorize/auto-categorize/route';
+import { PortalChatHandler } from '../features/chat/portal-chat/handler';
+import { PortalChatRoute } from '../features/chat/portal-chat/route';
 import { GetHealthHandler } from '../features/health/get-health/handler';
 import { GetHealthRoute } from '../features/health/get-health/route';
 import { SuggestRepliesHandler } from '../features/suggestions/suggest-replies/handler';
@@ -18,6 +20,7 @@ import { DownstreamClient } from '../infrastructure/http/downstream.client';
     GenerateSummaryRoute,
     SuggestRepliesRoute,
     AutoCategorizeRoute,
+    PortalChatRoute,
   ],
   providers: [
     DownstreamClient,
@@ -25,6 +28,7 @@ import { DownstreamClient } from '../infrastructure/http/downstream.client';
     GenerateSummaryHandler,
     SuggestRepliesHandler,
     AutoCategorizeHandler,
+    PortalChatHandler,
   ],
 })
 export class AppModule {}

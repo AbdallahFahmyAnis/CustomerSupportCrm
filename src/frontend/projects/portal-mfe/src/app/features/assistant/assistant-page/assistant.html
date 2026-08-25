@@ -1,0 +1,51 @@
+<section class="page">
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/portal">Portal</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Assistant</span>
+  </nav>
+
+  <header class="row">
+    <div>
+      <h1>Support assistant</h1>
+      <p class="lede">Ask a common question — we match FAQs when we can.</p>
+    </div>
+  </header>
+
+  <div class="thread" aria-live="polite">
+    @if (store.turns().length === 0) {
+      <p class="muted">Try “password reset” or “billing invoice”.</p>
+    }
+    @for (t of store.turns(); track t.id) {
+      <div class="turn" [class.mine]="t.role === 'user'">
+        <strong>{{ t.role === 'user' ? 'You' : 'Assistant' }}</strong>
+        <p>{{ t.body }}</p>
+        @if (t.sources?.length) {
+          <ul class="sources">
+            @for (s of t.sources; track s.id) {
+              <li>
+                <a [routerLink]="['/portal/faqs', s.id]">{{ s.title }}</a>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+
+  <form class="compose" (ngSubmit)="submit()">
+    <label>
+      Question
+      <input name="draft" [(ngModel)]="draft" placeholder="How do I…?" [disabled]="store.sending()" />
+    </label>
+    <button type="submit" class="btn" [disabled]="store.sending()">
+      {{ store.sending() ? 'Thinking…' : 'Ask' }}
+    </button>
+  </form>
+
+  @if (store.error()) {
+    <p class="error" role="alert">{{ store.error() }}</p>
+  }
+
+  <p class="back-link"><a routerLink="/portal">← Portal home</a></p>
+</section>
