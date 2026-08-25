@@ -37,11 +37,12 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/018-sla-automation` — CRM-018/019 auto-assign rules + escalation automation
 - [x] `specs/019-knowledge-authoring` — CRM-021 knowledge article authoring (FAQ/Article/Solution/Guide)
 - [x] `specs/020-knowledge-search` — CRM-022 ranked knowledge search + agent panel
+- [x] `specs/021-notifications` — CRM-020 in-app notifications inbox + shell bell
 
 ## Next
 
-1. CRM-020 alerts/notifications when ready
-2. CRM-029 portal FAQs when ready
+1. CRM-029 portal FAQs when ready
+2. CRM-016@ / richer collaboration when ready
 3. Inbound webhooks / signature verification for providers
 
 ## Constraints

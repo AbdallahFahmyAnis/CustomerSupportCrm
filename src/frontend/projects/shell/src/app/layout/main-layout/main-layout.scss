@@ -167,6 +167,90 @@
   gap: 0.65rem;
 }
 
+.notif-wrap {
+  position: relative;
+}
+
+.notif-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge {
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--crm-primary);
+  color: #fff;
+  font-size: 0.7rem;
+  display: inline-grid;
+  place-items: center;
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  width: min(22rem, 90vw);
+  max-height: 22rem;
+  overflow: auto;
+  background: var(--crm-paper);
+  border: 1px solid var(--crm-border);
+  border-radius: 0.65rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  z-index: 30;
+}
+
+.notif-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--crm-border);
+  font-size: 0.85rem;
+}
+
+.notif-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-panel li {
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--crm-border);
+}
+
+.notif-panel li.unread {
+  background: color-mix(in srgb, var(--crm-primary-soft) 70%, transparent);
+}
+
+.notif-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.notif-panel p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.notif-panel small {
+  opacity: 0.6;
+}
+
+.notif-panel .empty {
+  padding: 0.85rem;
+  margin: 0;
+  opacity: 0.7;
+}
+
 .crumb {
   font-weight: 600;
   color: var(--crm-text);

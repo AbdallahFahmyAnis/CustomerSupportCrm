@@ -48,6 +48,49 @@
           <span class="crumb">CRM</span>
         </div>
         <div class="topbar-actions">
+          <div class="notif-wrap" (click)="$event.stopPropagation()">
+            <button
+              type="button"
+              class="ghost-btn notif-bell"
+              (click)="toggleInbox($event)"
+              aria-label="Notifications"
+            >
+              Alerts
+              @if (unreadCount() > 0) {
+                <span class="badge">{{ unreadCount() }}</span>
+              }
+            </button>
+            @if (inboxOpen()) {
+              <div class="notif-panel">
+                <header>
+                  <strong>Notifications</strong>
+                  <span>{{ unreadCount() }} unread</span>
+                </header>
+                @if (notifications().length === 0) {
+                  <p class="empty">No alerts.</p>
+                } @else {
+                  <ul>
+                    @for (n of notifications(); track n.id) {
+                      <li [class.unread]="!n.readAt">
+                        <div class="notif-row">
+                          <div>
+                            <strong>{{ n.title }}</strong>
+                            <p>{{ n.body }}</p>
+                            <small>{{ n.kind }}</small>
+                          </div>
+                          @if (!n.readAt) {
+                            <button type="button" class="ghost-btn" (click)="markRead(n, $event)">
+                              Mark read
+                            </button>
+                          }
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+          </div>
           <button type="button" class="ghost-btn" (click)="lang.toggle()">{{ lang.t('languageToggle') }}</button>
           <button type="button" class="ghost-btn" (click)="signOut()">{{ lang.t('signOut') }}</button>
         </div>
