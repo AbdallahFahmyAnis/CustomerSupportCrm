@@ -96,6 +96,7 @@ app.MapGet("/health", async (IHttpClientFactory httpFactory, IConfiguration conf
         ("identity", config["Services:Identity"] ?? "http://localhost:5101"),
         ("customers", config["Services:Customers"] ?? "http://localhost:5102"),
         ("tickets", config["Services:Tickets"] ?? "http://localhost:5103"),
+        ("sla", config["Services:Sla"] ?? "http://localhost:5105"),
         ("channels", config["Services:Channels"] ?? "http://localhost:5201"),
         ("notifications", config["Services:Notifications"] ?? "http://localhost:5202")
     };

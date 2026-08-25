@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, effect, inject } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
@@ -12,6 +12,7 @@ import {
 } from 'shared';
 import { TicketPriorityBadgeComponent } from '../components/ticket-priority-badge/ticket-priority-badge.component';
 import { TicketsApi } from '../tickets.api';
+import { SlaEvaluation } from '../tickets.models';
 import { TicketsStore } from '../tickets.store';
 
 /** Smart detail page — Feature-Based + Signals. */
@@ -25,6 +26,7 @@ import { TicketsStore } from '../tickets.store';
     CrmChatComponent,
     CrmEmailComponent,
     CrmTimelineComponent,
+    DatePipe,
   ],
   templateUrl: './ticket-detail.html',
   styleUrls: ['./ticket-detail.scss'],
@@ -45,6 +47,8 @@ export class TicketDetailPage implements OnInit {
   chatDraft = '';
   emailDraft = '';
   private id = '';
+
+  readonly sla = signal<SlaEvaluation | null>(null);
 
   readonly emailMessages = computed<CrmEmailMessage[]>(() =>
     this.store
@@ -108,6 +112,7 @@ export class TicketDetailPage implements OnInit {
       this.priority = t.priority;
       this.agentId = t.assignedAgentId ?? '';
       this.status = t.status;
+      this.refreshSla(t.priority, t.createdAt);
     });
   }
 
@@ -115,6 +120,13 @@ export class TicketDetailPage implements OnInit {
     this.store.loadOptions();
     this.id = this.route.snapshot.paramMap.get('id') ?? '';
     this.store.loadDetail(this.id);
+  }
+
+  private refreshSla(priority: string, createdAt: string): void {
+    this.api.evaluateSla({ priority, createdAt }).subscribe({
+      next: (row) => this.sla.set(row),
+      error: () => this.sla.set(null),
+    });
   }
 
   saveClass(): void {

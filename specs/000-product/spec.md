@@ -33,10 +33,11 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/014-live-chat` — CRM-010 live chat intake + reply (DevChatProvider) + portal chat
 - [x] `specs/015-sms-channel` — CRM-011 SMS intake + reply (DevSmsProvider)
 - [x] `specs/016-channel-providers` — CRM-040 SendGrid + Twilio SMS/WhatsApp adapters
+- [x] `specs/017-sla-targets` — CRM-017 response/resolution SLA policies + ticket due/breach
 
 ## Next
 
-1. CRM-017+ SLA / automation when ready
+1. CRM-018 / CRM-019 auto-assign and escalation rules
 2. CRM-021 knowledge base when ready
 3. Inbound webhooks / signature verification for providers
 

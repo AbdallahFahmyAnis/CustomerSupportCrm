@@ -20,4 +20,8 @@ export const ADMIN_ROUTES: Routes = [
     path: 'settings',
     loadChildren: () => import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),
   },
+  {
+    path: 'sla',
+    loadChildren: () => import('./features/sla/sla.routes').then((m) => m.SLA_ROUTES),
+  },
 ];
