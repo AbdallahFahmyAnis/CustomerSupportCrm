@@ -1,4 +1,5 @@
 import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   canAccessAdmin,
@@ -7,6 +8,13 @@ import {
   SessionApi,
 } from 'shared';
 import { CrmNotification, NotificationsApi } from '../../core/notifications.api';
+
+type Branding = {
+  productTitle: string;
+  primaryColor: string;
+  logoUrl: string;
+  organizationName: string;
+};
 
 /** Shell chrome — Materio-like vertical sidebar + content. */
 @Component({
@@ -20,12 +28,27 @@ export class MainLayoutComponent implements OnInit {
   readonly lang = inject(LanguageStore);
   readonly session = inject(SessionApi);
   private readonly notificationsApi = inject(NotificationsApi);
+  private readonly http = inject(HttpClient);
   readonly sidebarCollapsed = signal(false);
   readonly inboxOpen = signal(false);
   readonly unreadCount = signal(0);
   readonly notifications = signal<CrmNotification[]>([]);
+  /** SDD CRM-044 */
+  readonly branding = signal<Branding>({
+    productTitle: 'Customer Support CRM',
+    primaryColor: '#2563eb',
+    logoUrl: '/brand/azm-squad.png',
+    organizationName: 'Customer Support CRM',
+  });
 
   ngOnInit(): void {
+    this.http.get<Branding>('/api/identity/branding').subscribe({
+      next: (row) => {
+        this.branding.set(row);
+        document.documentElement.style.setProperty('--crm-brand-primary', row.primaryColor || '#2563eb');
+      },
+      error: () => undefined,
+    });
     this.session.load().subscribe({
       next: () => {
         if (this.session.session()) {

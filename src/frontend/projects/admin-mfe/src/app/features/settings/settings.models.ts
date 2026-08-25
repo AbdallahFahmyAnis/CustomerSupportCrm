@@ -5,4 +5,8 @@ export interface SystemSettings {
   maxFailedLoginAttempts: number;
   lockoutMinutes: number;
   updatedAt: string;
+  productTitle?: string;
+  primaryColor?: string;
+  logoUrl?: string;
+  erpWebhookUrl?: string;
 }

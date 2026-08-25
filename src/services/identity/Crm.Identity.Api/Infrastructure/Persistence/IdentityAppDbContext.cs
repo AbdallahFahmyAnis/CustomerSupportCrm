@@ -73,6 +73,10 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
             e.Property(x => x.DefaultCulture).HasMaxLength(10).IsRequired();
             e.Property(x => x.MaxFailedLoginAttempts).IsRequired();
             e.Property(x => x.LockoutMinutes).IsRequired();
+            e.Property(x => x.ProductTitle).HasMaxLength(200).IsRequired();
+            e.Property(x => x.PrimaryColor).HasMaxLength(32).IsRequired();
+            e.Property(x => x.LogoUrl).HasMaxLength(500).IsRequired();
+            e.Property(x => x.ErpWebhookUrl).HasMaxLength(500).IsRequired();
             e.Property(x => x.UpdatedAt).IsRequired();
         });
 

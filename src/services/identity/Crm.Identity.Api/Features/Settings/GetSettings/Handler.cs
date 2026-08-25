@@ -20,5 +20,9 @@ public sealed class GetSettingsHandler(IdentityDirectory directory)
             row.DefaultCulture,
             row.MaxFailedLoginAttempts,
             row.LockoutMinutes,
-            row.UpdatedAt);
+            row.UpdatedAt,
+            row.ProductTitle,
+            row.PrimaryColor,
+            row.LogoUrl,
+            row.ErpWebhookUrl);
 }

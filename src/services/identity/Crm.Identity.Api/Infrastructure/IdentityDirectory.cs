@@ -85,8 +85,25 @@ public sealed class IdentityDirectory(
                     "LockoutMinutes" INTEGER NOT NULL,
                     "UpdatedAt" TEXT NOT NULL
                 );
-                """,
-                cancellationToken);
+                """);
+            foreach (var sql in new[]
+                     {
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "ProductTitle" TEXT NOT NULL DEFAULT 'Customer Support CRM';""",
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "PrimaryColor" TEXT NOT NULL DEFAULT '#2563eb';""",
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "LogoUrl" TEXT NOT NULL DEFAULT '/brand/azm-squad.png';""",
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "ErpWebhookUrl" TEXT NOT NULL DEFAULT '';"""
+                     })
+            {
+                try
+                {
+                    await db.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+                }
+                catch
+                {
+                    // column exists
+                }
+            }
+
             return;
         }
 
@@ -104,6 +121,19 @@ public sealed class IdentityDirectory(
                 [UpdatedAt] datetimeoffset NOT NULL
               );
             END
+            """,
+            cancellationToken);
+
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            IF COL_LENGTH('SystemSettings', 'ProductTitle') IS NULL
+              ALTER TABLE [SystemSettings] ADD [ProductTitle] nvarchar(200) NOT NULL CONSTRAINT DF_SystemSettings_ProductTitle DEFAULT N'Customer Support CRM';
+            IF COL_LENGTH('SystemSettings', 'PrimaryColor') IS NULL
+              ALTER TABLE [SystemSettings] ADD [PrimaryColor] nvarchar(32) NOT NULL CONSTRAINT DF_SystemSettings_PrimaryColor DEFAULT N'#2563eb';
+            IF COL_LENGTH('SystemSettings', 'LogoUrl') IS NULL
+              ALTER TABLE [SystemSettings] ADD [LogoUrl] nvarchar(500) NOT NULL CONSTRAINT DF_SystemSettings_LogoUrl DEFAULT N'/brand/azm-squad.png';
+            IF COL_LENGTH('SystemSettings', 'ErpWebhookUrl') IS NULL
+              ALTER TABLE [SystemSettings] ADD [ErpWebhookUrl] nvarchar(500) NOT NULL CONSTRAINT DF_SystemSettings_ErpWebhookUrl DEFAULT N'';
             """,
             cancellationToken);
     }
@@ -384,7 +414,11 @@ public sealed class IdentityDirectory(
         string defaultCulture,
         int maxFailedLoginAttempts,
         int lockoutMinutes,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        string? productTitle = null,
+        string? primaryColor = null,
+        string? logoUrl = null,
+        string? erpWebhookUrl = null)
     {
         var row = await GetOrCreateSettingsAsync(ct);
         row.OrganizationName = organizationName.Trim();
@@ -392,6 +426,26 @@ public sealed class IdentityDirectory(
         row.DefaultCulture = defaultCulture.Trim().ToLowerInvariant();
         row.MaxFailedLoginAttempts = maxFailedLoginAttempts;
         row.LockoutMinutes = lockoutMinutes;
+        if (productTitle is not null)
+        {
+            row.ProductTitle = string.IsNullOrWhiteSpace(productTitle) ? "Customer Support CRM" : productTitle.Trim();
+        }
+
+        if (primaryColor is not null)
+        {
+            row.PrimaryColor = string.IsNullOrWhiteSpace(primaryColor) ? "#2563eb" : primaryColor.Trim();
+        }
+
+        if (logoUrl is not null)
+        {
+            row.LogoUrl = string.IsNullOrWhiteSpace(logoUrl) ? "/brand/azm-squad.png" : logoUrl.Trim();
+        }
+
+        if (erpWebhookUrl is not null)
+        {
+            row.ErpWebhookUrl = erpWebhookUrl.Trim();
+        }
+
         row.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return row;

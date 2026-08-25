@@ -23,7 +23,11 @@ public sealed class UpdateSettingsEndpoint : IEndpoint
                 body.DefaultCulture,
                 body.MaxFailedLoginAttempts,
                 body.LockoutMinutes,
-                AdminHttp.ActorId(http)));
+                AdminHttp.ActorId(http),
+                body.ProductTitle,
+                body.PrimaryColor,
+                body.LogoUrl,
+                body.ErpWebhookUrl));
 
             return result.Error is not null
                 ? Results.BadRequest(new { error = result.Error })

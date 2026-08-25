@@ -63,6 +63,22 @@
               required
             />
           </label>
+          <label>
+            Product title
+            <input name="productTitle" [(ngModel)]="productTitle" />
+          </label>
+          <label>
+            Primary color
+            <input name="primaryColor" [(ngModel)]="primaryColor" placeholder="#2563eb" />
+          </label>
+          <label>
+            Logo URL
+            <input name="logoUrl" [(ngModel)]="logoUrl" placeholder="/brand/azm-squad.png" />
+          </label>
+          <label>
+            ERP webhook URL
+            <input name="erpWebhookUrl" [(ngModel)]="erpWebhookUrl" placeholder="https://…" />
+          </label>
         </div>
 
         <div class="settings-actions">

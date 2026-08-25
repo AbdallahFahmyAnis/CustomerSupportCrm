@@ -54,18 +54,33 @@ public sealed record AuditLogDto(
     string? Detail,
     bool Success);
 
-/// <summary>SDD CRM-037 / specs/012-system-config.</summary>
+/// <summary>SDD CRM-037 / specs/012-system-config / CRM-044.</summary>
 public sealed record SystemSettingsDto(
     string OrganizationName,
     string SupportEmail,
     string DefaultCulture,
     int MaxFailedLoginAttempts,
     int LockoutMinutes,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string ProductTitle = "Customer Support CRM",
+    string PrimaryColor = "#2563eb",
+    string LogoUrl = "/brand/azm-squad.png",
+    string ErpWebhookUrl = "");
 
 public sealed record UpdateSystemSettingsRequest(
     string OrganizationName,
     string SupportEmail,
     string DefaultCulture,
     int MaxFailedLoginAttempts,
-    int LockoutMinutes);
+    int LockoutMinutes,
+    string? ProductTitle = null,
+    string? PrimaryColor = null,
+    string? LogoUrl = null,
+    string? ErpWebhookUrl = null);
+
+/// <summary>SDD CRM-044 — public shell branding.</summary>
+public sealed record BrandingDto(
+    string ProductTitle,
+    string PrimaryColor,
+    string LogoUrl,
+    string OrganizationName);

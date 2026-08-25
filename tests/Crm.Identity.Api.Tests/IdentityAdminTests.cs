@@ -304,6 +304,19 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
         rows!.Should().Contain(d => d.Name == name);
     }
 
+    [Fact]
+    [Trait("Story", "CRM-044")]
+    public async Task Branding_endpoint_is_public()
+    {
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Role");
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Id");
+        var res = await _client.GetAsync("/api/identity/branding");
+        res.StatusCode.Should().Be(HttpStatusCode.OK);
+        var row = await res.Content.ReadFromJsonAsync<BrandingDto>();
+        row!.ProductTitle.Should().NotBeNullOrWhiteSpace();
+        row.PrimaryColor.Should().StartWith("#");
+    }
+
     private static int UserAccountMaxAttempts() => 5;
 }
 

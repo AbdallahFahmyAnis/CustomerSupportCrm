@@ -18,6 +18,10 @@ export class SettingsEditPage implements OnInit {
   defaultCulture = 'en';
   maxFailedLoginAttempts = 5;
   lockoutMinutes = 15;
+  productTitle = 'Customer Support CRM';
+  primaryColor = '#2563eb';
+  logoUrl = '/brand/azm-squad.png';
+  erpWebhookUrl = '';
 
   constructor() {
     effect(() => {
@@ -30,6 +34,10 @@ export class SettingsEditPage implements OnInit {
       this.defaultCulture = row.defaultCulture;
       this.maxFailedLoginAttempts = row.maxFailedLoginAttempts;
       this.lockoutMinutes = row.lockoutMinutes;
+      this.productTitle = row.productTitle || 'Customer Support CRM';
+      this.primaryColor = row.primaryColor || '#2563eb';
+      this.logoUrl = row.logoUrl || '/brand/azm-squad.png';
+      this.erpWebhookUrl = row.erpWebhookUrl || '';
     });
   }
 
@@ -44,6 +52,10 @@ export class SettingsEditPage implements OnInit {
       defaultCulture: this.defaultCulture,
       maxFailedLoginAttempts: Number(this.maxFailedLoginAttempts),
       lockoutMinutes: Number(this.lockoutMinutes),
+      productTitle: this.productTitle.trim(),
+      primaryColor: this.primaryColor.trim(),
+      logoUrl: this.logoUrl.trim(),
+      erpWebhookUrl: this.erpWebhookUrl.trim(),
     });
   }
 
@@ -57,5 +69,9 @@ export class SettingsEditPage implements OnInit {
     this.defaultCulture = row.defaultCulture;
     this.maxFailedLoginAttempts = row.maxFailedLoginAttempts;
     this.lockoutMinutes = row.lockoutMinutes;
+    this.productTitle = row.productTitle || 'Customer Support CRM';
+    this.primaryColor = row.primaryColor || '#2563eb';
+    this.logoUrl = row.logoUrl || '/brand/azm-squad.png';
+    this.erpWebhookUrl = row.erpWebhookUrl || '';
   }
 }
