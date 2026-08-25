@@ -39,14 +39,22 @@ import { ChannelsStore } from '../infrastructure/database/channels.store';
 import { DownstreamClient } from '../infrastructure/http/downstream.client';
 import { DevEmailProvider } from '../infrastructure/email/dev-email.provider';
 import { SmtpEmailProvider } from '../infrastructure/email/smtp-email.provider';
+import { SendGridEmailProvider } from '../infrastructure/email/sendgrid-email.provider';
 import { EMAIL_PROVIDER } from '../infrastructure/email/email-provider';
 import { DevWhatsAppProvider } from '../infrastructure/whatsapp/dev-whatsapp.provider';
+import { TwilioWhatsAppProvider } from '../infrastructure/whatsapp/twilio-whatsapp.provider';
 import { WHATSAPP_PROVIDER } from '../infrastructure/whatsapp/whatsapp-provider';
 import { DevChatProvider } from '../infrastructure/chat/dev-chat.provider';
 import { CHAT_PROVIDER } from '../infrastructure/chat/chat-provider';
 import { DevSmsProvider } from '../infrastructure/sms/dev-sms.provider';
+import { TwilioSmsProvider } from '../infrastructure/sms/twilio-sms.provider';
 import { SMS_PROVIDER } from '../infrastructure/sms/sms-provider';
-import { channelsConfig } from './config';
+import {
+  channelsConfig,
+  resolveEmailProviderKind,
+  resolveSmsProviderKind,
+  resolveWhatsAppProviderKind,
+} from './config';
 
 @Module({
   imports: [CqrsModule],
@@ -92,18 +100,35 @@ import { channelsConfig } from './config';
     DownstreamClient,
     DevEmailProvider,
     SmtpEmailProvider,
+    SendGridEmailProvider,
     DevWhatsAppProvider,
+    TwilioWhatsAppProvider,
     DevChatProvider,
     DevSmsProvider,
+    TwilioSmsProvider,
     {
       provide: EMAIL_PROVIDER,
-      useFactory: (dev: DevEmailProvider, smtp: SmtpEmailProvider) =>
-        channelsConfig.smtpHost ? smtp : dev,
-      inject: [DevEmailProvider, SmtpEmailProvider],
+      useFactory: (
+        dev: DevEmailProvider,
+        smtp: SmtpEmailProvider,
+        sendgrid: SendGridEmailProvider,
+      ) => {
+        const kind = resolveEmailProviderKind(channelsConfig);
+        if (kind === 'sendgrid') {
+          return sendgrid;
+        }
+        if (kind === 'smtp') {
+          return smtp;
+        }
+        return dev;
+      },
+      inject: [DevEmailProvider, SmtpEmailProvider, SendGridEmailProvider],
     },
     {
       provide: WHATSAPP_PROVIDER,
-      useExisting: DevWhatsAppProvider,
+      useFactory: (dev: DevWhatsAppProvider, twilio: TwilioWhatsAppProvider) =>
+        resolveWhatsAppProviderKind(channelsConfig) === 'twilio' ? twilio : dev,
+      inject: [DevWhatsAppProvider, TwilioWhatsAppProvider],
     },
     {
       provide: CHAT_PROVIDER,
@@ -111,7 +136,9 @@ import { channelsConfig } from './config';
     },
     {
       provide: SMS_PROVIDER,
-      useExisting: DevSmsProvider,
+      useFactory: (dev: DevSmsProvider, twilio: TwilioSmsProvider) =>
+        resolveSmsProviderKind(channelsConfig) === 'twilio' ? twilio : dev,
+      inject: [DevSmsProvider, TwilioSmsProvider],
     },
   ],
 })
