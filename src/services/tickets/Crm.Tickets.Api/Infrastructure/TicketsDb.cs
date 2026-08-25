@@ -355,6 +355,7 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
     {
         using var db = factory.CreateDbContext();
         return db.Tickets.AsNoTracking()
+            .ToList()
             .Where(t => t.CreatedAt >= from && t.CreatedAt <= to)
             .ToList();
     }
@@ -366,10 +367,12 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
     {
         using var db = factory.CreateDbContext();
         var feedback = db.TicketFeedback.AsNoTracking()
+            .ToList()
             .Where(f => f.CreatedAt >= from && f.CreatedAt <= to)
             .ToList();
-        var ticketIds = feedback.Select(f => f.TicketId).Distinct().ToList();
+        var ticketIds = feedback.Select(f => f.TicketId).Distinct().ToHashSet();
         var tickets = db.Tickets.AsNoTracking()
+            .ToList()
             .Where(t => ticketIds.Contains(t.Id))
             .ToDictionary(t => t.Id);
         return feedback
