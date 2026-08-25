@@ -23,6 +23,11 @@ export const channelsConfig = {
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
   twilioSmsFrom: process.env.TWILIO_SMS_FROM,
   twilioWhatsAppFrom: process.env.TWILIO_WHATSAPP_FROM,
+  /** Public base URL Twilio calls (gateway). Used for signature validation. */
+  publicUrl: (process.env.CHANNELS_PUBLIC_URL ?? 'http://localhost:5000').replace(
+    /\/$/,
+    '',
+  ),
 };
 
 /** SDD CRM-040 — which email adapter the factory should bind. */

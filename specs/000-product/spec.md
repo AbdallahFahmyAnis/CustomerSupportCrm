@@ -38,12 +38,13 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/019-knowledge-authoring` — CRM-021 knowledge article authoring (FAQ/Article/Solution/Guide)
 - [x] `specs/020-knowledge-search` — CRM-022 ranked knowledge search + agent panel
 - [x] `specs/021-notifications` — CRM-020 in-app notifications inbox + shell bell
+- [x] `specs/024-inbound-webhooks` — CRM-040 Twilio inbound webhook signature verification
 
 ## Next
 
 1. CRM-029 portal FAQs when ready
 2. CRM-016@ / richer collaboration when ready
-3. Inbound webhooks / signature verification for providers
+3. SendGrid inbound parse / Meta webhook signatures when ready
 
 ## Constraints
 
