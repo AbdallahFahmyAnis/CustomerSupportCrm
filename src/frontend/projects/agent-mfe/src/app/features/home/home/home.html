@@ -19,6 +19,32 @@
     </a>
   </div>
 
+  <section class="due-tasks">
+    <div class="my-head">
+      <h2>Due today</h2>
+      <span class="muted">{{ dueTasks().length }} open</span>
+    </div>
+    @if (dueTasks().length === 0) {
+      <p class="muted">No open tasks due today.</p>
+    } @else {
+      <ul class="mine-list">
+        @for (task of dueTasks(); track task.id) {
+          <li>
+            <a class="mine-card" [routerLink]="['/agent/tickets', task.ticketId]">
+              <div class="mine-top">
+                <strong>{{ task.title }}</strong>
+                <span class="badge soft">{{ task.status }}</span>
+              </div>
+              @if (task.dueAt) {
+                <div class="meta">Due {{ task.dueAt | date: 'short' }}</div>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
   <section class="my-tickets">
     <div class="my-head">
       <h2>My tickets</h2>

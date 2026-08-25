@@ -1,14 +1,15 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SessionApi } from 'shared';
 import { TicketsApi } from '../../tickets/tickets.api';
-import { TicketSummary } from '../../tickets/tickets.models';
+import { TicketSummary, TicketTask } from '../../tickets/tickets.models';
 
-/** SDD CRM-013 — agent home with my assigned tickets. */
+/** SDD CRM-013 / CRM-014 — agent home with my tickets + due tasks. */
 @Component({
   selector: 'app-agent-home-page',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DatePipe],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
@@ -17,6 +18,7 @@ export class AgentHomePage implements OnInit {
   private readonly session = inject(SessionApi);
 
   readonly mine = signal<TicketSummary[]>([]);
+  readonly dueTasks = signal<TicketTask[]>([]);
   readonly loading = signal(false);
   readonly error = signal('');
 
@@ -27,6 +29,9 @@ export class AgentHomePage implements OnInit {
       return;
     }
     this.loading.set(true);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
     this.api.search('', me).subscribe({
       next: (rows) => {
         this.mine.set(rows.slice(0, 8));
@@ -36,6 +41,11 @@ export class AgentHomePage implements OnInit {
         this.error.set('Could not load assigned tickets.');
         this.loading.set(false);
       },
+    });
+
+    this.api.listMyTasks(me, endOfDay.toISOString()).subscribe({
+      next: (rows) => this.dueTasks.set(rows.slice(0, 8)),
+      error: () => this.dueTasks.set([]),
     });
   }
 }

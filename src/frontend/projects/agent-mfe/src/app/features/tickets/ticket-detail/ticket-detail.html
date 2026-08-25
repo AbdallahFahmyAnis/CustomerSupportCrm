@@ -209,6 +209,49 @@
       </div>
     </crm-chat>
 
+    <h2>Tasks</h2>
+    <div class="card notes-card">
+      <ul class="note-list">
+        @for (task of store.tasks(); track task.id) {
+          <li class="note-item">
+            <div class="note-head">
+              <strong>{{ task.title }}</strong>
+              <span class="badge soft">{{ task.status }}</span>
+            </div>
+            <div class="meta">
+              @if (task.dueAt) {
+                Due {{ task.dueAt | date: 'mediumDate' }} ·
+              }
+              {{ task.assigneeName || 'Unassigned' }}
+            </div>
+            @if (task.status === 'Open') {
+              <div class="mention-row" style="margin-top: 0.5rem">
+                <button type="button" class="btn ghost" (click)="store.completeTask(id, task.id)">
+                  Complete
+                </button>
+                <button type="button" class="btn ghost" (click)="store.cancelTask(id, task.id)">
+                  Cancel
+                </button>
+              </div>
+            }
+          </li>
+        } @empty {
+          <li class="muted">No tasks yet.</li>
+        }
+      </ul>
+      <form class="note-form" (ngSubmit)="saveTask()">
+        <label class="full">
+          New task
+          <input name="taskTitle" [(ngModel)]="taskTitle" placeholder="Follow up with customer" />
+        </label>
+        <label class="full">
+          Due date
+          <input name="taskDue" type="date" [(ngModel)]="taskDue" />
+        </label>
+        <button type="submit" class="btn">Add task</button>
+      </form>
+    </div>
+
     <h2>Team notes</h2>
     <div class="card notes-card">
       <p class="muted">Internal only — not shown on the customer portal.</p>

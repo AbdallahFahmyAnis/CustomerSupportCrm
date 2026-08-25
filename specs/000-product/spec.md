@@ -41,13 +41,13 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/022-portal-faqs` — CRM-029 portal FAQ browse + detail
 - [x] `specs/023-ticket-collaboration` — CRM-016 internal notes + @mentions
 - [x] `specs/025-agent-workspace` — CRM-013 my tickets + customer summary on detail
+- [x] `specs/026-ticket-tasks` — CRM-014 ticket tasks + due-today home
 
 ## Next
 
-1. CRM-014 tasks/reminders when ready
-2. CRM-015 quick replies when ready
-3. CRM-030 customer feedback when ready
-4. Inbound webhooks / signature verification for providers
+1. CRM-015 quick replies when ready
+2. CRM-030 customer feedback when ready
+3. Inbound webhooks / signature verification for providers
 
 ## Constraints
 

@@ -17,7 +17,7 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             db.SaveChanges();
         }
 
-        // EnsureCreated does not add new tables to an existing Sqlite file (CRM-016).
+        // EnsureCreated does not add new tables to an existing Sqlite file (CRM-016 / CRM-014).
         try
         {
             db.Database.ExecuteSqlRaw(
@@ -32,6 +32,19 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
                     "CreatedAt" TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS "IX_TicketNotes_TicketId" ON "TicketNotes" ("TicketId");
+                CREATE TABLE IF NOT EXISTS "TicketTasks" (
+                    "Id" TEXT NOT NULL CONSTRAINT "PK_TicketTasks" PRIMARY KEY,
+                    "TicketId" TEXT NOT NULL,
+                    "Title" TEXT NOT NULL,
+                    "DueAt" TEXT NULL,
+                    "AssigneeUserId" TEXT NULL,
+                    "AssigneeName" TEXT NULL,
+                    "Status" TEXT NOT NULL,
+                    "CreatedAt" TEXT NOT NULL,
+                    "UpdatedAt" TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS "IX_TicketTasks_TicketId" ON "TicketTasks" ("TicketId");
+                CREATE INDEX IF NOT EXISTS "IX_TicketTasks_AssigneeUserId" ON "TicketTasks" ("AssigneeUserId");
                 """);
         }
         catch
@@ -64,6 +77,12 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
                 "Demo Agent");
             ticket.Assign(TicketCatalog.Agents[0].Id, TicketCatalog.Agents[0].Name, "Demo Agent");
             Insert(ticket);
+            InsertTask(TicketTask.Create(
+                ticket.Id,
+                "Call Acme AP about PO screenshots",
+                DateTimeOffset.UtcNow.Date.AddDays(1),
+                TicketCatalog.Agents[0].Id,
+                TicketCatalog.Agents[0].Name));
 
             var open = Ticket.Create(
                 NextTicketNumber(),
@@ -222,6 +241,71 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         db.SaveChanges();
     }
 
+    /// <summary>SDD CRM-014 — list tasks for a ticket.</summary>
+    public IReadOnlyList<TicketTask> ListTasks(Guid ticketId)
+    {
+        using var db = factory.CreateDbContext();
+        return db.TicketTasks.AsNoTracking()
+            .Where(t => t.TicketId == ticketId)
+            .ToList()
+            .OrderBy(t => t.Status == "Open" ? 0 : 1)
+            .ThenBy(t => t.DueAt ?? DateTimeOffset.MaxValue)
+            .Select(FromTaskRow)
+            .ToList();
+    }
+
+    /// <summary>SDD CRM-014 — open tasks for an assignee (optional due filter).</summary>
+    public IReadOnlyList<TicketTask> ListOpenTasks(string? assigneeUserId, DateTimeOffset? dueOnOrBefore)
+    {
+        using var db = factory.CreateDbContext();
+        IEnumerable<TicketTaskRow> rows = db.TicketTasks.AsNoTracking()
+            .Where(t => t.Status == "Open")
+            .ToList();
+        if (!string.IsNullOrWhiteSpace(assigneeUserId))
+        {
+            var aid = assigneeUserId.Trim();
+            rows = rows.Where(t =>
+                t.AssigneeUserId != null &&
+                t.AssigneeUserId.Equals(aid, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (dueOnOrBefore is not null)
+        {
+            var until = dueOnOrBefore.Value;
+            rows = rows.Where(t => t.DueAt is not null && t.DueAt <= until);
+        }
+
+        return rows.OrderBy(t => t.DueAt ?? DateTimeOffset.MaxValue).Select(FromTaskRow).ToList();
+    }
+
+    public void InsertTask(TicketTask task)
+    {
+        using var db = factory.CreateDbContext();
+        db.TicketTasks.Add(ToTaskRow(task));
+        db.SaveChanges();
+    }
+
+    public TicketTask? GetTask(Guid taskId)
+    {
+        using var db = factory.CreateDbContext();
+        var row = db.TicketTasks.AsNoTracking().FirstOrDefault(t => t.Id == taskId);
+        return row is null ? null : FromTaskRow(row);
+    }
+
+    public void UpdateTask(TicketTask task)
+    {
+        using var db = factory.CreateDbContext();
+        var row = db.TicketTasks.FirstOrDefault(t => t.Id == task.Id)
+                  ?? throw new InvalidOperationException("Task not found.");
+        row.Title = task.Title;
+        row.DueAt = task.DueAt;
+        row.AssigneeUserId = task.AssigneeUserId;
+        row.AssigneeName = task.AssigneeName;
+        row.Status = task.Status;
+        row.UpdatedAt = task.UpdatedAt;
+        db.SaveChanges();
+    }
+
     private static Ticket FromRow(TicketRow row)
         => Ticket.Rehydrate(
             row.Id,
@@ -300,4 +384,29 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             mentions,
             row.CreatedAt);
     }
+
+    private static TicketTaskRow ToTaskRow(TicketTask t) => new()
+    {
+        Id = t.Id,
+        TicketId = t.TicketId,
+        Title = t.Title,
+        DueAt = t.DueAt,
+        AssigneeUserId = t.AssigneeUserId,
+        AssigneeName = t.AssigneeName,
+        Status = t.Status,
+        CreatedAt = t.CreatedAt,
+        UpdatedAt = t.UpdatedAt
+    };
+
+    private static TicketTask FromTaskRow(TicketTaskRow row) =>
+        TicketTask.Rehydrate(
+            row.Id,
+            row.TicketId,
+            row.Title,
+            row.DueAt,
+            row.AssigneeUserId,
+            row.AssigneeName,
+            row.Status,
+            row.CreatedAt,
+            row.UpdatedAt);
 }
