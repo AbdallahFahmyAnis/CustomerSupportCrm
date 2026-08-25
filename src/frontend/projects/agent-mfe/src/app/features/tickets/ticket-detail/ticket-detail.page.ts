@@ -38,7 +38,7 @@ export class TicketDetailPage implements OnInit {
   agentId = '';
   status = '';
   escalateTo = '';
-  replyChannel: 'email' | 'whatsapp' | 'chat' = 'chat';
+  replyChannel: 'email' | 'whatsapp' | 'chat' | 'sms' = 'chat';
   chatDraft = '';
   private id = '';
 
@@ -128,6 +128,10 @@ export class TicketDetailPage implements OnInit {
     }
     if (this.replyChannel === 'whatsapp') {
       this.store.replyWhatsApp(this.id, text, clear);
+      return;
+    }
+    if (this.replyChannel === 'sms') {
+      this.store.replySms(this.id, text, clear);
       return;
     }
     this.store.replyChat(this.id, text, clear);

@@ -49,6 +49,13 @@ export class TicketsApi {
     );
   }
 
+  replySms(ticketId: string, body: string, to?: string): Observable<{ messageId: string; to: string }> {
+    return this.http.post<{ messageId: string; to: string }>(
+      `/api/channels/tickets/${ticketId}/messages/sms`,
+      { body, to },
+    );
+  }
+
   create(body: {
     customerId: string;
     customerName: string;

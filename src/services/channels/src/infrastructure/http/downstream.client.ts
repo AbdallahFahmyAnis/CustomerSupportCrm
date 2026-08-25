@@ -23,6 +23,15 @@ export class DownstreamClient {
     return this.findOrCreateCustomerWithContact(name, unique, 'WhatsApp', unique);
   }
 
+  /** SDD CRM-011 — phone unique id + SMS contact. */
+  async findOrCreateCustomerBySms(
+    name: string,
+    phone: string,
+  ): Promise<{ id: string; displayName: string }> {
+    const unique = phone.trim();
+    return this.findOrCreateCustomerWithContact(name, unique, 'Sms', unique);
+  }
+
   private async findOrCreateCustomerWithContact(
     name: string,
     uniqueIdentifier: string,
@@ -197,7 +206,7 @@ export class DownstreamClient {
         uniqueIdentifier?: string;
         contacts?: { type: string; value: string; isPrimary: boolean; isActive: boolean }[];
       };
-      const types = new Set(['whatsapp', 'phone']);
+      const types = new Set(['whatsapp', 'phone', 'sms']);
       const primary = detail.contacts?.find(
         (c) =>
           c.isActive &&

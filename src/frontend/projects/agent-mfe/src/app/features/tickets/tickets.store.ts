@@ -134,4 +134,18 @@ export class TicketsStore {
         ),
     });
   }
+
+  replySms(ticketId: string, body: string, onDone?: () => void): void {
+    this.error.set('');
+    this.api.replySms(ticketId, body).subscribe({
+      next: () => {
+        this.loadChannelMessages(ticketId);
+        onDone?.();
+      },
+      error: (err) =>
+        this.error.set(
+          err?.error?.message ?? err?.error?.error ?? 'SMS reply failed.',
+        ),
+    });
+  }
 }

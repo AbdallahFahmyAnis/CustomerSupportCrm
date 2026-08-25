@@ -193,3 +193,57 @@ test('chat reply accepts valid body', () => {
   const err = validateReplyChatInput('ticket-1', { body: 'We are on it.' });
   assert.equal(err, null);
 });
+
+const {
+  validateSmsIngestInput,
+  normalizePhone: normalizeSmsPhone,
+} = require('../src/features/intake/ingest-sms/schema');
+const {
+  validateReplySmsInput,
+} = require('../src/features/messages/reply-sms/schema');
+
+/** SDD CRM-011 — SMS ingest validation. */
+test('sms ingest rejects missing fields', () => {
+  const err = validateSmsIngestInput({
+    from: '',
+    body: 'Hi',
+  });
+  assert.equal(err, 'from (phone) and body are required.');
+});
+
+test('sms ingest rejects short phone', () => {
+  const err = validateSmsIngestInput({
+    from: '123',
+    body: 'Hi',
+  });
+  assert.equal(err, 'from must be a valid phone number.');
+});
+
+test('sms ingest accepts valid payload', () => {
+  const err = validateSmsIngestInput({
+    from: '+15559876543',
+    body: 'Need a callback',
+    name: 'Sam',
+  });
+  assert.equal(err, null);
+  assert.equal(normalizeSmsPhone('+1 (555) 987-6543'), '+15559876543');
+});
+
+/** SDD CRM-011 — SMS reply validation. */
+test('sms reply rejects empty body', () => {
+  const err = validateReplySmsInput('ticket-1', { body: '  ' });
+  assert.equal(err, 'body is required.');
+});
+
+test('sms reply rejects bad to', () => {
+  const err = validateReplySmsInput('ticket-1', {
+    body: 'Hello',
+    to: '12',
+  });
+  assert.equal(err, 'to must be a valid phone number.');
+});
+
+test('sms reply accepts valid body', () => {
+  const err = validateReplySmsInput('ticket-1', { body: 'We are on it.' });
+  assert.equal(err, null);
+});
