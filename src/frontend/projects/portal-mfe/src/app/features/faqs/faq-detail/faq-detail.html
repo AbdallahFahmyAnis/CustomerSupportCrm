@@ -1,0 +1,30 @@
+<section class="page">
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/portal">Portal</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <a routerLink="/portal/faqs">FAQs</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Article</span>
+  </nav>
+
+  @if (store.detailLoading()) {
+    <p class="muted">Loading FAQ…</p>
+  }
+
+  @if (store.detailError(); as err) {
+    <p class="error" role="alert">{{ err }}</p>
+    <p><a routerLink="/portal/faqs">Back to FAQs</a></p>
+  }
+
+  @if (store.detail(); as faq) {
+    <article class="faq-detail">
+      <header class="row">
+        <div>
+          <h1>{{ faq.title }}</h1>
+          <p class="meta">Updated {{ faq.updatedAt | date: 'medium' }}</p>
+        </div>
+      </header>
+      <div class="body">{{ faq.body }}</div>
+    </article>
+  }
+</section>

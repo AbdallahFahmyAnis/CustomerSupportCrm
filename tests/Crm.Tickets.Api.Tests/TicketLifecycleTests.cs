@@ -98,6 +98,67 @@ public sealed class TicketLifecycleTests : IClassFixture<TicketsApiFactory>
         detail.History.Should().Contain(h => h.Field == "Escalated");
     }
 
+    [Fact]
+    [Trait("Story", "CRM-014")]
+    public async Task Ticket_task_create_complete_and_list_my_open()
+    {
+        var created = await CreateAsync("Task Co", "Need follow-up call");
+        var agentId = "11111111-1111-1111-1111-111111111111";
+        var due = DateTimeOffset.UtcNow.Date.AddHours(18);
+
+        var empty = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/tasks",
+            new CreateTicketTaskRequest("  ", due, agentId, "Agent"));
+        empty.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var createdTask = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/tasks",
+            new CreateTicketTaskRequest("Call customer AP", due, agentId, "Agent"));
+        createdTask.EnsureSuccessStatusCode();
+        var task = await createdTask.Content.ReadFromJsonAsync<TicketTaskDto>();
+        task!.Title.Should().Be("Call customer AP");
+        task.Status.Should().Be("Open");
+
+        var onTicket = await _client.GetFromJsonAsync<List<TicketTaskDto>>($"/api/tickets/{created.Id}/tasks");
+        onTicket.Should().Contain(t => t.Id == task.Id);
+
+        var mine = await _client.GetFromJsonAsync<List<TicketTaskDto>>(
+            $"/api/tickets/tasks?assignedTo={agentId}&dueBefore={Uri.EscapeDataString(due.AddDays(1).ToString("O"))}");
+        mine.Should().Contain(t => t.Id == task.Id);
+
+        var complete = await _client.PostAsync($"/api/tickets/{created.Id}/tasks/{task.Id}/complete", null);
+        complete.EnsureSuccessStatusCode();
+        var done = await complete.Content.ReadFromJsonAsync<TicketTaskDto>();
+        done!.Status.Should().Be("Completed");
+
+        var mineAfter = await _client.GetFromJsonAsync<List<TicketTaskDto>>(
+            $"/api/tickets/tasks?assignedTo={agentId}");
+        mineAfter.Should().NotContain(t => t.Id == task.Id);
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-016")]
+    public async Task Internal_note_with_mention_persists_on_detail()
+    {
+        var created = await CreateAsync("Acme", "Need collaborator");
+        var empty = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/notes",
+            new AddTicketNoteRequest("   "));
+        empty.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, $"/api/tickets/{created.Id}/notes");
+        req.Headers.Add("X-Crm-User-Email", "agent@crm.local");
+        req.Headers.Add("X-Crm-User-Id", "11111111-1111-1111-1111-111111111111");
+        req.Content = JsonContent.Create(new AddTicketNoteRequest(
+            "Please review billing lines @Lead Agent"));
+        var added = await _client.SendAsync(req);
+        added.EnsureSuccessStatusCode();
+        var note = await added.Content.ReadFromJsonAsync<TicketNoteDto>();
+        note!.Body.Should().Contain("Lead Agent");
+        note.MentionedUserIds.Should().Contain("22222222-2222-2222-2222-222222222222");
+
+        var detail = await _client.GetFromJsonAsync<TicketDetailDto>($"/api/tickets/{created.Id}");
+        detail!.Notes.Should().Contain(n => n.Id == note.Id);
+        detail.Notes[0].AuthorName.Should().Be("agent@crm.local");
+    }
+
     private async Task<TicketSummaryDto> CreateAsync(string customerName, string subject)
     {
         var response = await _client.PostAsJsonAsync("/api/tickets", new CreateTicketRequest(

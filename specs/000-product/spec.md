@@ -38,12 +38,16 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/019-knowledge-authoring` — CRM-021 knowledge article authoring (FAQ/Article/Solution/Guide)
 - [x] `specs/020-knowledge-search` — CRM-022 ranked knowledge search + agent panel
 - [x] `specs/021-notifications` — CRM-020 in-app notifications inbox + shell bell
+- [x] `specs/022-portal-faqs` — CRM-029 portal FAQ browse + detail
+- [x] `specs/023-ticket-collaboration` — CRM-016 internal notes + @mentions
 - [x] `specs/024-inbound-webhooks` — CRM-040 Twilio inbound webhook signature verification
+- [x] `specs/025-agent-workspace` — CRM-013 my tickets + customer summary on detail
+- [x] `specs/026-ticket-tasks` — CRM-014 ticket tasks + due-today home
 
 ## Next
 
-1. CRM-029 portal FAQs when ready
-2. CRM-016@ / richer collaboration when ready
+1. CRM-015 quick replies when ready
+2. CRM-030 customer feedback when ready
 3. SendGrid inbound parse / Meta webhook signatures when ready
 
 ## Constraints

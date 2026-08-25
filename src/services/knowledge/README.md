@@ -12,6 +12,8 @@
 | GET | `/api/knowledge/articles?q=` | List / filter |
 | GET | `/api/knowledge/articles/{id}` | Detail |
 | GET | `/api/knowledge/search?q=&kind=&status=&publishedOnly=` | Ranked search (CRM-022) |
+| GET | `/api/knowledge/portal/faqs?q=` | Portal published FAQs (CRM-029) |
+| GET | `/api/knowledge/portal/faqs/{id}` | Portal FAQ detail (CRM-029) |
 | POST | `/api/knowledge/articles` | Create |
 | PUT | `/api/knowledge/articles/{id}` | Update |
 

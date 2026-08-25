@@ -11,11 +11,13 @@ import {
   CrmTimelineItem,
 } from 'shared';
 import { TicketPriorityBadgeComponent } from '../components/ticket-priority-badge/ticket-priority-badge.component';
+import { CustomersApi } from '../../customers/customers.api';
+import { CustomerDetail } from '../../customers/customers.models';
 import { TicketsApi } from '../tickets.api';
 import { SlaEvaluation } from '../tickets.models';
 import { TicketsStore } from '../tickets.store';
 
-/** Smart detail page — Feature-Based + Signals. */
+/** SDD CRM-004…007 / CRM-013 — ticket detail with customer summary. */
 @Component({
   selector: 'app-ticket-detail-page',
   standalone: true,
@@ -35,6 +37,7 @@ import { TicketsStore } from '../tickets.store';
 export class TicketDetailPage implements OnInit {
   readonly store = inject(TicketsStore);
   private readonly api = inject(TicketsApi);
+  private readonly customersApi = inject(CustomersApi);
   private readonly route = inject(ActivatedRoute);
   private readonly datePipe = inject(DatePipe);
 
@@ -46,7 +49,11 @@ export class TicketDetailPage implements OnInit {
   replyChannel: 'whatsapp' | 'chat' | 'sms' = 'chat';
   chatDraft = '';
   emailDraft = '';
-  private id = '';
+  private routeId = '';
+  /** Ticket id for template actions (CRM-014). */
+  get id(): string {
+    return this.routeId;
+  }
 
   readonly sla = signal<SlaEvaluation | null>(null);
   knowledgeQ = '';
@@ -54,6 +61,11 @@ export class TicketDetailPage implements OnInit {
     { id: string; title: string; kind: string; status: string; score: number; snippet: string }[]
   >([]);
   knowledgeError = '';
+  noteDraft = '';
+  taskTitle = '';
+  taskDue = '';
+  readonly customer = signal<CustomerDetail | null>(null);
+  readonly customerError = signal('');
 
   readonly emailMessages = computed<CrmEmailMessage[]>(() =>
     this.store
@@ -112,19 +124,31 @@ export class TicketDetailPage implements OnInit {
   constructor() {
     effect(() => {
       const t = this.store.selected();
-      if (!t || t.id !== this.id) return;
+      if (!t || t.id !== this.routeId) return;
       this.category = t.category;
       this.priority = t.priority;
       this.agentId = t.assignedAgentId ?? '';
       this.status = t.status;
       this.refreshSla(t.priority, t.createdAt);
+      this.loadCustomer(t.customerId);
     });
   }
 
   ngOnInit(): void {
     this.store.loadOptions();
-    this.id = this.route.snapshot.paramMap.get('id') ?? '';
-    this.store.loadDetail(this.id);
+    this.routeId = this.route.snapshot.paramMap.get('id') ?? '';
+    this.store.loadDetail(this.routeId);
+  }
+
+  private loadCustomer(customerId: string): void {
+    this.customerError.set('');
+    this.customersApi.get(customerId).subscribe({
+      next: (row) => this.customer.set(row),
+      error: () => {
+        this.customer.set(null);
+        this.customerError.set('Could not load customer profile.');
+      },
+    });
   }
 
   private refreshSla(priority: string, createdAt: string): void {
@@ -216,5 +240,46 @@ export class TicketDetailPage implements OnInit {
         this.knowledgeHits.set([]);
       },
     });
+  }
+
+  /** SDD CRM-016 — insert @Agent Name into the note draft. */
+  insertMention(name: string): void {
+    const token = `@${name}`;
+    const draft = this.noteDraft.trim();
+    this.noteDraft = draft ? `${draft} ${token} ` : `${token} `;
+  }
+
+  saveNote(): void {
+    const body = this.noteDraft.trim();
+    if (!body) {
+      this.store.error.set('Note body is required.');
+      return;
+    }
+    this.store.addNote(this.id, body, () => {
+      this.noteDraft = '';
+    });
+  }
+
+  saveTask(): void {
+    const title = this.taskTitle.trim();
+    if (!title) {
+      this.store.error.set('Task title is required.');
+      return;
+    }
+    const me = this.store.selected()?.assignedAgentId;
+    const name = this.store.selected()?.assignedAgentName;
+    this.store.createTask(
+      this.id,
+      {
+        title,
+        dueAt: this.taskDue ? new Date(this.taskDue).toISOString() : null,
+        assigneeUserId: me ?? null,
+        assigneeName: name ?? null,
+      },
+      () => {
+        this.taskTitle = '';
+        this.taskDue = '';
+      },
+    );
   }
 }

@@ -51,6 +51,37 @@ public sealed class KnowledgeAuthoringTests : IClassFixture<KnowledgeApiFactory>
     }
 
     [Fact]
+    [Trait("Story", "CRM-029")]
+    public async Task Portal_faqs_only_published_faq_kind()
+    {
+        var faqs = await _client.GetFromJsonAsync<List<KnowledgeArticleSummaryDto>>("/api/knowledge/portal/faqs");
+        faqs.Should().NotBeNull();
+        faqs!.Should().NotBeEmpty();
+        faqs.Should().OnlyContain(a => a.Kind == "Faq" && a.Status == "Published");
+        faqs.Should().Contain(a => a.Title.Contains("password", StringComparison.OrdinalIgnoreCase));
+
+        var filtered = await _client.GetFromJsonAsync<List<KnowledgeArticleSummaryDto>>(
+            "/api/knowledge/portal/faqs?q=password");
+        filtered!.Should().Contain(a => a.Title.Contains("password", StringComparison.OrdinalIgnoreCase));
+
+        var draft = await _client.PostAsJsonAsync("/api/knowledge/articles",
+            new CreateKnowledgeArticleRequest("Hidden draft FAQ", "Should not appear on portal.", "Faq", "Draft"));
+        draft.EnsureSuccessStatusCode();
+        var draftDetail = await draft.Content.ReadFromJsonAsync<KnowledgeArticleDetailDto>();
+
+        var portalAfter = await _client.GetFromJsonAsync<List<KnowledgeArticleSummaryDto>>("/api/knowledge/portal/faqs");
+        portalAfter!.Should().NotContain(a => a.Id == draftDetail!.Id);
+
+        var missing = await _client.GetAsync($"/api/knowledge/portal/faqs/{draftDetail!.Id}");
+        missing.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var published = faqs[0];
+        var ok = await _client.GetFromJsonAsync<KnowledgeArticleDetailDto>($"/api/knowledge/portal/faqs/{published.Id}");
+        ok!.Body.Should().NotBeNullOrWhiteSpace();
+        ok.Kind.Should().Be("Faq");
+    }
+
+    [Fact]
     [Trait("Story", "CRM-021")]
     public async Task Create_update_and_reject_invalid()
     {

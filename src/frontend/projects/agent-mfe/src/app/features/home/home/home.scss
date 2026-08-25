@@ -27,3 +27,80 @@
     grid-template-columns: 1fr;
   }
 }
+
+.due-tasks,
+.my-tickets {
+  margin-top: 1.75rem;
+}
+
+.my-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.my-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.mine-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.mine-card {
+  display: block;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--crm-border, #e2e8f0);
+  border-radius: 0.5rem;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--crm-shadow, none);
+}
+
+.mine-card:hover {
+  border-color: var(--crm-primary, #2563eb);
+}
+
+.mine-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge.soft {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.subject {
+  font-weight: 500;
+}
+
+.meta,
+.muted {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.error {
+  color: #b91c1c;
+}

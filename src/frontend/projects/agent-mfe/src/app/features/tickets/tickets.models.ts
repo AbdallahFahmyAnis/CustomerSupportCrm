@@ -22,11 +22,35 @@ export interface TicketHistory {
   changedAt: string;
 }
 
+/** SDD CRM-016 — internal agent note. */
+export interface TicketNote {
+  id: string;
+  body: string;
+  authorName: string;
+  authorUserId?: string | null;
+  mentionedUserIds: string[];
+  createdAt: string;
+}
+
+/** SDD CRM-014 — follow-up task. */
+export interface TicketTask {
+  id: string;
+  ticketId: string;
+  title: string;
+  dueAt?: string | null;
+  assigneeUserId?: string | null;
+  assigneeName?: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface TicketDetail extends TicketSummary {
   description?: string | null;
   createdAt: string;
   updatedAt: string;
   history: TicketHistory[];
+  notes?: TicketNote[];
 }
 
 export interface TicketOptions {

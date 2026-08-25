@@ -28,7 +28,19 @@ public sealed record TicketDetailDto(
     bool IsEscalated,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    IReadOnlyList<TicketHistoryDto> History);
+    IReadOnlyList<TicketHistoryDto> History,
+    IReadOnlyList<TicketNoteDto> Notes);
+
+/// <summary>SDD CRM-016 — internal agent note on a ticket.</summary>
+public sealed record TicketNoteDto(
+    string Id,
+    string Body,
+    string AuthorName,
+    string? AuthorUserId,
+    IReadOnlyList<string> MentionedUserIds,
+    DateTimeOffset CreatedAt);
+
+public sealed record AddTicketNoteRequest(string Body);
 
 public sealed record TicketHistoryDto(
     string Id,
@@ -68,3 +80,21 @@ public sealed record TicketOptionsDto(
     IReadOnlyList<AgentOptionDto> Agents);
 
 public sealed record AgentOptionDto(string Id, string Name);
+
+/// <summary>SDD CRM-014 — ticket follow-up task.</summary>
+public sealed record TicketTaskDto(
+    string Id,
+    string TicketId,
+    string Title,
+    DateTimeOffset? DueAt,
+    string? AssigneeUserId,
+    string? AssigneeName,
+    string Status,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record CreateTicketTaskRequest(
+    string Title,
+    DateTimeOffset? DueAt,
+    string? AssigneeUserId,
+    string? AssigneeName);

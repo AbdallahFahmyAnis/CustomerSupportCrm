@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { ChannelMessageDto, TicketDetail, TicketOptions, TicketSummary } from './tickets.models';
+import { ChannelMessageDto, TicketDetail, TicketOptions, TicketSummary, TicketTask } from './tickets.models';
 import { TicketsApi } from './tickets.api';
 
 /** SDD CRM-004…007 / CRM-008 — feature store (Feature-Based + Signals). */
@@ -47,11 +47,13 @@ export class TicketsStore {
     this.loading.set(true);
     this.error.set('');
     this.channelMessages.set([]);
+    this.tasks.set([]);
     this.api.get(id).subscribe({
       next: (ticket) => {
         this.selected.set(ticket);
         this.loading.set(false);
         this.loadChannelMessages(id);
+        this.loadTasks(id);
       },
       error: () => {
         this.error.set('Ticket not found.');
@@ -146,6 +148,58 @@ export class TicketsStore {
         this.error.set(
           err?.error?.message ?? err?.error?.error ?? 'SMS reply failed.',
         ),
+    });
+  }
+
+  /** SDD CRM-016 — add internal note then refresh detail. */
+  addNote(ticketId: string, body: string, onDone?: () => void): void {
+    this.error.set('');
+    this.api.addNote(ticketId, body).subscribe({
+      next: () => {
+        this.refreshDetail(ticketId);
+        onDone?.();
+      },
+      error: (err) =>
+        this.error.set(err?.error?.error ?? err?.error?.message ?? 'Could not save note.'),
+    });
+  }
+
+  readonly tasks = signal<TicketTask[]>([]);
+
+  loadTasks(ticketId: string): void {
+    this.api.listTasks(ticketId).subscribe({
+      next: (rows) => this.tasks.set(rows ?? []),
+      error: () => this.tasks.set([]),
+    });
+  }
+
+  createTask(
+    ticketId: string,
+    body: { title: string; dueAt?: string | null; assigneeUserId?: string | null; assigneeName?: string | null },
+    onDone?: () => void,
+  ): void {
+    this.error.set('');
+    this.api.createTask(ticketId, body).subscribe({
+      next: () => {
+        this.loadTasks(ticketId);
+        onDone?.();
+      },
+      error: (err) =>
+        this.error.set(err?.error?.error ?? 'Could not create task.'),
+    });
+  }
+
+  completeTask(ticketId: string, taskId: string): void {
+    this.api.completeTask(ticketId, taskId).subscribe({
+      next: () => this.loadTasks(ticketId),
+      error: (err) => this.error.set(err?.error?.error ?? 'Could not complete task.'),
+    });
+  }
+
+  cancelTask(ticketId: string, taskId: string): void {
+    this.api.cancelTask(ticketId, taskId).subscribe({
+      next: () => this.loadTasks(ticketId),
+      error: (err) => this.error.set(err?.error?.error ?? 'Could not cancel task.'),
     });
   }
 }
