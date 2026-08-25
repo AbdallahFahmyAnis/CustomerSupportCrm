@@ -9,6 +9,8 @@ export interface SystemSettings {
   primaryColor?: string;
   logoUrl?: string;
   erpWebhookUrl?: string;
+  /** SDD CRM-039 deferred / 048 */
+  erpWebhookAuthHeader?: string;
 }
 
 /** SDD CRM-039 polish / 044 */

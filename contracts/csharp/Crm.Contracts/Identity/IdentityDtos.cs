@@ -65,7 +65,8 @@ public sealed record SystemSettingsDto(
     string ProductTitle = "Customer Support CRM",
     string PrimaryColor = "#2563eb",
     string LogoUrl = "/brand/azm-squad.png",
-    string ErpWebhookUrl = "");
+    string ErpWebhookUrl = "",
+    string ErpWebhookAuthHeader = "");
 
 public sealed record UpdateSystemSettingsRequest(
     string OrganizationName,
@@ -76,7 +77,8 @@ public sealed record UpdateSystemSettingsRequest(
     string? ProductTitle = null,
     string? PrimaryColor = null,
     string? LogoUrl = null,
-    string? ErpWebhookUrl = null);
+    string? ErpWebhookUrl = null,
+    string? ErpWebhookAuthHeader = null);
 
 /// <summary>SDD CRM-044 — public shell branding.</summary>
 public sealed record BrandingDto(

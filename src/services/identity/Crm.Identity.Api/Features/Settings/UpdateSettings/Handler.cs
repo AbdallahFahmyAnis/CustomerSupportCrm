@@ -27,7 +27,8 @@ public sealed class UpdateSettingsHandler(IdentityDirectory directory)
             request.ProductTitle,
             request.PrimaryColor,
             request.LogoUrl,
-            request.ErpWebhookUrl);
+            request.ErpWebhookUrl,
+            request.ErpWebhookAuthHeader);
 
         string? actorEmail = null;
         if (request.ActorId is { } actorId)

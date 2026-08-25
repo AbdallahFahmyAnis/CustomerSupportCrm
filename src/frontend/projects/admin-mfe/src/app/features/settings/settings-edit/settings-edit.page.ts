@@ -23,6 +23,7 @@ export class SettingsEditPage implements OnInit {
   primaryColor = '#2563eb';
   logoUrl = '/brand/azm-squad.png';
   erpWebhookUrl = '';
+  erpWebhookAuthHeader = '';
 
   constructor() {
     effect(() => {
@@ -39,6 +40,7 @@ export class SettingsEditPage implements OnInit {
       this.primaryColor = row.primaryColor || '#2563eb';
       this.logoUrl = row.logoUrl || '/brand/azm-squad.png';
       this.erpWebhookUrl = row.erpWebhookUrl || '';
+      this.erpWebhookAuthHeader = row.erpWebhookAuthHeader || '';
     });
   }
 
@@ -61,6 +63,7 @@ export class SettingsEditPage implements OnInit {
       primaryColor: this.primaryColor.trim(),
       logoUrl: this.logoUrl.trim(),
       erpWebhookUrl: this.erpWebhookUrl.trim(),
+      erpWebhookAuthHeader: this.erpWebhookAuthHeader.trim(),
     });
   }
 
@@ -78,5 +81,6 @@ export class SettingsEditPage implements OnInit {
     this.primaryColor = row.primaryColor || '#2563eb';
     this.logoUrl = row.logoUrl || '/brand/azm-squad.png';
     this.erpWebhookUrl = row.erpWebhookUrl || '';
+    this.erpWebhookAuthHeader = row.erpWebhookAuthHeader || '';
   }
 }

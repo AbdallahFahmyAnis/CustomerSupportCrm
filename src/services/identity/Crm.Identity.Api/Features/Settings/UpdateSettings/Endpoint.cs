@@ -27,7 +27,8 @@ public sealed class UpdateSettingsEndpoint : IEndpoint
                 body.ProductTitle,
                 body.PrimaryColor,
                 body.LogoUrl,
-                body.ErpWebhookUrl));
+                body.ErpWebhookUrl,
+                body.ErpWebhookAuthHeader));
 
             return result.Error is not null
                 ? Results.BadRequest(new { error = result.Error })

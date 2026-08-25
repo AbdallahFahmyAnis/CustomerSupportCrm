@@ -24,5 +24,6 @@ public sealed class GetSettingsHandler(IdentityDirectory directory)
             row.ProductTitle,
             row.PrimaryColor,
             row.LogoUrl,
-            row.ErpWebhookUrl);
+            row.ErpWebhookUrl,
+            row.ErpWebhookAuthHeader);
 }

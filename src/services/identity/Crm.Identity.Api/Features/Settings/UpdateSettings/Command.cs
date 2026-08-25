@@ -13,4 +13,5 @@ public sealed record UpdateSettingsCommand(
     string? ProductTitle = null,
     string? PrimaryColor = null,
     string? LogoUrl = null,
-    string? ErpWebhookUrl = null) : IRequest<UpdateSettingsResponse>;
+    string? ErpWebhookUrl = null,
+    string? ErpWebhookAuthHeader = null) : IRequest<UpdateSettingsResponse>;

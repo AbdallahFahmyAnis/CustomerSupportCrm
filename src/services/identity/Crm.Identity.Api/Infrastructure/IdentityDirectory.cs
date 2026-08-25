@@ -91,7 +91,8 @@ public sealed class IdentityDirectory(
                          """ALTER TABLE "SystemSettings" ADD COLUMN "ProductTitle" TEXT NOT NULL DEFAULT 'Customer Support CRM';""",
                          """ALTER TABLE "SystemSettings" ADD COLUMN "PrimaryColor" TEXT NOT NULL DEFAULT '#2563eb';""",
                          """ALTER TABLE "SystemSettings" ADD COLUMN "LogoUrl" TEXT NOT NULL DEFAULT '/brand/azm-squad.png';""",
-                         """ALTER TABLE "SystemSettings" ADD COLUMN "ErpWebhookUrl" TEXT NOT NULL DEFAULT '';"""
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "ErpWebhookUrl" TEXT NOT NULL DEFAULT '';""",
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "ErpWebhookAuthHeader" TEXT NOT NULL DEFAULT '';"""
                      })
             {
                 try
@@ -134,6 +135,8 @@ public sealed class IdentityDirectory(
               ALTER TABLE [SystemSettings] ADD [LogoUrl] nvarchar(500) NOT NULL CONSTRAINT DF_SystemSettings_LogoUrl DEFAULT N'/brand/azm-squad.png';
             IF COL_LENGTH('SystemSettings', 'ErpWebhookUrl') IS NULL
               ALTER TABLE [SystemSettings] ADD [ErpWebhookUrl] nvarchar(500) NOT NULL CONSTRAINT DF_SystemSettings_ErpWebhookUrl DEFAULT N'';
+            IF COL_LENGTH('SystemSettings', 'ErpWebhookAuthHeader') IS NULL
+              ALTER TABLE [SystemSettings] ADD [ErpWebhookAuthHeader] nvarchar(500) NOT NULL CONSTRAINT DF_SystemSettings_ErpWebhookAuthHeader DEFAULT N'';
             """,
             cancellationToken);
     }
@@ -418,7 +421,8 @@ public sealed class IdentityDirectory(
         string? productTitle = null,
         string? primaryColor = null,
         string? logoUrl = null,
-        string? erpWebhookUrl = null)
+        string? erpWebhookUrl = null,
+        string? erpWebhookAuthHeader = null)
     {
         var row = await GetOrCreateSettingsAsync(ct);
         row.OrganizationName = organizationName.Trim();
@@ -444,6 +448,11 @@ public sealed class IdentityDirectory(
         if (erpWebhookUrl is not null)
         {
             row.ErpWebhookUrl = erpWebhookUrl.Trim();
+        }
+
+        if (erpWebhookAuthHeader is not null)
+        {
+            row.ErpWebhookAuthHeader = erpWebhookAuthHeader.Trim();
         }
 
         row.UpdatedAt = DateTimeOffset.UtcNow;

@@ -79,24 +79,42 @@
             ERP webhook URL
             <input name="erpWebhookUrl" [(ngModel)]="erpWebhookUrl" placeholder="https://…" />
           </label>
+          <label>
+            ERP Authorization header
+            <input
+              name="erpWebhookAuthHeader"
+              [(ngModel)]="erpWebhookAuthHeader"
+              placeholder="Bearer … or ApiKey …"
+            />
+          </label>
         </div>
 
         <div class="erp-deliveries">
           <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 0.5rem">
-            <strong>Last ERP deliveries</strong>
+            <strong>ERP outbox (last deliveries)</strong>
             <button type="button" class="btn secondary" (click)="refreshDeliveries()">Refresh</button>
           </div>
           @if (store.erpDeliveries().length === 0) {
             <p class="lede">No deliveries yet (empty URL is a no-op).</p>
           } @else {
-            <ul>
-              @for (d of store.erpDeliveries(); track d.ticketId + d.at) {
-                <li>
-                  <code>{{ d.ticketId }}</code> — {{ d.status }}
-                  <span>· {{ d.at | date: 'short' }}</span>
-                </li>
-              }
-            </ul>
+            <table class="erp-outbox">
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Status</th>
+                  <th>At</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (d of store.erpDeliveries(); track d.ticketId + d.at) {
+                  <tr>
+                    <td><code>{{ d.ticketId }}</code></td>
+                    <td>{{ d.status }}</td>
+                    <td>{{ d.at | date: 'short' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           }
         </div>
 

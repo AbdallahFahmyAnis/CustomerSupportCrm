@@ -63,10 +63,11 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/045-external-swagger-ui` — CRM-038 Swagger UI for external v1
 - [x] `specs/046-stream-ai-summary` — CRM-023 streaming AI summaries
 - [x] `specs/047-durable-chat` — CRM-026 durable chat sessions + handoff
+- [x] `specs/048-erp-outbox-auth` — CRM-039 ERP outbox UI + auth headers
 
 ## Next
 
-1. ERP outbox UI + auth headers (048)
+1. Further polish only if needed
 
 ## Constraints
 

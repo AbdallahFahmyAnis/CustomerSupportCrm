@@ -17,5 +17,7 @@ public sealed class SystemSettings
     public string LogoUrl { get; set; } = "/brand/azm-squad.png";
     /// <summary>SDD CRM-039 — empty disables ERP webhook.</summary>
     public string ErpWebhookUrl { get; set; } = "";
+    /// <summary>SDD CRM-039 deferred / 048 — optional Authorization header value (e.g. Bearer …).</summary>
+    public string ErpWebhookAuthHeader { get; set; } = "";
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

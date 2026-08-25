@@ -1,10 +1,11 @@
 using System.Collections.Concurrent;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Crm.Tickets.Api.Domain;
 
 namespace Crm.Tickets.Api.Infrastructure;
 
-/// <summary>SDD CRM-039 polish / 044 — ERP webhook with in-process retries + delivery log.</summary>
+/// <summary>SDD CRM-039 deferred / 048 — retries, auth header, durable outbox log.</summary>
 public sealed class ErpWebhookNotifier(
     IHttpClientFactory httpFactory,
     IConfiguration config,
@@ -12,6 +13,8 @@ public sealed class ErpWebhookNotifier(
 {
     private readonly ConcurrentQueue<ErpDeliveryRecord> _deliveries = new();
     private const int MaxLog = 50;
+    private readonly string? _outboxPath = ResolveOutboxPath(config);
+    private bool _loaded;
 
     /// <summary>1 initial + 2 retries.</summary>
     public int MaxAttempts { get; set; } = 3;
@@ -28,7 +31,10 @@ public sealed class ErpWebhookNotifier(
     };
 
     public IReadOnlyList<ErpDeliveryRecord> RecentDeliveries(int take = 20)
-        => _deliveries.Reverse().Take(Math.Clamp(take, 1, MaxLog)).ToList();
+    {
+        EnsureLoaded();
+        return _deliveries.Reverse().Take(Math.Clamp(take, 1, MaxLog)).ToList();
+    }
 
     public async Task NotifyTicketCreatedAsync(Ticket ticket, CancellationToken ct = default)
     {
@@ -44,7 +50,7 @@ public sealed class ErpWebhookNotifier(
             }
 
             var body = await settingsRes.Content.ReadFromJsonAsync<ErpWebhookSettings>(cancellationToken: ct);
-            await DeliverToUrlAsync(body?.WebhookUrl, ticket, ct);
+            await DeliverToUrlAsync(body?.WebhookUrl, ticket, body?.AuthHeader, ct);
         }
         catch (Exception ex)
         {
@@ -54,13 +60,18 @@ public sealed class ErpWebhookNotifier(
     }
 
     /// <summary>Empty URL is a no-op (CRM-039). Non-2xx / failure: up to 2 retries.</summary>
-    public async Task DeliverToUrlAsync(string? url, Ticket ticket, CancellationToken ct = default)
+    public async Task DeliverToUrlAsync(
+        string? url,
+        Ticket ticket,
+        string? authHeader = null,
+        CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(url))
         {
             return;
         }
 
+        EnsureLoaded();
         var client = httpFactory.CreateClient("erp");
         var payload = BuildPayload(ticket);
         Exception? lastEx = null;
@@ -68,7 +79,16 @@ public sealed class ErpWebhookNotifier(
         {
             try
             {
-                using var post = await client.PostAsJsonAsync(url.Trim(), payload, ct);
+                using var req = new HttpRequestMessage(HttpMethod.Post, url.Trim())
+                {
+                    Content = JsonContent.Create(payload)
+                };
+                if (!string.IsNullOrWhiteSpace(authHeader))
+                {
+                    req.Headers.TryAddWithoutValidation("Authorization", authHeader.Trim());
+                }
+
+                using var post = await client.SendAsync(req, ct);
                 if (post.IsSuccessStatusCode)
                 {
                     Append(ticket.Id, $"ok:{((int)post.StatusCode)}");
@@ -111,13 +131,83 @@ public sealed class ErpWebhookNotifier(
 
     private void Append(Guid ticketId, string status)
     {
+        EnsureLoaded();
         _deliveries.Enqueue(new ErpDeliveryRecord(ticketId.ToString(), status, DateTimeOffset.UtcNow));
         while (_deliveries.Count > MaxLog && _deliveries.TryDequeue(out _))
         {
         }
+
+        Persist();
     }
 
-    private sealed record ErpWebhookSettings(string? WebhookUrl);
+    private void EnsureLoaded()
+    {
+        if (_loaded || string.IsNullOrWhiteSpace(_outboxPath))
+        {
+            _loaded = true;
+            return;
+        }
+
+        try
+        {
+            if (File.Exists(_outboxPath))
+            {
+                var rows = JsonSerializer.Deserialize<List<ErpDeliveryRecord>>(File.ReadAllText(_outboxPath));
+                if (rows is not null)
+                {
+                    foreach (var row in rows.TakeLast(MaxLog))
+                    {
+                        _deliveries.Enqueue(row);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // ignore corrupt outbox
+        }
+
+        _loaded = true;
+    }
+
+    private void Persist()
+    {
+        if (string.IsNullOrWhiteSpace(_outboxPath))
+        {
+            return;
+        }
+
+        try
+        {
+            var dir = Path.GetDirectoryName(_outboxPath);
+            if (!string.IsNullOrWhiteSpace(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            File.WriteAllText(_outboxPath, JsonSerializer.Serialize(_deliveries.ToList()));
+        }
+        catch
+        {
+            // non-fatal
+        }
+    }
+
+    private static string? ResolveOutboxPath(IConfiguration config)
+    {
+        var explicitPath = config["Tickets:ErpOutboxPath"];
+        if (!string.IsNullOrWhiteSpace(explicitPath))
+        {
+            return explicitPath;
+        }
+
+        var data = config["Tickets:DataPath"];
+        return string.IsNullOrWhiteSpace(data)
+            ? null
+            : Path.Combine(data, "erp-outbox.json");
+    }
+
+    private sealed record ErpWebhookSettings(string? WebhookUrl, string? AuthHeader = null);
 }
 
 public sealed record ErpDeliveryRecord(string TicketId, string Status, DateTimeOffset At);

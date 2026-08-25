@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Crm.Identity.Api.Features.Settings.GetErpWebhook;
 
-/// <summary>SDD CRM-039 — tickets service reads configured ERP webhook URL.</summary>
+/// <summary>SDD CRM-039 / 048 — tickets service reads URL + auth (no admin cookie).</summary>
 public sealed class GetErpWebhookEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -15,7 +15,7 @@ public sealed class GetErpWebhookEndpoint : IEndpoint
 }
 
 public sealed record GetErpWebhookQuery : IRequest<ErpWebhookDto>;
-public sealed record ErpWebhookDto(string WebhookUrl);
+public sealed record ErpWebhookDto(string WebhookUrl, string AuthHeader = "");
 
 public sealed class GetErpWebhookHandler(IdentityDirectory directory)
     : IRequestHandler<GetErpWebhookQuery, ErpWebhookDto>
@@ -23,6 +23,6 @@ public sealed class GetErpWebhookHandler(IdentityDirectory directory)
     public async Task<ErpWebhookDto> Handle(GetErpWebhookQuery request, CancellationToken cancellationToken)
     {
         var row = await directory.GetOrCreateSettingsAsync(cancellationToken);
-        return new ErpWebhookDto(row.ErpWebhookUrl ?? "");
+        return new ErpWebhookDto(row.ErpWebhookUrl ?? "", row.ErpWebhookAuthHeader ?? "");
     }
 }

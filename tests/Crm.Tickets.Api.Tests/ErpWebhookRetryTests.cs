@@ -66,6 +66,24 @@ public sealed class ErpWebhookRetryTests
         notifier.RecentDeliveries().Should().ContainSingle(d => d.Status.StartsWith("ok:"));
     }
 
+    [Fact]
+    [Trait("Story", "CRM-039")]
+    public async Task Sends_authorization_header_when_configured()
+    {
+        string? auth = null;
+        var handler = new CountingHandler(req =>
+        {
+            auth = req.Headers.Authorization?.ToString()
+                   ?? (req.Headers.TryGetValues("Authorization", out var v) ? string.Join(",", v) : null);
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        });
+        var notifier = CreateNotifier(handler);
+        await notifier.DeliverToUrlAsync("http://erp.test/hook", SampleTicket(), "Bearer secret-token");
+        handler.Calls.Should().Be(1);
+        auth.Should().Contain("Bearer secret-token");
+        notifier.RecentDeliveries().Should().ContainSingle(d => d.Status.StartsWith("ok:"));
+    }
+
     private static Ticket SampleTicket() => Ticket.Create(
         "TKT-9001",
         Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
