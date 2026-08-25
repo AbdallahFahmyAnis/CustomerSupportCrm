@@ -1,0 +1,49 @@
+<section class="page">
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/admin">Admin</a>
+    <span class="sep">/</span>
+    <a routerLink="/admin/reports">Reports</a>
+    <span class="sep">/</span>
+    <span class="current">SLA</span>
+  </nav>
+
+  <header class="row">
+    <div>
+      <h1>SLA performance</h1>
+      <p class="lede">Resolution breach rates by agent (demo policy minutes).</p>
+    </div>
+  </header>
+
+  <form class="filters" (ngSubmit)="reload()">
+    <label>From <input type="date" name="from" [(ngModel)]="from" /></label>
+    <label>To <input type="date" name="to" [(ngModel)]="to" /></label>
+    <button type="submit" class="btn" [disabled]="store.loading()">Apply</button>
+  </form>
+
+  @if (store.error(); as err) {
+    <p class="error">{{ err }}</p>
+  }
+
+  @if (store.sla(); as s) {
+    <div class="kpi-row">
+      <div class="kpi"><span>Tickets</span><strong>{{ s.ticketCount }}</strong></div>
+      <div class="kpi"><span>Breached</span><strong>{{ s.resolutionBreached }}</strong></div>
+      <div class="kpi"><span>Breach %</span><strong>{{ s.breachPercent }}%</strong></div>
+    </div>
+    <p class="meta">{{ s.from | date: 'mediumDate' }} – {{ s.to | date: 'mediumDate' }}</p>
+    <table>
+      <thead>
+        <tr><th>Agent</th><th>Tickets</th><th>Breached</th></tr>
+      </thead>
+      <tbody>
+        @for (a of s.byAgent; track a.agentId ?? a.agentName ?? 'none') {
+          <tr>
+            <td>{{ a.agentName || 'Unassigned' }}</td>
+            <td>{{ a.ticketCount }}</td>
+            <td>{{ a.resolutionBreached }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

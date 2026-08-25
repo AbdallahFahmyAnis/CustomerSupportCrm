@@ -24,6 +24,10 @@
     <button type="submit" class="btn" [disabled]="store.loading()">Apply</button>
   </form>
 
+  <p class="links">
+    <a routerLink="/admin/reports/sla">SLA performance</a>
+  </p>
+
   @if (store.error(); as err) {
     <p class="error">{{ err }}</p>
   }

@@ -7,4 +7,9 @@ export const REPORTS_ROUTES: Routes = [
     loadComponent: () =>
       import('./ticket-reports/ticket-reports.page').then((m) => m.TicketReportsPage),
   },
+  {
+    path: 'sla',
+    loadComponent: () =>
+      import('./sla-performance/sla-performance.page').then((m) => m.SlaPerformancePage),
+  },
 ];

@@ -197,6 +197,21 @@ public sealed class TicketLifecycleTests : IClassFixture<TicketsApiFactory>
     }
 
     [Fact]
+    [Trait("Story", "CRM-032")]
+    public async Task Sla_performance_report_returns_breach_stats()
+    {
+        await CreateAsync("Sla Co", "Check breach metrics");
+        var from = DateTimeOffset.UtcNow.AddDays(-1).ToString("O");
+        var to = DateTimeOffset.UtcNow.AddDays(1).ToString("O");
+        var report = await _client.GetFromJsonAsync<SlaPerformanceReportDto>(
+            $"/api/tickets/reports/sla-performance?from={Uri.EscapeDataString(from)}&to={Uri.EscapeDataString(to)}");
+        report.Should().NotBeNull();
+        report!.TicketCount.Should().BeGreaterThanOrEqualTo(1);
+        report.BreachPercent.Should().BeGreaterThanOrEqualTo(0);
+        report.ByAgent.Should().NotBeNull();
+    }
+
+    [Fact]
     [Trait("Story", "CRM-016")]
     public async Task Internal_note_with_mention_persists_on_detail()
     {

@@ -133,3 +133,35 @@ public sealed record TicketReportSummaryDto(
 public sealed record ReportBucketDto(string Key, int Count);
 
 public sealed record ReportAgentBucketDto(string? AgentId, string? AgentName, int Count);
+
+/// <summary>SDD CRM-032 — SLA / agent performance.</summary>
+public sealed record SlaPerformanceReportDto(
+    DateTimeOffset From,
+    DateTimeOffset To,
+    int TicketCount,
+    int ResolutionBreached,
+    double BreachPercent,
+    IReadOnlyList<SlaAgentPerformanceDto> ByAgent);
+
+public sealed record SlaAgentPerformanceDto(
+    string? AgentId,
+    string? AgentName,
+    int TicketCount,
+    int ResolutionBreached);
+
+/// <summary>SDD CRM-033 — CSAT aggregate report.</summary>
+public sealed record CsatReportDto(
+    DateTimeOffset From,
+    DateTimeOffset To,
+    int Count,
+    double AverageRating,
+    IReadOnlyList<CsatDistributionBucketDto> Distribution,
+    IReadOnlyList<CsatAgentBucketDto> ByAgent);
+
+public sealed record CsatDistributionBucketDto(int Rating, int Count);
+
+public sealed record CsatAgentBucketDto(
+    string? AgentId,
+    string? AgentName,
+    int Count,
+    double AverageRating);

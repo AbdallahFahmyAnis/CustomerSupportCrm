@@ -45,13 +45,13 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/027-quick-replies` — CRM-015 shared quick reply catalog
 - [x] `specs/028-customer-feedback` — CRM-030 portal CSAT + agent read-only
 - [x] `specs/029-ticket-reports` — CRM-031 ticket volume reports
+- [x] `specs/030-sla-performance` — CRM-032 SLA / agent performance
 
 ## Next
 
-1. CRM-032 SLA performance when ready
-2. CRM-033 CSAT reports when ready
-3. CRM-034 management dashboard when ready
-4. Inbound webhooks / AI when ready
+1. CRM-033 CSAT reports when ready
+2. CRM-034 management dashboard when ready
+3. Inbound webhooks / AI when ready
 
 ## Constraints
 
