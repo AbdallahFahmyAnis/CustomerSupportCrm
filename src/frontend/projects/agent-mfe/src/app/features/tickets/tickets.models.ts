@@ -32,6 +32,19 @@ export interface TicketNote {
   createdAt: string;
 }
 
+/** SDD CRM-014 — follow-up task. */
+export interface TicketTask {
+  id: string;
+  ticketId: string;
+  title: string;
+  dueAt?: string | null;
+  assigneeUserId?: string | null;
+  assigneeName?: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface TicketDetail extends TicketSummary {
   description?: string | null;
   createdAt: string;

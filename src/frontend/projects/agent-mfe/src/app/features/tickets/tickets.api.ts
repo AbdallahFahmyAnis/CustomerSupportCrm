@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CustomerOption, ChannelMessageDto, SlaEvaluation, TicketDetail, TicketNote, TicketOptions, TicketSummary } from './tickets.models';
+import { CustomerOption, ChannelMessageDto, SlaEvaluation, TicketDetail, TicketNote, TicketOptions, TicketSummary, TicketTask } from './tickets.models';
 
 /** SDD CRM-004 — tickets command/query API via gateway. */
 @Injectable({ providedIn: 'root' })
@@ -27,6 +27,32 @@ export class TicketsApi {
   /** SDD CRM-016 — add internal collaboration note. */
   addNote(id: string, body: string): Observable<TicketNote> {
     return this.http.post<TicketNote>(`/api/tickets/${id}/notes`, { body });
+  }
+
+  /** SDD CRM-014 */
+  listTasks(ticketId: string): Observable<TicketTask[]> {
+    return this.http.get<TicketTask[]>(`/api/tickets/${ticketId}/tasks`);
+  }
+
+  listMyTasks(assignedTo: string, dueBefore?: string): Observable<TicketTask[]> {
+    const qs = new URLSearchParams({ assignedTo });
+    if (dueBefore) qs.set('dueBefore', dueBefore);
+    return this.http.get<TicketTask[]>(`/api/tickets/tasks?${qs.toString()}`);
+  }
+
+  createTask(
+    ticketId: string,
+    body: { title: string; dueAt?: string | null; assigneeUserId?: string | null; assigneeName?: string | null },
+  ): Observable<TicketTask> {
+    return this.http.post<TicketTask>(`/api/tickets/${ticketId}/tasks`, body);
+  }
+
+  completeTask(ticketId: string, taskId: string): Observable<TicketTask> {
+    return this.http.post<TicketTask>(`/api/tickets/${ticketId}/tasks/${taskId}/complete`, {});
+  }
+
+  cancelTask(ticketId: string, taskId: string): Observable<TicketTask> {
+    return this.http.post<TicketTask>(`/api/tickets/${ticketId}/tasks/${taskId}/cancel`, {});
   }
 
   listChannelMessages(ticketId: string): Observable<ChannelMessageDto[]> {

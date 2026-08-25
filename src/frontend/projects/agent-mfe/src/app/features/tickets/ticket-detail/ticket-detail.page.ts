@@ -49,7 +49,11 @@ export class TicketDetailPage implements OnInit {
   replyChannel: 'whatsapp' | 'chat' | 'sms' = 'chat';
   chatDraft = '';
   emailDraft = '';
-  private id = '';
+  private routeId = '';
+  /** Ticket id for template actions (CRM-014). */
+  get id(): string {
+    return this.routeId;
+  }
 
   readonly sla = signal<SlaEvaluation | null>(null);
   knowledgeQ = '';
@@ -58,6 +62,8 @@ export class TicketDetailPage implements OnInit {
   >([]);
   knowledgeError = '';
   noteDraft = '';
+  taskTitle = '';
+  taskDue = '';
   readonly customer = signal<CustomerDetail | null>(null);
   readonly customerError = signal('');
 
@@ -118,7 +124,7 @@ export class TicketDetailPage implements OnInit {
   constructor() {
     effect(() => {
       const t = this.store.selected();
-      if (!t || t.id !== this.id) return;
+      if (!t || t.id !== this.routeId) return;
       this.category = t.category;
       this.priority = t.priority;
       this.agentId = t.assignedAgentId ?? '';
@@ -130,8 +136,8 @@ export class TicketDetailPage implements OnInit {
 
   ngOnInit(): void {
     this.store.loadOptions();
-    this.id = this.route.snapshot.paramMap.get('id') ?? '';
-    this.store.loadDetail(this.id);
+    this.routeId = this.route.snapshot.paramMap.get('id') ?? '';
+    this.store.loadDetail(this.routeId);
   }
 
   private loadCustomer(customerId: string): void {
@@ -252,5 +258,28 @@ export class TicketDetailPage implements OnInit {
     this.store.addNote(this.id, body, () => {
       this.noteDraft = '';
     });
+  }
+
+  saveTask(): void {
+    const title = this.taskTitle.trim();
+    if (!title) {
+      this.store.error.set('Task title is required.');
+      return;
+    }
+    const me = this.store.selected()?.assignedAgentId;
+    const name = this.store.selected()?.assignedAgentName;
+    this.store.createTask(
+      this.id,
+      {
+        title,
+        dueAt: this.taskDue ? new Date(this.taskDue).toISOString() : null,
+        assigneeUserId: me ?? null,
+        assigneeName: name ?? null,
+      },
+      () => {
+        this.taskTitle = '';
+        this.taskDue = '';
+      },
+    );
   }
 }

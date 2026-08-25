@@ -80,3 +80,21 @@ public sealed record TicketOptionsDto(
     IReadOnlyList<AgentOptionDto> Agents);
 
 public sealed record AgentOptionDto(string Id, string Name);
+
+/// <summary>SDD CRM-014 — ticket follow-up task.</summary>
+public sealed record TicketTaskDto(
+    string Id,
+    string TicketId,
+    string Title,
+    DateTimeOffset? DueAt,
+    string? AssigneeUserId,
+    string? AssigneeName,
+    string Status,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record CreateTicketTaskRequest(
+    string Title,
+    DateTimeOffset? DueAt,
+    string? AssigneeUserId,
+    string? AssigneeName);

@@ -8,6 +8,7 @@ public sealed class TicketsDbContext(DbContextOptions<TicketsDbContext> options)
     public DbSet<TicketRow> Tickets => Set<TicketRow>();
     public DbSet<TicketHistoryRow> TicketHistory => Set<TicketHistoryRow>();
     public DbSet<TicketNoteRow> TicketNotes => Set<TicketNoteRow>();
+    public DbSet<TicketTaskRow> TicketTasks => Set<TicketTaskRow>();
     public DbSet<TicketSequenceRow> TicketSequence => Set<TicketSequenceRow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -45,6 +46,18 @@ public sealed class TicketsDbContext(DbContextOptions<TicketsDbContext> options)
             e.Property(x => x.AuthorUserId).HasMaxLength(64);
             e.Property(x => x.MentionedUserIdsJson).HasMaxLength(2000).IsRequired();
             e.HasIndex(x => x.TicketId);
+        });
+
+        modelBuilder.Entity<TicketTaskRow>(e =>
+        {
+            e.ToTable("TicketTasks");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(500).IsRequired();
+            e.Property(x => x.AssigneeUserId).HasMaxLength(64);
+            e.Property(x => x.AssigneeName).HasMaxLength(200);
+            e.Property(x => x.Status).HasMaxLength(32).IsRequired();
+            e.HasIndex(x => x.TicketId);
+            e.HasIndex(x => x.AssigneeUserId);
         });
 
         modelBuilder.Entity<TicketSequenceRow>(e =>
@@ -94,6 +107,19 @@ public sealed class TicketNoteRow
     public string? AuthorUserId { get; set; }
     public string MentionedUserIdsJson { get; set; } = "[]";
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+public sealed class TicketTaskRow
+{
+    public Guid Id { get; set; }
+    public Guid TicketId { get; set; }
+    public string Title { get; set; } = "";
+    public DateTimeOffset? DueAt { get; set; }
+    public string? AssigneeUserId { get; set; }
+    public string? AssigneeName { get; set; }
+    public string Status { get; set; } = "Open";
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }
 
 public sealed class TicketSequenceRow
