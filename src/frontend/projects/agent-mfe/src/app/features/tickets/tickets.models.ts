@@ -52,3 +52,15 @@ export interface ChannelMessageDto {
   fromEmail?: string;
   createdAt: string;
 }
+
+/** SDD CRM-017 — SLA evaluation for ticket detail. */
+export interface SlaEvaluation {
+  priority: string;
+  firstResponseMinutes: number;
+  resolutionMinutes: number;
+  firstResponseDueAt: string;
+  resolutionDueAt: string;
+  firstResponseBreached: boolean;
+  resolutionBreached: boolean;
+  asOf: string;
+}

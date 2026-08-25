@@ -26,6 +26,26 @@
 
     <p class="desc">{{ t.description || 'No description.' }}</p>
 
+    @if (sla(); as s) {
+      <div class="sla-strip" [class.breached]="s.firstResponseBreached || s.resolutionBreached">
+        <div>
+          <span class="sla-label">First response due</span>
+          <strong [class.warn]="s.firstResponseBreached">{{ s.firstResponseDueAt | date: 'short' }}</strong>
+          @if (s.firstResponseBreached) {
+            <span class="breach">Breached</span>
+          }
+        </div>
+        <div>
+          <span class="sla-label">Resolution due</span>
+          <strong [class.warn]="s.resolutionBreached">{{ s.resolutionDueAt | date: 'short' }}</strong>
+          @if (s.resolutionBreached) {
+            <span class="breach">Breached</span>
+          }
+        </div>
+        <p class="sla-meta">{{ s.priority }} · {{ s.firstResponseMinutes }}m / {{ s.resolutionMinutes }}m</p>
+      </div>
+    }
+
     <div class="panels">
       <form class="card" (ngSubmit)="saveClass()">
         <h2>Classification</h2>

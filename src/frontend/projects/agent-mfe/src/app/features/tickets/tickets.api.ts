@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CustomerOption, ChannelMessageDto, TicketDetail, TicketOptions, TicketSummary } from './tickets.models';
+import { CustomerOption, ChannelMessageDto, SlaEvaluation, TicketDetail, TicketOptions, TicketSummary } from './tickets.models';
 
 /** SDD CRM-004 — tickets command/query API via gateway. */
 @Injectable({ providedIn: 'root' })
@@ -84,6 +84,16 @@ export class TicketsApi {
       assignToAgentId,
       assignToAgentName,
     });
+  }
+
+  /** SDD CRM-017 — evaluate SLA clocks for a ticket snapshot. */
+  evaluateSla(body: {
+    priority: string;
+    createdAt: string;
+    firstResponseAt?: string | null;
+    resolvedAt?: string | null;
+  }): Observable<SlaEvaluation> {
+    return this.http.post<SlaEvaluation>('/api/sla/evaluate', body);
   }
 
   searchCustomers(q = ''): Observable<CustomerOption[]> {

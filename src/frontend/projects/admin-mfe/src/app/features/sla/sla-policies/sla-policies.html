@@ -1,0 +1,48 @@
+<section class="page">
+  <header class="row">
+    <div>
+      <h1>SLA targets</h1>
+      <p class="lede">First-response and resolution minutes by ticket priority</p>
+    </div>
+  </header>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+  @if (store.saved()) {
+    <p class="ok">Policy saved.</p>
+  }
+  @if (store.loading()) {
+    <p>Loading…</p>
+  } @else {
+    <div class="policy-table">
+      <div class="policy-head">
+        <span>Priority</span>
+        <span>First response (min)</span>
+        <span>Resolution (min)</span>
+        <span></span>
+      </div>
+      @for (p of store.policies(); track p.priority) {
+        @let draft = draftFor(p.priority, p.firstResponseMinutes, p.resolutionMinutes);
+        <form class="policy-row" (ngSubmit)="save(p.priority)">
+          <strong>{{ p.priority }}</strong>
+          <input
+            type="number"
+            min="1"
+            name="first-{{ p.priority }}"
+            [(ngModel)]="draft.firstResponseMinutes"
+            required
+          />
+          <input
+            type="number"
+            min="1"
+            name="resolution-{{ p.priority }}"
+            [(ngModel)]="draft.resolutionMinutes"
+            required
+          />
+          <button type="submit" class="btn" [disabled]="store.saving()">Save</button>
+        </form>
+      }
+    </div>
+  }
+</section>
