@@ -9,7 +9,7 @@ export type AssistantTurn = {
   sources?: ChatSource[];
 };
 
-/** SDD CRM-026 polish / 043 — keep and resend sessionId from first reply. */
+/** SDD CRM-026 deferred / 047 — durable sessionId + handoff flag. */
 @Injectable({ providedIn: 'root' })
 export class AssistantStore {
   private readonly api = inject(AssistantApi);
@@ -17,6 +17,7 @@ export class AssistantStore {
   readonly turns = signal<AssistantTurn[]>([]);
   readonly sending = signal(false);
   readonly error = signal('');
+  readonly handoffNeeded = signal(false);
   sessionId = '';
 
   ask(message: string): void {
@@ -32,6 +33,7 @@ export class AssistantStore {
     this.api.chat(text, this.sessionId || undefined).subscribe({
       next: (row) => {
         if (row.sessionId) this.sessionId = row.sessionId;
+        if (row.handoffNeeded) this.handoffNeeded.set(true);
         this.turns.update((list) => [
           ...list,
           {

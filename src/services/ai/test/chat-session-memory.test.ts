@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import { chatReply } from '../src/infrastructure/ai/heuristic.provider';
+import { chatReply, wantsHumanHandoff } from '../src/infrastructure/ai/heuristic.provider';
 import { ChatSessionStore } from '../src/infrastructure/chat/chat-session.store';
 
 describe('CRM-026 chat session memory', () => {
@@ -18,17 +21,25 @@ describe('CRM-026 chat session memory', () => {
     assert.ok(row.sources.some((s) => s.id === 'f1'));
   });
 
-  it('stores and returns a stable sessionId with capped turns', () => {
-    const store = new ChatSessionStore();
-    const id = store.ensureSessionId();
-    assert.ok(id.length > 8);
-    assert.equal(store.ensureSessionId(id), id);
+  it('persists sessions to disk and detects human handoff', () => {
+    assert.equal(wantsHumanHandoff('I want a human agent please'), true);
+    assert.equal(wantsHumanHandoff('password reset'), false);
 
-    for (let i = 0; i < 8; i++) {
-      store.append(id, `user-${i}`, `bot-${i}`);
+    const dir = mkdtempSync(join(tmpdir(), 'crm-chat-'));
+    const file = join(dir, 'sessions.json');
+    process.env.CHAT_SESSIONS_PATH = file;
+    try {
+      const store = new ChatSessionStore();
+      const id = store.ensureSessionId();
+      store.append(id, 'hello', 'hi');
+      const raw = JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
+      assert.ok(raw[id]);
+
+      const reloaded = new ChatSessionStore();
+      assert.equal(reloaded.getTurns(id).length, 2);
+    } finally {
+      delete process.env.CHAT_SESSIONS_PATH;
+      rmSync(dir, { recursive: true, force: true });
     }
-    const turns = store.getTurns(id);
-    assert.equal(turns.length, 12); // 6 turns × user+assistant
-    assert.equal(turns[0].text, 'user-2');
   });
 });

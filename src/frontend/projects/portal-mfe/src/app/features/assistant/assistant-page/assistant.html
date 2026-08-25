@@ -47,5 +47,13 @@
     <p class="error" role="alert">{{ store.error() }}</p>
   }
 
+  @if (store.handoffNeeded()) {
+    <p class="ok">
+      Human help requested —
+      <a routerLink="/portal/submit">Submit a request</a>
+      so an agent can follow up.
+    </p>
+  }
+
   <p class="back-link"><a routerLink="/portal">← Portal home</a></p>
 </section>

@@ -139,3 +139,8 @@ export function chatReply(
     sources: [],
   };
 }
+
+/** SDD CRM-026 deferred / 047 — detect request for a human agent. */
+export function wantsHumanHandoff(message: string): boolean {
+  return /\b(human|agent|representative|person|speak to someone)\b/i.test(message.trim());
+}
