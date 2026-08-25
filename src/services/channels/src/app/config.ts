@@ -17,4 +17,45 @@ export const channelsConfig = {
   smtpUser: process.env.EMAIL_SMTP_USER,
   smtpPass: process.env.EMAIL_SMTP_PASS,
   smtpFrom: process.env.EMAIL_SMTP_FROM ?? 'crm@localhost',
+  sendgridApiKey: process.env.SENDGRID_API_KEY,
+  sendgridFrom: process.env.SENDGRID_FROM ?? process.env.EMAIL_SMTP_FROM ?? 'crm@localhost',
+  twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,
+  twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
+  twilioSmsFrom: process.env.TWILIO_SMS_FROM,
+  twilioWhatsAppFrom: process.env.TWILIO_WHATSAPP_FROM,
 };
+
+/** SDD CRM-040 — which email adapter the factory should bind. */
+export function resolveEmailProviderKind(cfg = channelsConfig): 'sendgrid' | 'smtp' | 'dev' {
+  if (cfg.sendgridApiKey?.trim()) {
+    return 'sendgrid';
+  }
+  if (cfg.smtpHost?.trim()) {
+    return 'smtp';
+  }
+  return 'dev';
+}
+
+/** SDD CRM-040 — SMS adapter selection. */
+export function resolveSmsProviderKind(cfg = channelsConfig): 'twilio' | 'dev' {
+  if (
+    cfg.twilioAccountSid?.trim() &&
+    cfg.twilioAuthToken?.trim() &&
+    cfg.twilioSmsFrom?.trim()
+  ) {
+    return 'twilio';
+  }
+  return 'dev';
+}
+
+/** SDD CRM-040 — WhatsApp adapter selection. */
+export function resolveWhatsAppProviderKind(cfg = channelsConfig): 'twilio' | 'dev' {
+  if (
+    cfg.twilioAccountSid?.trim() &&
+    cfg.twilioAuthToken?.trim() &&
+    cfg.twilioWhatsAppFrom?.trim()
+  ) {
+    return 'twilio';
+  }
+  return 'dev';
+}
