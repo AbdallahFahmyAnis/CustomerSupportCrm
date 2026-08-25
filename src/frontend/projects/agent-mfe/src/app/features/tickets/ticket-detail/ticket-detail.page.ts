@@ -5,6 +5,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   CrmChatComponent,
   CrmChatMessage,
+  CrmEmailComponent,
+  CrmEmailMessage,
   CrmTimelineComponent,
   CrmTimelineItem,
 } from 'shared';
@@ -21,6 +23,7 @@ import { TicketsStore } from '../tickets.store';
     RouterLink,
     TicketPriorityBadgeComponent,
     CrmChatComponent,
+    CrmEmailComponent,
     CrmTimelineComponent,
   ],
   templateUrl: './ticket-detail.html',
@@ -38,18 +41,44 @@ export class TicketDetailPage implements OnInit {
   agentId = '';
   status = '';
   escalateTo = '';
-  replyChannel: 'email' | 'whatsapp' | 'chat' | 'sms' = 'chat';
+  replyChannel: 'whatsapp' | 'chat' | 'sms' = 'chat';
   chatDraft = '';
+  emailDraft = '';
   private id = '';
 
+  readonly emailMessages = computed<CrmEmailMessage[]>(() =>
+    this.store
+      .channelMessages()
+      .filter((m) => m.channel === 'Email' || m.channel === 'WebForm')
+      .map((m) => {
+        const mine = m.direction === 'Outbound';
+        const fromName = mine
+          ? 'Support'
+          : this.store.selected()?.customerName || m.fromEmail || 'Customer';
+        return {
+          id: m.id,
+          fromName,
+          fromMeta: m.fromEmail || (mine ? 'crm-email' : undefined),
+          body: m.body,
+          preview: m.body,
+          timeLabel: this.datePipe.transform(m.createdAt, 'short') ?? '',
+          mine,
+          avatarText: fromName.charAt(0),
+        };
+      }),
+  );
+
   readonly chatMessages = computed<CrmChatMessage[]>(() =>
-    this.store.channelMessages().map((m) => ({
-      id: m.id,
-      body: m.body,
-      mine: m.direction === 'Outbound',
-      meta: `${m.channel}${m.fromEmail ? ' · ' + m.fromEmail : ''}`,
-      timeLabel: this.datePipe.transform(m.createdAt, 'short') ?? '',
-    })),
+    this.store
+      .channelMessages()
+      .filter((m) => m.channel !== 'Email' && m.channel !== 'WebForm')
+      .map((m) => ({
+        id: m.id,
+        body: m.body,
+        mine: m.direction === 'Outbound',
+        meta: `${m.channel}${m.fromEmail ? ' · ' + m.fromEmail : ''}`,
+        timeLabel: this.datePipe.transform(m.createdAt, 'short') ?? '',
+      })),
   );
 
   readonly historyItems = computed<CrmTimelineItem[]>(() => {
@@ -64,6 +93,11 @@ export class TicketDetailPage implements OnInit {
       timeLabel: this.datePipe.transform(h.changedAt, 'short') ?? '',
       meta: h.changedBy,
     }));
+  });
+
+  readonly emailReplyLabel = computed(() => {
+    const name = this.store.selected()?.customerName;
+    return name ? `Reply to ${name}` : 'Reply';
   });
 
   constructor() {
@@ -113,6 +147,17 @@ export class TicketDetailPage implements OnInit {
     });
   }
 
+  onEmailSend(body: string): void {
+    const text = body.trim();
+    if (!text) {
+      this.store.error.set('Reply body is required.');
+      return;
+    }
+    this.store.replyEmail(this.id, text, () => {
+      this.emailDraft = '';
+    });
+  }
+
   onChatSend(body: string): void {
     const text = body.trim();
     if (!text) {
@@ -122,10 +167,6 @@ export class TicketDetailPage implements OnInit {
     const clear = () => {
       this.chatDraft = '';
     };
-    if (this.replyChannel === 'email') {
-      this.store.replyEmail(this.id, text, clear);
-      return;
-    }
     if (this.replyChannel === 'whatsapp') {
       this.store.replyWhatsApp(this.id, text, clear);
       return;

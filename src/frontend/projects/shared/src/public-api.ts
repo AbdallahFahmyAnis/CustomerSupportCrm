@@ -17,3 +17,5 @@ export * from './lib/ui/timeline/timeline.models';
 export * from './lib/ui/timeline/timeline.component';
 export * from './lib/ui/chat/chat.models';
 export * from './lib/ui/chat/chat.component';
+export * from './lib/ui/email/email.models';
+export * from './lib/ui/email/email.component';
