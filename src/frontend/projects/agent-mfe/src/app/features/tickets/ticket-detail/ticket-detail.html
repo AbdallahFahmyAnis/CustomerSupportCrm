@@ -26,6 +26,44 @@
 
     <p class="desc">{{ t.description || 'No description.' }}</p>
 
+    <aside class="customer-summary card">
+      <h2>Customer</h2>
+      @if (customerError()) {
+        <p class="error">{{ customerError() }}</p>
+      }
+      @if (customer(); as c) {
+        <p>
+          <a [routerLink]="['/agent/customers', c.id]"><strong>{{ c.displayName }}</strong></a>
+          · {{ c.status }}
+        </p>
+        <p class="meta">Id: {{ c.uniqueIdentifier }}</p>
+        @if (c.organization) {
+          <p class="meta">{{ c.organization }}</p>
+        }
+        <ul class="contact-list">
+          @for (ct of c.contacts.filter((x) => x.isActive).slice(0, 3); track ct.id) {
+            <li>
+              <span class="badge soft">{{ ct.type }}</span>
+              {{ ct.value }}
+              @if (ct.isPrimary) {
+                <span class="meta">primary</span>
+              }
+            </li>
+          } @empty {
+            <li class="muted">No contacts on file.</li>
+          }
+        </ul>
+        @if (c.notes[0]; as note) {
+          <p class="latest-note">
+            <span class="meta">Latest note · {{ note.createdAt | date: 'short' }}</span><br />
+            {{ note.body }}
+          </p>
+        }
+      } @else if (!customerError()) {
+        <p class="muted">Loading customer…</p>
+      }
+    </aside>
+
     @if (sla(); as s) {
       <div class="sla-strip" [class.breached]="s.firstResponseBreached || s.resolutionBreached">
         <div>

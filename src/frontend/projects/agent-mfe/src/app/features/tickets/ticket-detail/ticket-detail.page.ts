@@ -11,11 +11,13 @@ import {
   CrmTimelineItem,
 } from 'shared';
 import { TicketPriorityBadgeComponent } from '../components/ticket-priority-badge/ticket-priority-badge.component';
+import { CustomersApi } from '../../customers/customers.api';
+import { CustomerDetail } from '../../customers/customers.models';
 import { TicketsApi } from '../tickets.api';
 import { SlaEvaluation } from '../tickets.models';
 import { TicketsStore } from '../tickets.store';
 
-/** Smart detail page — Feature-Based + Signals. */
+/** SDD CRM-004…007 / CRM-013 — ticket detail with customer summary. */
 @Component({
   selector: 'app-ticket-detail-page',
   standalone: true,
@@ -35,6 +37,7 @@ import { TicketsStore } from '../tickets.store';
 export class TicketDetailPage implements OnInit {
   readonly store = inject(TicketsStore);
   private readonly api = inject(TicketsApi);
+  private readonly customersApi = inject(CustomersApi);
   private readonly route = inject(ActivatedRoute);
   private readonly datePipe = inject(DatePipe);
 
@@ -55,6 +58,8 @@ export class TicketDetailPage implements OnInit {
   >([]);
   knowledgeError = '';
   noteDraft = '';
+  readonly customer = signal<CustomerDetail | null>(null);
+  readonly customerError = signal('');
 
   readonly emailMessages = computed<CrmEmailMessage[]>(() =>
     this.store
@@ -119,6 +124,7 @@ export class TicketDetailPage implements OnInit {
       this.agentId = t.assignedAgentId ?? '';
       this.status = t.status;
       this.refreshSla(t.priority, t.createdAt);
+      this.loadCustomer(t.customerId);
     });
   }
 
@@ -126,6 +132,17 @@ export class TicketDetailPage implements OnInit {
     this.store.loadOptions();
     this.id = this.route.snapshot.paramMap.get('id') ?? '';
     this.store.loadDetail(this.id);
+  }
+
+  private loadCustomer(customerId: string): void {
+    this.customerError.set('');
+    this.customersApi.get(customerId).subscribe({
+      next: (row) => this.customer.set(row),
+      error: () => {
+        this.customer.set(null);
+        this.customerError.set('Could not load customer profile.');
+      },
+    });
   }
 
   private refreshSla(priority: string, createdAt: string): void {

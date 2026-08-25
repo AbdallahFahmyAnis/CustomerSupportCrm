@@ -47,6 +47,8 @@ export class TicketListPage implements OnInit {
 
   ngOnInit(): void {
     this.store.loadOptions();
+    const me = this.session.session()?.id;
+    this.mine = !!me;
     this.search();
   }
 
