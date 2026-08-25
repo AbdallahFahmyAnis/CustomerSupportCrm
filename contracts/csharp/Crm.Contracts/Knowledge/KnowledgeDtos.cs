@@ -30,3 +30,13 @@ public sealed record UpdateKnowledgeArticleRequest(
     string Body,
     string Kind,
     string Status);
+
+/// <summary>SDD CRM-022 — ranked knowledge search hit.</summary>
+public sealed record KnowledgeSearchHitDto(
+    string Id,
+    string Title,
+    string Kind,
+    string Status,
+    int Score,
+    string Snippet,
+    DateTimeOffset UpdatedAt);

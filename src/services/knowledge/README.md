@@ -11,6 +11,7 @@
 | GET | `/health` | Health |
 | GET | `/api/knowledge/articles?q=` | List / filter |
 | GET | `/api/knowledge/articles/{id}` | Detail |
+| GET | `/api/knowledge/search?q=&kind=&status=&publishedOnly=` | Ranked search (CRM-022) |
 | POST | `/api/knowledge/articles` | Create |
 | PUT | `/api/knowledge/articles/{id}` | Update |
 

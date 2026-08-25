@@ -111,6 +111,16 @@ export class TicketsApi {
     }>(`/api/tickets/${id}/run-automation`, {});
   }
 
+  /** SDD CRM-022 — search published knowledge from agent workspace. */
+  searchKnowledge(q: string): Observable<
+    { id: string; title: string; kind: string; status: string; score: number; snippet: string }[]
+  > {
+    const qs = new URLSearchParams({ q, publishedOnly: 'true' });
+    return this.http.get<
+      { id: string; title: string; kind: string; status: string; score: number; snippet: string }[]
+    >(`/api/knowledge/search?${qs.toString()}`);
+  }
+
   searchCustomers(q = ''): Observable<CustomerOption[]> {
     const query = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
     return this.http.get<CustomerOption[]>(`/api/customers${query}`);

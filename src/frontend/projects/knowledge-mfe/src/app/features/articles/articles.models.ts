@@ -15,3 +15,14 @@ export interface ArticleDetail extends ArticleSummary {
 
 export const ARTICLE_KINDS = ['Faq', 'Article', 'Solution', 'Guide'] as const;
 export const ARTICLE_STATUSES = ['Draft', 'Published'] as const;
+
+/** SDD CRM-022 — ranked search hit. */
+export interface KnowledgeSearchHit {
+  id: string;
+  title: string;
+  kind: string;
+  status: string;
+  score: number;
+  snippet: string;
+  updatedAt: string;
+}
