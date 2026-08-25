@@ -59,7 +59,8 @@ Give support agents a single place to know the customer, work tickets, and reply
 
 ## Next
 
-1. Backlog complete for platform leftovers — polish / CRM-039 expansion when needed
+1. Imported CRM-001…044 story backlog is complete (board closeout done for orphan channel WIs).
+2. Optional polish when needed: external OpenAPI, AI summary persist, chat multi-turn memory, ERP webhook retries.
 
 ## Constraints
 
