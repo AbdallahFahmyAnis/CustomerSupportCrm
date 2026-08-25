@@ -55,10 +55,11 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/037-external-apis` — CRM-038 gateway external API key surface
 - [x] `specs/038-departments-branches` — CRM-043 departments and branches
 - [x] `specs/039-custom-branding` — CRM-044 custom branding
+- [x] `specs/040-erp-webhook-stub` — CRM-039 ERP outbound webhook stub
 
 ## Next
 
-1. CRM-039 ERP webhook stub when ready
+1. Backlog complete for platform leftovers — polish / CRM-039 expansion when needed
 
 ## Constraints
 
