@@ -1,0 +1,46 @@
+.page {
+  max-width: 44rem;
+}
+
+.crumb-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--crm-text-muted);
+}
+
+.crumb-nav a {
+  font-weight: 600;
+}
+
+.crumb-nav .sep {
+  opacity: 0.55;
+}
+
+.crumb-nav .current {
+  color: var(--crm-text);
+  font-weight: 600;
+}
+
+.faq-detail {
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  background: var(--crm-paper);
+  box-shadow: var(--crm-shadow);
+}
+
+.body {
+  margin-top: 1rem;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.meta,
+.muted {
+  font-size: 0.85rem;
+  color: var(--crm-text-muted);
+}
