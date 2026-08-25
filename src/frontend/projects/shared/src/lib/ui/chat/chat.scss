@@ -1,0 +1,135 @@
+.crm-chat {
+  display: flex;
+  flex-direction: column;
+  min-height: 28rem;
+  max-height: min(70vh, 40rem);
+  background: var(--crm-paper);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  box-shadow: var(--crm-shadow);
+  overflow: hidden;
+}
+
+.crm-chat__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--crm-border);
+  background: linear-gradient(135deg, rgba(140, 87, 255, 0.08), transparent 60%);
+}
+
+.crm-chat__avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(160deg, #8c57ff, #c855ff);
+  flex: 0 0 auto;
+}
+
+.crm-chat__who {
+  min-width: 0;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.crm-chat__who strong {
+  font-size: 0.95rem;
+  color: var(--crm-text);
+}
+
+.crm-chat__who small {
+  color: var(--crm-text-muted);
+  font-size: 0.8rem;
+}
+
+.crm-chat__messages {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background:
+    radial-gradient(circle at top left, rgba(140, 87, 255, 0.05), transparent 40%),
+    var(--crm-bg);
+}
+
+.crm-chat__empty {
+  margin: auto;
+  color: var(--crm-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.crm-chat__row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.crm-chat__row.is-mine {
+  justify-content: flex-end;
+}
+
+.crm-chat__bubble {
+  max-width: min(85%, 28rem);
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem 0.75rem 0.75rem 0.2rem;
+  background: var(--crm-paper);
+  border: 1px solid var(--crm-border);
+  box-shadow: 0 0.1rem 0.35rem rgba(47, 43, 61, 0.06);
+}
+
+.crm-chat__row.is-mine .crm-chat__bubble {
+  border-radius: 0.75rem 0.75rem 0.2rem 0.75rem;
+  background: var(--crm-primary);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 0.15rem 0.45rem rgba(140, 87, 255, 0.35);
+}
+
+.crm-chat__bubble p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.crm-chat__bubble footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.crm-chat__compose {
+  border-top: 1px solid var(--crm-border);
+  padding: 0.75rem 1rem 0.9rem;
+  background: var(--crm-paper);
+  display: grid;
+  gap: 0.55rem;
+}
+
+.crm-chat__compose-row {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.crm-chat__compose-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.5rem;
+}
+
+.crm-chat__compose-row .btn {
+  flex: 0 0 auto;
+  min-height: 2.5rem;
+}

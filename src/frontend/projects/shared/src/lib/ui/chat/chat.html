@@ -1,0 +1,51 @@
+<section class="crm-chat">
+  <header class="crm-chat__header">
+    <span class="crm-chat__avatar">{{ avatarText() }}</span>
+    <div class="crm-chat__who">
+      <strong>{{ title() }}</strong>
+      @if (subtitle()) {
+        <small>{{ subtitle() }}</small>
+      }
+    </div>
+  </header>
+
+  <div class="crm-chat__messages" role="log" aria-live="polite">
+    @if (messages().length === 0) {
+      <p class="crm-chat__empty">{{ emptyText() }}</p>
+    } @else {
+      @for (m of messages(); track m.id) {
+        <div class="crm-chat__row" [class.is-mine]="m.mine">
+          <div class="crm-chat__bubble">
+            <p>{{ m.body }}</p>
+            <footer>
+              @if (m.meta) {
+                <span>{{ m.meta }}</span>
+              }
+              @if (m.timeLabel) {
+                <time>{{ m.timeLabel }}</time>
+              }
+            </footer>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <form class="crm-chat__compose" (ngSubmit)="onSubmit()">
+    <ng-content select="[crmChatComposeExtra]" />
+    <div class="crm-chat__compose-row">
+      <input
+        type="text"
+        name="crmChatDraft"
+        [ngModel]="draft()"
+        (ngModelChange)="draft.set($event)"
+        [placeholder]="placeholder()"
+        [disabled]="composeDisabled() || sending()"
+        autocomplete="off"
+      />
+      <button type="submit" class="btn" [disabled]="composeDisabled() || sending() || !draft().trim()">
+        {{ sending() ? '…' : sendLabel() }}
+      </button>
+    </div>
+  </form>
+</section>

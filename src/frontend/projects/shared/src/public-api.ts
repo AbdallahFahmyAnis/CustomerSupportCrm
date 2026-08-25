@@ -13,3 +13,7 @@ export * from './lib/ui/wizard/wizard.directives';
 export * from './lib/ui/wizard/wizard.component';
 export * from './lib/ui/modal/modal.component';
 export * from './lib/ui/date-field/date-field.component';
+export * from './lib/ui/timeline/timeline.models';
+export * from './lib/ui/timeline/timeline.component';
+export * from './lib/ui/chat/chat.models';
+export * from './lib/ui/chat/chat.component';

@@ -26,50 +26,24 @@
   font-weight: 600;
 }
 
-.chat-card {
+.identity-card {
   max-width: none;
+  margin-bottom: 1rem;
 }
 
-.chat-body {
-  padding: 1.15rem 1.35rem 1.35rem;
-  display: grid;
-  gap: 1rem;
+.identity-card .settings-form {
+  padding-bottom: 0.25rem;
 }
 
-.transcript {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.65rem;
-  max-height: 16rem;
-  overflow: auto;
-}
-
-.transcript li {
-  padding: 0.65rem 0.85rem;
-  border: 1px solid var(--crm-border);
-  border-radius: var(--crm-radius-sm);
-  background: rgba(140, 87, 255, 0.04);
-}
-
-.transcript .who {
+crm-chat {
   display: block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--crm-primary);
-  margin-bottom: 0.2rem;
+  margin-top: 0.25rem;
 }
 
-.transcript p {
-  margin: 0;
+.error {
+  margin-top: 0.75rem;
 }
 
-.settings-form {
-  padding: 0;
-}
-
-.btn:disabled {
-  opacity: 0.7;
-  cursor: default;
+.back-link {
+  margin-top: 1rem;
 }

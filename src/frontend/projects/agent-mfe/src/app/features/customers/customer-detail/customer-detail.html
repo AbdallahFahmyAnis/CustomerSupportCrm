@@ -136,25 +136,7 @@
         }
 
         @if (tab === 'timeline') {
-          <ol class="crm-timeline">
-            @for (item of c.timeline; track item.id) {
-              <li>
-                <span class="dot" aria-hidden="true"></span>
-                <div>
-                  <span class="kind">{{ item.kind }}</span>
-                  <p>{{ item.summary }}</p>
-                  <time>{{ item.occurredAt | date: 'medium' }}</time>
-                </div>
-              </li>
-            } @empty {
-              <li class="empty">
-                <span class="dot" aria-hidden="true"></span>
-                <div>
-                  <p class="muted">No timeline events yet.</p>
-                </div>
-              </li>
-            }
-          </ol>
+          <crm-timeline [items]="timelineItems()" />
         }
       </div>
     </div>
