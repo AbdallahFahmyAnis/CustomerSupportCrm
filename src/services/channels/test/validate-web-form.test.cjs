@@ -65,3 +65,26 @@ test('email ingest accepts valid payload', () => {
   });
   assert.equal(err, null);
 });
+
+const {
+  validateReplyEmailInput,
+} = require('../src/features/messages/reply-email/schema');
+
+/** SDD CRM-040 — outbound reply validation. */
+test('email reply rejects empty body', () => {
+  const err = validateReplyEmailInput('ticket-1', { body: '  ' });
+  assert.equal(err, 'body is required.');
+});
+
+test('email reply rejects bad to', () => {
+  const err = validateReplyEmailInput('ticket-1', {
+    body: 'Hello',
+    to: 'not-email',
+  });
+  assert.equal(err, 'to must be a valid email address.');
+});
+
+test('email reply accepts valid body', () => {
+  const err = validateReplyEmailInput('ticket-1', { body: 'We are on it.' });
+  assert.equal(err, null);
+});

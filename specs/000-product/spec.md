@@ -25,13 +25,14 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/006-data-platform` — Docker SQL Server / Postgres / Mongo + Azure Pipelines; Identity SQL path
 - [x] `specs/007-identity-ef-core` — OpenIddict + ASP.NET Identity + EF Core; Channels TypeORM/Postgres
 - [x] `specs/008-email-channel` — CRM-008 email intake + CRM-040 DevEmailProvider stub
+- [x] `specs/009-email-outbound` — CRM-040 outbound email reply (dev + optional SMTP)
 
 ## Next
 
-1. CRM-040 real email provider / outbound reply
-2. Migrate Customers/Tickets → EF Core SQL Server
-3. CRM-036 audit logs / CRM-037 remaining system config UI
-4. CRM-009…011 other channels as needed
+1. Migrate Customers/Tickets → EF Core SQL Server
+2. CRM-036 audit logs / CRM-037 remaining system config UI
+3. CRM-009…011 other channels / richer CRM-040 providers (SendGrid, etc.)
+4. CRM-040 SMS/WhatsApp when needed
 
 ## Constraints
 
