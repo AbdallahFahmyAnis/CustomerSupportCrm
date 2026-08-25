@@ -11,7 +11,8 @@ public sealed record TicketSummaryDto(
     string Status,
     string? AssignedAgentId,
     string? AssignedAgentName,
-    bool IsEscalated);
+    bool IsEscalated,
+    string? DepartmentId = null);
 
 public sealed record TicketDetailDto(
     string Id,
@@ -30,7 +31,8 @@ public sealed record TicketDetailDto(
     DateTimeOffset UpdatedAt,
     IReadOnlyList<TicketHistoryDto> History,
     IReadOnlyList<TicketNoteDto> Notes,
-    TicketFeedbackDto? Feedback = null);
+    TicketFeedbackDto? Feedback = null,
+    string? DepartmentId = null);
 
 /// <summary>SDD CRM-016 — internal agent note on a ticket.</summary>
 public sealed record TicketNoteDto(
@@ -71,7 +73,8 @@ public sealed record CreateTicketRequest(
     string Subject,
     string? Description,
     string Category,
-    string Priority);
+    string Priority,
+    string? DepartmentId = null);
 
 public sealed record UpdateClassificationRequest(string Category, string Priority);
 

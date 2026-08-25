@@ -1,0 +1,68 @@
+<section class="page">
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/admin">Admin</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Departments</span>
+  </nav>
+
+  <header class="row">
+    <div>
+      <h1>Departments &amp; branches</h1>
+      <p class="lede">Organize agents and tickets by org unit.</p>
+    </div>
+  </header>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+
+  <div class="panels">
+    <form class="card" (ngSubmit)="addDept()">
+      <h2>New department</h2>
+      <label>
+        Name
+        <input name="deptName" [(ngModel)]="deptName" required />
+      </label>
+      <button type="submit" class="btn">Add department</button>
+    </form>
+
+    <form class="card" (ngSubmit)="addBranch()">
+      <h2>New branch</h2>
+      <label>
+        Department
+        <select name="branchDeptId" [(ngModel)]="branchDeptId" required>
+          <option value="">Select…</option>
+          @for (d of store.departments(); track d.id) {
+            <option [value]="d.id">{{ d.name }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Name
+        <input name="branchName" [(ngModel)]="branchName" required />
+      </label>
+      <button type="submit" class="btn">Add branch</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Catalog</h2>
+    @if (store.loading()) {
+      <p class="muted">Loading…</p>
+    }
+    <ul>
+      @for (d of store.departments(); track d.id) {
+        <li>
+          <strong>{{ d.name }}</strong>
+          <ul>
+            @for (b of store.branches(); track b.id) {
+              @if (b.departmentId === d.id) {
+                <li>{{ b.name }}</li>
+              }
+            }
+          </ul>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

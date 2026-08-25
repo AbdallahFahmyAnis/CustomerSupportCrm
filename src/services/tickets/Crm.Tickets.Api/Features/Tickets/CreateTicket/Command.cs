@@ -2,7 +2,7 @@ using MediatR;
 
 namespace Crm.Tickets.Api.Features.Tickets.CreateTicket;
 
-/// <summary>SDD CRM-004 / specs/003-ticket-lifecycle.</summary>
+/// <summary>SDD CRM-004 / CRM-043.</summary>
 public sealed record CreateTicketCommand(
     Guid CustomerId,
     string CustomerName,
@@ -10,4 +10,5 @@ public sealed record CreateTicketCommand(
     string? Description,
     string Category,
     string Priority,
-    string Actor) : IRequest<CreateTicketResponse>;
+    string Actor,
+    Guid? DepartmentId = null) : IRequest<CreateTicketResponse>;

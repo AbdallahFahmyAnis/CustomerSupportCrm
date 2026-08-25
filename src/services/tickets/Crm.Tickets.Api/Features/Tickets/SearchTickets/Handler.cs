@@ -10,7 +10,13 @@ public sealed class SearchTicketsHandler(TicketsDb db)
 {
     public Task<IReadOnlyList<TicketSummaryDto>> Handle(SearchTicketsQuery request, CancellationToken cancellationToken)
     {
-        var rows = db.Search(request.Q, request.AssignedAgentId).Select(TicketMap.Summary).ToList();
+        Guid? dept = null;
+        if (!string.IsNullOrWhiteSpace(request.DepartmentId) && Guid.TryParse(request.DepartmentId, out var d))
+        {
+            dept = d;
+        }
+
+        var rows = db.Search(request.Q, request.AssignedAgentId, dept).Select(TicketMap.Summary).ToList();
         return Task.FromResult<IReadOnlyList<TicketSummaryDto>>(rows);
     }
 }

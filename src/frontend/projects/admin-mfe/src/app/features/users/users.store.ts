@@ -36,7 +36,14 @@ export class UsersStore {
   }
 
   create(
-    body: { email: string; displayName: string; password: string; role: string },
+    body: {
+      email: string;
+      displayName: string;
+      password: string;
+      role: string;
+      departmentId?: string | null;
+      branchId?: string | null;
+    },
     onDone: () => void,
   ): void {
     this.error.set('');

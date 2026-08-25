@@ -16,7 +16,8 @@ internal static class TicketMap
         t.Status,
         t.AssignedAgentId,
         t.AssignedAgentName,
-        t.IsEscalated);
+        t.IsEscalated,
+        t.DepartmentId?.ToString());
 
     public static TicketDetailDto Detail(
         Ticket t,
@@ -63,7 +64,8 @@ internal static class TicketMap
                 feedback.TicketId.ToString(),
                 feedback.Rating,
                 feedback.Comment,
-                feedback.CreatedAt));
+                feedback.CreatedAt),
+        t.DepartmentId?.ToString());
 }
 
 internal static class TicketHttp

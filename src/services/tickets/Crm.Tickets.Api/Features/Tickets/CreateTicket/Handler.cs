@@ -22,6 +22,11 @@ public sealed class CreateTicketHandler(TicketsDb db, SlaAutomationClient sla)
                 request.Category,
                 request.Priority,
                 request.Actor);
+            if (request.DepartmentId is { } dept)
+            {
+                ticket.SetDepartment(dept);
+            }
+
             db.Insert(ticket);
 
             var suggestion = await sla.SuggestAssigneeAsync(ticket.Category, ticket.Priority, cancellationToken);

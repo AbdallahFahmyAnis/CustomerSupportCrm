@@ -285,6 +285,25 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
         _client.DefaultRequestHeaders.Add("X-Crm-User-Id", "33333333-3333-3333-3333-333333333333");
     }
 
+    [Fact]
+    [Trait("Story", "CRM-043")]
+    public async Task Admin_can_create_and_list_departments()
+    {
+        AsAdmin();
+        var name = $"Dept-{Guid.NewGuid():N}"[..16];
+        var create = await _client.PostAsJsonAsync("/api/identity/departments",
+            new CreateDepartmentRequest(name));
+        create.StatusCode.Should().Be(HttpStatusCode.Created);
+        var dept = await create.Content.ReadFromJsonAsync<DepartmentDto>();
+        dept.Should().NotBeNull();
+        dept!.Name.Should().Be(name);
+
+        var list = await _client.GetAsync("/api/identity/departments");
+        list.StatusCode.Should().Be(HttpStatusCode.OK);
+        var rows = await list.Content.ReadFromJsonAsync<List<DepartmentDto>>();
+        rows!.Should().Contain(d => d.Name == name);
+    }
+
     private static int UserAccountMaxAttempts() => 5;
 }
 

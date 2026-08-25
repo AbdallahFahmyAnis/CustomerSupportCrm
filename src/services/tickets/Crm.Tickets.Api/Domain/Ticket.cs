@@ -17,6 +17,7 @@ public sealed class Ticket
     public string? AssignedAgentId { get; private set; }
     public string? AssignedAgentName { get; private set; }
     public bool IsEscalated { get; private set; }
+    public Guid? DepartmentId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
@@ -78,7 +79,8 @@ public sealed class Ticket
         bool isEscalated,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
-        IEnumerable<TicketHistoryEntry>? history = null)
+        IEnumerable<TicketHistoryEntry>? history = null,
+        Guid? departmentId = null)
     {
         var ticket = new Ticket
         {
@@ -94,6 +96,7 @@ public sealed class Ticket
             AssignedAgentId = assignedAgentId,
             AssignedAgentName = assignedAgentName,
             IsEscalated = isEscalated,
+            DepartmentId = departmentId,
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
         };
@@ -103,6 +106,13 @@ public sealed class Ticket
         }
 
         return ticket;
+    }
+
+    /// <summary>SDD CRM-043</summary>
+    public void SetDepartment(Guid? departmentId)
+    {
+        DepartmentId = departmentId;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void Classify(string category, string priority, string actor)

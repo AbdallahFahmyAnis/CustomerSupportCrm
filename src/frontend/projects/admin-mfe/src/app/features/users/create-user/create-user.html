@@ -70,6 +70,26 @@
             </select>
           </label>
         </div>
+        <div class="field-row">
+          <label>
+            Department
+            <select name="departmentId" [(ngModel)]="departmentId" (ngModelChange)="onDeptChange()">
+              <option value="">None</option>
+              @for (d of departments; track d.id) {
+                <option [value]="d.id">{{ d.name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Branch
+            <select name="branchId" [(ngModel)]="branchId">
+              <option value="">None</option>
+              @for (b of filteredBranches; track b.id) {
+                <option [value]="b.id">{{ b.name }}</option>
+              }
+            </select>
+          </label>
+        </div>
       </div>
     </ng-template>
 

@@ -54,10 +54,35 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
                 );
                 CREATE UNIQUE INDEX IF NOT EXISTS "IX_TicketFeedback_TicketId" ON "TicketFeedback" ("TicketId");
                 """);
+            try
+            {
+                db.Database.ExecuteSqlRaw("""ALTER TABLE "Tickets" ADD COLUMN "DepartmentId" TEXT NULL;""");
+            }
+            catch
+            {
+                // column may exist
+            }
         }
         catch
         {
             // SQL Server / already migrated — EF model covers new DBs
+        }
+
+        try
+        {
+            using var dbSql = factory.CreateDbContext();
+            if (!dbSql.Database.IsSqlite())
+            {
+                dbSql.Database.ExecuteSqlRaw(
+                    """
+                    IF COL_LENGTH('Tickets', 'DepartmentId') IS NULL
+                      ALTER TABLE [Tickets] ADD [DepartmentId] uniqueidentifier NULL;
+                    """);
+            }
+        }
+        catch
+        {
+            // ignore
         }
     }
 
@@ -150,6 +175,7 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         row.AssignedAgentId = ticket.AssignedAgentId;
         row.AssignedAgentName = ticket.AssignedAgentName;
         row.IsEscalated = ticket.IsEscalated;
+        row.DepartmentId = ticket.DepartmentId;
         row.UpdatedAt = ticket.UpdatedAt;
 
         var existingIds = db.TicketHistory.Where(h => h.TicketId == ticket.Id).Select(h => h.Id).ToHashSet();
@@ -166,7 +192,7 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         db.SaveChanges();
     }
 
-    public IReadOnlyList<Ticket> Search(string? q, string? assignedAgentId)
+    public IReadOnlyList<Ticket> Search(string? q, string? assignedAgentId, Guid? departmentId = null)
     {
         using var db = factory.CreateDbContext();
         IQueryable<TicketRow> query = db.Tickets.AsNoTracking();
@@ -184,6 +210,11 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         {
             var aid = assignedAgentId.Trim();
             query = query.Where(t => t.AssignedAgentId == aid);
+        }
+
+        if (departmentId is { } dept)
+        {
+            query = query.Where(t => t.DepartmentId == dept);
         }
 
         return query
@@ -226,7 +257,8 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             row.IsEscalated,
             row.CreatedAt,
             row.UpdatedAt,
-            history);
+            history,
+            row.DepartmentId);
     }
 
     /// <summary>SDD CRM-030 — lookup by ticket number (portal feedback).</summary>
@@ -410,7 +442,8 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             row.AssignedAgentName,
             row.IsEscalated,
             row.CreatedAt,
-            row.UpdatedAt);
+            row.UpdatedAt,
+            departmentId: row.DepartmentId);
 
     private static TicketRow ToRow(Ticket t) => new()
     {
@@ -426,6 +459,7 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         AssignedAgentId = t.AssignedAgentId,
         AssignedAgentName = t.AssignedAgentName,
         IsEscalated = t.IsEscalated,
+        DepartmentId = t.DepartmentId,
         CreatedAt = t.CreatedAt,
         UpdatedAt = t.UpdatedAt
     };

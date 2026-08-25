@@ -7,7 +7,7 @@ public sealed class SearchTicketsEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/tickets", async (string? q, string? assignedTo, IMediator mediator) =>
-            Results.Ok(await mediator.Send(new SearchTicketsQuery(q, assignedTo))));
+        app.MapGet("/api/tickets", async (string? q, string? assignedTo, string? departmentId, IMediator mediator) =>
+            Results.Ok(await mediator.Send(new SearchTicketsQuery(q, assignedTo, departmentId))));
     }
 }

@@ -92,6 +92,7 @@ public sealed class TicketRow
     public string? AssignedAgentId { get; set; }
     public string? AssignedAgentName { get; set; }
     public bool IsEscalated { get; set; }
+    public Guid? DepartmentId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }

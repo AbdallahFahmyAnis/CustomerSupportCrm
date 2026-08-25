@@ -53,12 +53,12 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/035-ai-auto-categorize` — CRM-025 auto-categorize
 - [x] `specs/036-ai-portal-chatbot` — CRM-026 portal AI chatbot
 - [x] `specs/037-external-apis` — CRM-038 gateway external API key surface
+- [x] `specs/038-departments-branches` — CRM-043 departments and branches
 
 ## Next
 
-1. CRM-043 departments/branches when ready
-2. CRM-044 custom branding when ready
-3. CRM-039 ERP webhook stub when ready
+1. CRM-044 custom branding when ready
+2. CRM-039 ERP webhook stub when ready
 
 ## Constraints
 

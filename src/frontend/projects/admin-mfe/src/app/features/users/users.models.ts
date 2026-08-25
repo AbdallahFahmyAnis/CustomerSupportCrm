@@ -5,6 +5,8 @@ export interface UserSummary {
   displayName: string;
   role: string;
   isActive: boolean;
+  departmentId?: string | null;
+  branchId?: string | null;
 }
 
 export interface RoleSummary {
