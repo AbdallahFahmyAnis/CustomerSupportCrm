@@ -1,4 +1,5 @@
 using Crm.Contracts.Identity;
+using Crm.Identity.Api.Domain;
 using Crm.Identity.Api.Infrastructure;
 using MediatR;
 
@@ -22,6 +23,24 @@ public sealed class DeactivateUserHandler(IdentityDirectory directory)
 
         user.Deactivate();
         await directory.UpdateAsync(user, cancellationToken);
+
+        string? actorEmail = null;
+        if (request.ActorId is { } actorId)
+        {
+            var actor = await directory.GetUserAsync(actorId, cancellationToken);
+            actorEmail = actor?.Email;
+        }
+
+        await directory.AppendAuditAsync(
+            AuditActions.UserDeactivated,
+            true,
+            request.ActorId,
+            actorEmail,
+            user.Id,
+            user.Email,
+            null,
+            cancellationToken);
+
         return new DeactivateUserResponse(
             new UserSummaryDto(user.Id.ToString(), user.Email, user.DisplayName, user.Role, user.IsActive),
             null);

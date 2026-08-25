@@ -15,6 +15,7 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
 
     public DbSet<StoredRefreshToken> RefreshTokens => Set<StoredRefreshToken>();
     public DbSet<RevokedAccessToken> RevokedAccessTokens => Set<RevokedAccessToken>();
+    public DbSet<AuditLogEntry> AuditLogs => Set<AuditLogEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -43,6 +44,18 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
             e.HasKey(x => x.Jti);
             e.Property(x => x.Jti).HasMaxLength(100);
             e.Property(x => x.UserId).IsRequired();
+        });
+
+        builder.Entity<AuditLogEntry>(e =>
+        {
+            e.ToTable("AuditLogs");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Action).HasMaxLength(100).IsRequired();
+            e.Property(x => x.ActorEmail).HasMaxLength(256);
+            e.Property(x => x.TargetEmail).HasMaxLength(256);
+            e.Property(x => x.Detail).HasMaxLength(1000);
+            e.Property(x => x.OccurredAt).IsRequired();
+            e.Property(x => x.Success).IsRequired();
         });
     }
 }

@@ -1,4 +1,4 @@
-using Crm.Identity.Api.Features.Auth.IssueToken;
+using Crm.Identity.Api.Domain;
 using Crm.Identity.Api.Infrastructure;
 using MediatR;
 
@@ -19,16 +19,22 @@ public sealed class IssueTokenHandler(IdentityDirectory directory)
         var user = await directory.FindByEmailAsync(request.Email, cancellationToken);
         if (user is null)
         {
+            await directory.AppendAuditAsync(
+                AuditActions.Login, false, null, request.Email.Trim(), null, null, "Unknown user", cancellationToken);
             return new IssueTokenResponse(null, "Invalid credentials.", false);
         }
 
         if (!user.IsActive)
         {
+            await directory.AppendAuditAsync(
+                AuditActions.Login, false, user.Id, user.Email, user.Id, user.Email, "Inactive account", cancellationToken);
             return new IssueTokenResponse(null, "Account is inactive.", false);
         }
 
         if (user.IsLockedOut(now))
         {
+            await directory.AppendAuditAsync(
+                AuditActions.Login, false, user.Id, user.Email, user.Id, user.Email, "Locked out", cancellationToken);
             return new IssueTokenResponse(
                 null,
                 $"Account locked until {user.LockoutUntil:u}.",
@@ -40,6 +46,15 @@ public sealed class IssueTokenHandler(IdentityDirectory directory)
             await directory.RegisterFailedLoginAsync(user, now, cancellationToken);
             var refreshed = await directory.GetUserAsync(user.Id, cancellationToken);
             var locked = refreshed is not null && await directory.IsLockedOutAsync(user.Id, cancellationToken);
+            await directory.AppendAuditAsync(
+                AuditActions.Login,
+                false,
+                user.Id,
+                user.Email,
+                user.Id,
+                user.Email,
+                locked ? "Invalid password; account locked" : "Invalid password",
+                cancellationToken);
             return new IssueTokenResponse(
                 null,
                 locked ? $"Account locked until {refreshed!.LockoutUntil:u}." : "Invalid credentials.",
@@ -48,6 +63,8 @@ public sealed class IssueTokenHandler(IdentityDirectory directory)
 
         await directory.RegisterSuccessfulLoginAsync(user, cancellationToken);
         var pair = await directory.IssuePairAsync(user, now, cancellationToken);
+        await directory.AppendAuditAsync(
+            AuditActions.Login, true, user.Id, user.Email, user.Id, user.Email, null, cancellationToken);
         return new IssueTokenResponse(pair, null, false);
     }
 }

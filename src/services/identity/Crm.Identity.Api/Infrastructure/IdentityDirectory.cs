@@ -19,7 +19,104 @@ public sealed class IdentityDirectory(
     public async Task EnsureSchemaAsync(CancellationToken cancellationToken = default)
     {
         await db.Database.EnsureCreatedAsync(cancellationToken);
+        await EnsureAuditTableAsync(cancellationToken);
     }
+
+    /// <summary>SDD CRM-036 — EnsureCreated will not add tables to an existing DB.</summary>
+    private async Task EnsureAuditTableAsync(CancellationToken cancellationToken)
+    {
+        if (db.Database.IsSqlite())
+        {
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                CREATE TABLE IF NOT EXISTS "AuditLogs" (
+                    "Id" TEXT NOT NULL CONSTRAINT "PK_AuditLogs" PRIMARY KEY,
+                    "OccurredAt" TEXT NOT NULL,
+                    "Action" TEXT NOT NULL,
+                    "ActorUserId" TEXT NULL,
+                    "ActorEmail" TEXT NULL,
+                    "TargetUserId" TEXT NULL,
+                    "TargetEmail" TEXT NULL,
+                    "Detail" TEXT NULL,
+                    "Success" INTEGER NOT NULL
+                );
+                """,
+                cancellationToken);
+            return;
+        }
+
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            IF OBJECT_ID(N'[AuditLogs]', N'U') IS NULL
+            BEGIN
+              CREATE TABLE [AuditLogs] (
+                [Id] uniqueidentifier NOT NULL CONSTRAINT [PK_AuditLogs] PRIMARY KEY,
+                [OccurredAt] datetimeoffset NOT NULL,
+                [Action] nvarchar(100) NOT NULL,
+                [ActorUserId] uniqueidentifier NULL,
+                [ActorEmail] nvarchar(256) NULL,
+                [TargetUserId] uniqueidentifier NULL,
+                [TargetEmail] nvarchar(256) NULL,
+                [Detail] nvarchar(1000) NULL,
+                [Success] bit NOT NULL
+              );
+            END
+            """,
+            cancellationToken);
+    }
+
+    public async Task AppendAuditAsync(
+        string action,
+        bool success,
+        Guid? actorUserId,
+        string? actorEmail,
+        Guid? targetUserId,
+        string? targetEmail,
+        string? detail,
+        CancellationToken ct = default)
+    {
+        db.AuditLogs.Add(new AuditLogEntry
+        {
+            Id = Guid.NewGuid(),
+            OccurredAt = DateTimeOffset.UtcNow,
+            Action = action,
+            ActorUserId = actorUserId,
+            ActorEmail = actorEmail,
+            TargetUserId = targetUserId,
+            TargetEmail = targetEmail,
+            Detail = detail,
+            Success = success
+        });
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<AuditLogEntry>> SearchAuditAsync(
+        string? q,
+        int take,
+        CancellationToken ct = default)
+    {
+        take = Math.Clamp(take, 1, 500);
+        var query = db.AuditLogs.AsNoTracking().AsQueryable();
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = q.Trim().ToLowerInvariant();
+            query = query.Where(e =>
+                e.Action.ToLower().Contains(term) ||
+                (e.ActorEmail != null && e.ActorEmail.ToLower().Contains(term)) ||
+                (e.TargetEmail != null && e.TargetEmail.ToLower().Contains(term)) ||
+                (e.Detail != null && e.Detail.ToLower().Contains(term)));
+        }
+
+        // Sqlite cannot ORDER BY DateTimeOffset — sort in memory after materialize.
+        var rows = await query.Take(take * 4).ToListAsync(ct);
+        return rows
+            .OrderByDescending(e => e.OccurredAt)
+            .Take(take)
+            .ToList();
+    }
+
+    public async Task<int> CountAuditAsync(CancellationToken ct = default)
+        => await db.AuditLogs.CountAsync(ct);
 
     public async Task<UserAccount?> FindByEmailAsync(string email, CancellationToken ct = default)
     {

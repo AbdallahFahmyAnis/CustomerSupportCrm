@@ -16,7 +16,7 @@ public sealed class UpdateUserRoleEndpoint : IEndpoint
                 return AdminHttp.ForbiddenAdmin();
             }
 
-            var result = await mediator.Send(new UpdateUserRoleCommand(id, body.Role));
+            var result = await mediator.Send(new UpdateUserRoleCommand(id, body.Role, AdminHttp.ActorId(http)));
             if (result.Error is null)
             {
                 return Results.Ok(result.User);
