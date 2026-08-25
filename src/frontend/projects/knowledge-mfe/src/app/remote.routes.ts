@@ -1,4 +1,10 @@
 import { Routes } from '@angular/router';
-import { KnowledgeHomePage } from './features/home/home/home.page';
 
-export const KNOWLEDGE_ROUTES: Routes = [{ path: '', component: KnowledgeHomePage }];
+/** SDD CRM-021 — knowledge Feature-Based routes. */
+export const KNOWLEDGE_ROUTES: Routes = [
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/articles/articles.routes').then((m) => m.ARTICLES_ROUTES),
+  },
+];

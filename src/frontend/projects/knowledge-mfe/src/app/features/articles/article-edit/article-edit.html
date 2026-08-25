@@ -1,0 +1,48 @@
+<section class="page">
+  <p><a routerLink="/knowledge">← Articles</a></p>
+
+  <header class="row">
+    <div>
+      <h1>{{ isNew ? 'New article' : 'Edit article' }}</h1>
+      <p class="lede">Author FAQs, articles, solutions, and guides</p>
+    </div>
+  </header>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+
+  @if (!isNew && store.loading() && !store.selected()) {
+    <p>Loading…</p>
+  } @else {
+    <form class="form" (ngSubmit)="save()">
+      <label>
+        Title
+        <input name="title" [(ngModel)]="title" required />
+      </label>
+      <label>
+        Kind
+        <select name="kind" [(ngModel)]="kind">
+          @for (k of kinds; track k) {
+            <option [value]="k">{{ k }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Status
+        <select name="status" [(ngModel)]="status">
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </label>
+      <label class="body">
+        Body
+        <textarea name="body" rows="12" [(ngModel)]="body" required></textarea>
+      </label>
+      <button type="submit" class="btn" [disabled]="store.saving()">
+        {{ store.saving() ? 'Saving…' : 'Save' }}
+      </button>
+    </form>
+  }
+</section>

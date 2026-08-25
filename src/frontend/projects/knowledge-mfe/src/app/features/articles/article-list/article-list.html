@@ -1,0 +1,34 @@
+<section class="page">
+  <header class="row">
+    <div>
+      <h1>Knowledge base</h1>
+      <p class="lede">FAQs, articles, solutions, and guides</p>
+    </div>
+    <a routerLink="/knowledge/new" class="btn">New article</a>
+  </header>
+
+  <form class="filter" (ngSubmit)="search()">
+    <input name="q" [(ngModel)]="q" placeholder="Filter by title or body" />
+    <button type="submit" class="btn secondary">Search</button>
+  </form>
+
+  @if (store.error()) {
+    <p class="error">{{ store.error() }}</p>
+  }
+  @if (store.loading()) {
+    <p>Loading…</p>
+  } @else if (store.items().length === 0) {
+    <p>No articles yet.</p>
+  } @else {
+    <ul class="list">
+      @for (a of store.items(); track a.id) {
+        <li>
+          <a [routerLink]="['/knowledge', a.id]">
+            <strong>{{ a.title }}</strong>
+            <span>{{ a.kind }} · {{ a.status }} · {{ a.updatedAt | date: 'short' }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>
