@@ -14,6 +14,9 @@ import { IngestWhatsAppService } from '../features/intake/ingest-whatsapp/servic
 import { IngestChatRoute } from '../features/intake/ingest-chat/route';
 import { IngestChatHandler } from '../features/intake/ingest-chat/handler';
 import { IngestChatService } from '../features/intake/ingest-chat/service';
+import { IngestSmsRoute } from '../features/intake/ingest-sms/route';
+import { IngestSmsHandler } from '../features/intake/ingest-sms/handler';
+import { IngestSmsService } from '../features/intake/ingest-sms/service';
 import { ListPortalRequestsRoute } from '../features/portal/list-requests/route';
 import { ListPortalRequestsHandler } from '../features/portal/list-requests/handler';
 import { ListPortalRequestsService } from '../features/portal/list-requests/service';
@@ -29,6 +32,9 @@ import { ReplyWhatsAppService } from '../features/messages/reply-whatsapp/servic
 import { ReplyChatRoute } from '../features/messages/reply-chat/route';
 import { ReplyChatHandler } from '../features/messages/reply-chat/handler';
 import { ReplyChatService } from '../features/messages/reply-chat/service';
+import { ReplySmsRoute } from '../features/messages/reply-sms/route';
+import { ReplySmsHandler } from '../features/messages/reply-sms/handler';
+import { ReplySmsService } from '../features/messages/reply-sms/service';
 import { ChannelsStore } from '../infrastructure/database/channels.store';
 import { DownstreamClient } from '../infrastructure/http/downstream.client';
 import { DevEmailProvider } from '../infrastructure/email/dev-email.provider';
@@ -38,6 +44,8 @@ import { DevWhatsAppProvider } from '../infrastructure/whatsapp/dev-whatsapp.pro
 import { WHATSAPP_PROVIDER } from '../infrastructure/whatsapp/whatsapp-provider';
 import { DevChatProvider } from '../infrastructure/chat/dev-chat.provider';
 import { CHAT_PROVIDER } from '../infrastructure/chat/chat-provider';
+import { DevSmsProvider } from '../infrastructure/sms/dev-sms.provider';
+import { SMS_PROVIDER } from '../infrastructure/sms/sms-provider';
 import { channelsConfig } from './config';
 
 @Module({
@@ -48,11 +56,13 @@ import { channelsConfig } from './config';
     IngestEmailRoute,
     IngestWhatsAppRoute,
     IngestChatRoute,
+    IngestSmsRoute,
     ListPortalRequestsRoute,
     ListTicketMessagesRoute,
     ReplyEmailRoute,
     ReplyWhatsAppRoute,
     ReplyChatRoute,
+    ReplySmsRoute,
   ],
   providers: [
     GetHealthHandler,
@@ -64,6 +74,8 @@ import { channelsConfig } from './config';
     IngestWhatsAppService,
     IngestChatHandler,
     IngestChatService,
+    IngestSmsHandler,
+    IngestSmsService,
     ListPortalRequestsHandler,
     ListPortalRequestsService,
     ListTicketMessagesHandler,
@@ -74,12 +86,15 @@ import { channelsConfig } from './config';
     ReplyWhatsAppService,
     ReplyChatHandler,
     ReplyChatService,
+    ReplySmsHandler,
+    ReplySmsService,
     ChannelsStore,
     DownstreamClient,
     DevEmailProvider,
     SmtpEmailProvider,
     DevWhatsAppProvider,
     DevChatProvider,
+    DevSmsProvider,
     {
       provide: EMAIL_PROVIDER,
       useFactory: (dev: DevEmailProvider, smtp: SmtpEmailProvider) =>
@@ -93,6 +108,10 @@ import { channelsConfig } from './config';
     {
       provide: CHAT_PROVIDER,
       useExisting: DevChatProvider,
+    },
+    {
+      provide: SMS_PROVIDER,
+      useExisting: DevSmsProvider,
     },
   ],
 })

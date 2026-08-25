@@ -31,12 +31,13 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/012-system-config` — CRM-037 admin system settings UI + lockout policy
 - [x] `specs/013-whatsapp-channel` — CRM-009 WhatsApp intake + reply (DevWhatsAppProvider)
 - [x] `specs/014-live-chat` — CRM-010 live chat intake + reply (DevChatProvider) + portal chat
+- [x] `specs/015-sms-channel` — CRM-011 SMS intake + reply (DevSmsProvider)
 
 ## Next
 
-1. CRM-011 SMS
-2. Richer CRM-040 providers (SendGrid, Meta/Twilio WhatsApp)
-3. CRM-017+ SLA / automation when ready
+1. Richer CRM-040 providers (SendGrid, Meta/Twilio WhatsApp/SMS)
+2. CRM-017+ SLA / automation when ready
+3. CRM-021 knowledge base when ready
 
 ## Constraints
 
