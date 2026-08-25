@@ -1,6 +1,6 @@
 .page {
   display: grid;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .row {
@@ -22,10 +22,27 @@
   color: #027a48;
 }
 
-.policy-table {
+.block {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 56rem;
+}
+
+.block h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.policy-table,
+.rules {
   display: grid;
   gap: 0.5rem;
-  max-width: 48rem;
 }
 
 .policy-head,
@@ -42,18 +59,60 @@
   padding: 0 0.25rem;
 }
 
-.policy-row {
+.policy-row,
+.rule-row {
   padding: 0.75rem;
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 0.5rem;
 }
 
-.policy-row input {
+.policy-row input,
+.rule-row input[type='text'],
+.rule-row input:not([type='checkbox']),
+.escalation input:not([type='checkbox']) {
   width: 100%;
   min-height: unset;
   padding: 0.4rem 0.55rem;
 }
 
+.rule-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 0.65rem;
+  align-items: end;
+}
+
+.rule-row label,
+.escalation label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.check {
+  display: flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  grid-template-columns: none !important;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.escalation {
+  display: grid;
+  gap: 0.65rem;
+  max-width: 28rem;
+}
+
 .btn {
   white-space: nowrap;
+}
+
+.btn.secondary {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
 }

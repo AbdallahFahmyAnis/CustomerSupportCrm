@@ -53,6 +53,11 @@
   opacity: 0.75;
 }
 
+.sla-run {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
 .panels {
   display: grid;
   gap: 1rem;

@@ -1,4 +1,4 @@
-/** SDD CRM-017 — SLA policy and evaluation DTOs. */
+/** SDD CRM-017 / CRM-018 / CRM-019 — SLA DTOs. */
 export interface SlaPolicy {
   priority: string;
   firstResponseMinutes: number;
@@ -6,13 +6,20 @@ export interface SlaPolicy {
   updatedAt: string;
 }
 
-export interface SlaEvaluation {
-  priority: string;
-  firstResponseMinutes: number;
-  resolutionMinutes: number;
-  firstResponseDueAt: string;
-  resolutionDueAt: string;
-  firstResponseBreached: boolean;
-  resolutionBreached: boolean;
-  asOf: string;
+export interface AutoAssignRule {
+  id: string;
+  category?: string | null;
+  priority?: string | null;
+  agentId: string;
+  agentName: string;
+  enabled: boolean;
+}
+
+export interface EscalationSettings {
+  escalateOnFirstResponseBreach: boolean;
+  escalateOnResolutionBreach: boolean;
+  escalateUrgentAlways: boolean;
+  assignToAgentId: string;
+  assignToAgentName: string;
+  updatedAt: string;
 }

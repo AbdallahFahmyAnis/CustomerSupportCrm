@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { SlaPolicy } from './sla.models';
+import { AutoAssignRule, EscalationSettings, SlaPolicy } from './sla.models';
 
-/** SDD CRM-017 — SLA policies via gateway. */
+/** SDD CRM-017 / CRM-018 / CRM-019 — SLA via gateway. */
 @Injectable({ providedIn: 'root' })
 export class SlaApi {
   private readonly http = inject(HttpClient);
@@ -17,5 +17,21 @@ export class SlaApi {
       firstResponseMinutes,
       resolutionMinutes,
     });
+  }
+
+  listAssignRules(): Observable<AutoAssignRule[]> {
+    return this.http.get<AutoAssignRule[]>('/api/sla/assign-rules');
+  }
+
+  replaceAssignRules(rules: AutoAssignRule[]): Observable<AutoAssignRule[]> {
+    return this.http.put<AutoAssignRule[]>('/api/sla/assign-rules', { rules });
+  }
+
+  getEscalationSettings(): Observable<EscalationSettings> {
+    return this.http.get<EscalationSettings>('/api/sla/escalation-settings');
+  }
+
+  updateEscalationSettings(body: Omit<EscalationSettings, 'updatedAt'>): Observable<EscalationSettings> {
+    return this.http.put<EscalationSettings>('/api/sla/escalation-settings', body);
   }
 }

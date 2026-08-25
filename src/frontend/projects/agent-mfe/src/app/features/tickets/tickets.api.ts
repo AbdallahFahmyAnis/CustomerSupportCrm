@@ -96,6 +96,21 @@ export class TicketsApi {
     return this.http.post<SlaEvaluation>('/api/sla/evaluate', body);
   }
 
+  /** SDD CRM-018 / CRM-019 — apply SLA assign + escalate. */
+  runAutomation(id: string): Observable<{
+    ticket: TicketSummary;
+    assigned: boolean;
+    escalated: boolean;
+    message?: string;
+  }> {
+    return this.http.post<{
+      ticket: TicketSummary;
+      assigned: boolean;
+      escalated: boolean;
+      message?: string;
+    }>(`/api/tickets/${id}/run-automation`, {});
+  }
+
   searchCustomers(q = ''): Observable<CustomerOption[]> {
     const query = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
     return this.http.get<CustomerOption[]>(`/api/customers${query}`);

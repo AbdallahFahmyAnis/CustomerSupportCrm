@@ -28,3 +28,50 @@ public sealed record SlaEvaluationDto(
     bool FirstResponseBreached,
     bool ResolutionBreached,
     DateTimeOffset AsOf);
+
+/// <summary>SDD CRM-018 — auto-assign rule (null category/priority = wildcard).</summary>
+public sealed record AutoAssignRuleDto(
+    string Id,
+    string? Category,
+    string? Priority,
+    string AgentId,
+    string AgentName,
+    bool Enabled);
+
+public sealed record ReplaceAutoAssignRulesRequest(IReadOnlyList<AutoAssignRuleDto> Rules);
+
+public sealed record SuggestAssigneeRequest(string Category, string Priority);
+
+public sealed record SuggestAssigneeDto(string? AgentId, string? AgentName, string? MatchedRuleId);
+
+/// <summary>SDD CRM-019 — escalation settings singleton.</summary>
+public sealed record EscalationSettingsDto(
+    bool EscalateOnFirstResponseBreach,
+    bool EscalateOnResolutionBreach,
+    bool EscalateUrgentAlways,
+    string AssignToAgentId,
+    string AssignToAgentName,
+    DateTimeOffset UpdatedAt);
+
+public sealed record UpdateEscalationSettingsRequest(
+    bool EscalateOnFirstResponseBreach,
+    bool EscalateOnResolutionBreach,
+    bool EscalateUrgentAlways,
+    string AssignToAgentId,
+    string AssignToAgentName);
+
+public sealed record ShouldEscalateRequest(
+    string Priority,
+    DateTimeOffset CreatedAt,
+    bool IsEscalated,
+    string? Status = null,
+    string? AssignedAgentId = null,
+    DateTimeOffset? FirstResponseAt = null,
+    DateTimeOffset? ResolvedAt = null,
+    DateTimeOffset? AsOf = null);
+
+public sealed record ShouldEscalateDto(
+    bool ShouldEscalate,
+    string? AssignToAgentId,
+    string? AssignToAgentName,
+    string? Reason);

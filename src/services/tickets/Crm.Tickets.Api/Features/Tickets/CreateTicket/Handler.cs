@@ -5,9 +5,11 @@ using MediatR;
 
 namespace Crm.Tickets.Api.Features.Tickets.CreateTicket;
 
-public sealed class CreateTicketHandler(TicketsDb db) : IRequestHandler<CreateTicketCommand, CreateTicketResponse>
+/// <summary>SDD CRM-004 / CRM-018 — create ticket and auto-assign when SLA suggests.</summary>
+public sealed class CreateTicketHandler(TicketsDb db, SlaAutomationClient sla)
+    : IRequestHandler<CreateTicketCommand, CreateTicketResponse>
 {
-    public Task<CreateTicketResponse> Handle(CreateTicketCommand request, CancellationToken cancellationToken)
+    public async Task<CreateTicketResponse> Handle(CreateTicketCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -21,11 +23,19 @@ public sealed class CreateTicketHandler(TicketsDb db) : IRequestHandler<CreateTi
                 request.Priority,
                 request.Actor);
             db.Insert(ticket);
-            return Task.FromResult(new CreateTicketResponse(TicketMap.Summary(ticket), null));
+
+            var suggestion = await sla.SuggestAssigneeAsync(ticket.Category, ticket.Priority, cancellationToken);
+            if (suggestion?.AgentId is not null && suggestion.AgentName is not null)
+            {
+                ticket.Assign(suggestion.AgentId, suggestion.AgentName, "SLA automation");
+                db.Update(ticket);
+            }
+
+            return new CreateTicketResponse(TicketMap.Summary(ticket), null);
         }
         catch (ArgumentException ex)
         {
-            return Task.FromResult(new CreateTicketResponse(null, ex.Message));
+            return new CreateTicketResponse(null, ex.Message);
         }
     }
 }
