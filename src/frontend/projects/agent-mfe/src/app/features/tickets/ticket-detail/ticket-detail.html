@@ -131,6 +131,20 @@
       <button type="submit" class="btn">Send WhatsApp reply</button>
     </form>
 
+    <form class="card reply" (ngSubmit)="sendChatReply()">
+      <h2>Live chat reply</h2>
+      <label>
+        Message
+        <textarea
+          name="chatReplyBody"
+          rows="4"
+          [(ngModel)]="chatReplyBody"
+          placeholder="Write a live chat reply…"
+        ></textarea>
+      </label>
+      <button type="submit" class="btn">Send live chat reply</button>
+    </form>
+
     <h2>History</h2>
     <ul class="history">
       @for (h of t.history; track h.id) {

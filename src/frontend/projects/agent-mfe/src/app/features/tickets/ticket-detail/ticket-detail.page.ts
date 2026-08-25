@@ -26,6 +26,7 @@ export class TicketDetailPage implements OnInit {
   escalateTo = '';
   replyBody = '';
   whatsappReplyBody = '';
+  chatReplyBody = '';
   private id = '';
 
   constructor() {
@@ -94,6 +95,17 @@ export class TicketDetailPage implements OnInit {
     }
     this.store.replyWhatsApp(this.id, body, () => {
       this.whatsappReplyBody = '';
+    });
+  }
+
+  sendChatReply(): void {
+    const body = this.chatReplyBody.trim();
+    if (!body) {
+      this.store.error.set('Live chat reply body is required.');
+      return;
+    }
+    this.store.replyChat(this.id, body, () => {
+      this.chatReplyBody = '';
     });
   }
 }
