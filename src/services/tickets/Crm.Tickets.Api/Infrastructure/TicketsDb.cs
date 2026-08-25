@@ -16,6 +16,28 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             db.TicketSequence.Add(new TicketSequenceRow { Name = "ticket", Value = 1000 });
             db.SaveChanges();
         }
+
+        // EnsureCreated does not add new tables to an existing Sqlite file (CRM-016).
+        try
+        {
+            db.Database.ExecuteSqlRaw(
+                """
+                CREATE TABLE IF NOT EXISTS "TicketNotes" (
+                    "Id" TEXT NOT NULL CONSTRAINT "PK_TicketNotes" PRIMARY KEY,
+                    "TicketId" TEXT NOT NULL,
+                    "Body" TEXT NOT NULL,
+                    "AuthorName" TEXT NOT NULL,
+                    "AuthorUserId" TEXT NULL,
+                    "MentionedUserIdsJson" TEXT NOT NULL,
+                    "CreatedAt" TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS "IX_TicketNotes_TicketId" ON "TicketNotes" ("TicketId");
+                """);
+        }
+        catch
+        {
+            // SQL Server / already migrated — EF model covers new DBs
+        }
     }
 
     public void SeedIfEmpty()
@@ -180,6 +202,26 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             history);
     }
 
+    /// <summary>SDD CRM-016 — list internal notes for a ticket (newest first).</summary>
+    public IReadOnlyList<TicketNote> ListNotes(Guid ticketId)
+    {
+        using var db = factory.CreateDbContext();
+        return db.TicketNotes.AsNoTracking()
+            .Where(n => n.TicketId == ticketId)
+            .ToList()
+            .OrderByDescending(n => n.CreatedAt)
+            .Select(FromNoteRow)
+            .ToList();
+    }
+
+    /// <summary>SDD CRM-016 — persist an internal collaboration note.</summary>
+    public void InsertNote(TicketNote note)
+    {
+        using var db = factory.CreateDbContext();
+        db.TicketNotes.Add(ToNoteRow(note));
+        db.SaveChanges();
+    }
+
     private static Ticket FromRow(TicketRow row)
         => Ticket.Rehydrate(
             row.Id,
@@ -225,4 +267,37 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         ChangedBy = e.ChangedBy,
         ChangedAt = e.ChangedAt
     };
+
+    private static TicketNoteRow ToNoteRow(TicketNote n) => new()
+    {
+        Id = n.Id,
+        TicketId = n.TicketId,
+        Body = n.Body,
+        AuthorName = n.AuthorName,
+        AuthorUserId = n.AuthorUserId,
+        MentionedUserIdsJson = System.Text.Json.JsonSerializer.Serialize(n.MentionedUserIds),
+        CreatedAt = n.CreatedAt
+    };
+
+    private static TicketNote FromNoteRow(TicketNoteRow row)
+    {
+        var mentions = Array.Empty<string>();
+        try
+        {
+            mentions = System.Text.Json.JsonSerializer.Deserialize<string[]>(row.MentionedUserIdsJson) ?? [];
+        }
+        catch
+        {
+            // ignore corrupt json
+        }
+
+        return TicketNote.Rehydrate(
+            row.Id,
+            row.TicketId,
+            row.Body,
+            row.AuthorName,
+            row.AuthorUserId,
+            mentions,
+            row.CreatedAt);
+    }
 }

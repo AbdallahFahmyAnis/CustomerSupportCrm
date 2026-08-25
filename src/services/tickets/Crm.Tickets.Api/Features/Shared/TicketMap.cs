@@ -18,7 +18,7 @@ internal static class TicketMap
         t.AssignedAgentName,
         t.IsEscalated);
 
-    public static TicketDetailDto Detail(Ticket t) => new(
+    public static TicketDetailDto Detail(Ticket t, IReadOnlyList<TicketNote>? notes = null) => new(
         t.Id.ToString(),
         t.TicketNumber,
         t.CustomerId.ToString(),
@@ -42,6 +42,16 @@ internal static class TicketMap
                 h.NewValue,
                 h.ChangedBy,
                 h.ChangedAt))
+            .ToList(),
+        (notes ?? [])
+            .OrderByDescending(n => n.CreatedAt)
+            .Select(n => new TicketNoteDto(
+                n.Id.ToString(),
+                n.Body,
+                n.AuthorName,
+                n.AuthorUserId,
+                n.MentionedUserIds,
+                n.CreatedAt))
             .ToList());
 }
 
@@ -51,4 +61,7 @@ internal static class TicketHttp
         http.Request.Headers["X-Crm-User-Email"].FirstOrDefault()
         ?? http.Request.Headers["X-Crm-User-Id"].FirstOrDefault()
         ?? "Demo Agent";
+
+    public static string? ActorUserId(HttpContext http) =>
+        http.Request.Headers["X-Crm-User-Id"].FirstOrDefault();
 }

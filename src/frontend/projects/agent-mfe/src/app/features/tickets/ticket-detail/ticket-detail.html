@@ -171,6 +171,43 @@
       </div>
     </crm-chat>
 
+    <h2>Team notes</h2>
+    <div class="card notes-card">
+      <p class="muted">Internal only — not shown on the customer portal.</p>
+      <ul class="note-list">
+        @for (n of t.notes ?? []; track n.id) {
+          <li class="note-item">
+            <div class="note-head">
+              <strong>{{ n.authorName }}</strong>
+              <span class="meta">{{ n.createdAt | date: 'short' }}</span>
+            </div>
+            <p class="note-body">{{ n.body }}</p>
+          </li>
+        } @empty {
+          <li class="muted">No internal notes yet.</li>
+        }
+      </ul>
+      <form class="note-form" (ngSubmit)="saveNote()">
+        <label class="full">
+          Add note
+          <textarea
+            name="noteDraft"
+            rows="3"
+            [(ngModel)]="noteDraft"
+            placeholder="Ask a colleague… use @Lead Agent"
+          ></textarea>
+        </label>
+        <div class="mention-row">
+          @for (a of store.options()?.agents ?? []; track a.id) {
+            <button type="button" class="btn ghost" (click)="insertMention(a.name)">
+              {{ '@' + a.name }}
+            </button>
+          }
+          <button type="submit" class="btn">Save note</button>
+        </div>
+      </form>
+    </div>
+
     <h2>History</h2>
     <crm-timeline [items]="historyItems()" emptyText="No history yet." />
   }

@@ -28,3 +28,19 @@ test('CRM-020 seed lists unread for demo agent and mark-read works', () => {
 
   assert.equal(store.markRead(DEMO_AGENT_ID, 'missing-id'), null);
 });
+
+test('CRM-016 create mention notification for lead agent', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'crm-notif-'));
+  const store = new NotificationsStore(dir);
+  const lead = '22222222-2222-2222-2222-222222222222';
+  const created = store.create({
+    userId: lead,
+    title: 'You were mentioned on TKT-1001',
+    body: 'Demo Agent: please review @Lead Agent',
+    kind: 'mention',
+    href: '/agent/tickets/abc',
+  });
+  assert.equal(created.kind, 'mention');
+  assert.equal(store.unreadCount(lead), 1);
+  assert.equal(store.listForUser(lead)[0].href, '/agent/tickets/abc');
+});

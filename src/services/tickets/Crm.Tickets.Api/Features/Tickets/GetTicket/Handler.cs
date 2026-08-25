@@ -10,6 +10,12 @@ public sealed class GetTicketHandler(TicketsDb db) : IRequestHandler<GetTicketQu
     public Task<TicketDetailDto?> Handle(GetTicketQuery request, CancellationToken cancellationToken)
     {
         var ticket = db.Get(request.Id);
-        return Task.FromResult(ticket is null ? null : TicketMap.Detail(ticket));
+        if (ticket is null)
+        {
+            return Task.FromResult<TicketDetailDto?>(null);
+        }
+
+        var notes = db.ListNotes(request.Id);
+        return Task.FromResult<TicketDetailDto?>(TicketMap.Detail(ticket, notes));
     }
 }

@@ -3,6 +3,7 @@ import * as path from 'path';
 import { randomUUID } from 'crypto';
 import {
   DEMO_AGENT_ID,
+  NotificationKind,
   NotificationRecord,
 } from '../../domain/notification';
 
@@ -90,6 +91,30 @@ export class NotificationsStore {
       row.readAt = new Date().toISOString();
       this.persist();
     }
+    return row;
+  }
+
+  /** SDD CRM-016 — create an inbox item (mention / producer). */
+  create(input: {
+    userId: string;
+    title: string;
+    body: string;
+    kind: NotificationKind;
+    href?: string;
+  }): NotificationRecord {
+    this.load();
+    const row: NotificationRecord = {
+      id: randomUUID(),
+      userId: input.userId.trim(),
+      title: input.title.trim(),
+      body: input.body.trim(),
+      kind: input.kind,
+      href: input.href?.trim() || undefined,
+      createdAt: new Date().toISOString(),
+      readAt: null,
+    };
+    this.items.push(row);
+    this.persist();
     return row;
   }
 

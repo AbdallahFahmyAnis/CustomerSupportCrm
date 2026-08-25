@@ -7,6 +7,7 @@ public sealed class TicketsDbContext(DbContextOptions<TicketsDbContext> options)
 {
     public DbSet<TicketRow> Tickets => Set<TicketRow>();
     public DbSet<TicketHistoryRow> TicketHistory => Set<TicketHistoryRow>();
+    public DbSet<TicketNoteRow> TicketNotes => Set<TicketNoteRow>();
     public DbSet<TicketSequenceRow> TicketSequence => Set<TicketSequenceRow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -32,6 +33,17 @@ public sealed class TicketsDbContext(DbContextOptions<TicketsDbContext> options)
             e.HasKey(x => x.Id);
             e.Property(x => x.Field).HasMaxLength(100).IsRequired();
             e.Property(x => x.ChangedBy).HasMaxLength(200).IsRequired();
+            e.HasIndex(x => x.TicketId);
+        });
+
+        modelBuilder.Entity<TicketNoteRow>(e =>
+        {
+            e.ToTable("TicketNotes");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Body).IsRequired();
+            e.Property(x => x.AuthorName).HasMaxLength(200).IsRequired();
+            e.Property(x => x.AuthorUserId).HasMaxLength(64);
+            e.Property(x => x.MentionedUserIdsJson).HasMaxLength(2000).IsRequired();
             e.HasIndex(x => x.TicketId);
         });
 
@@ -71,6 +83,17 @@ public sealed class TicketHistoryRow
     public string? NewValue { get; set; }
     public string ChangedBy { get; set; } = "";
     public DateTimeOffset ChangedAt { get; set; }
+}
+
+public sealed class TicketNoteRow
+{
+    public Guid Id { get; set; }
+    public Guid TicketId { get; set; }
+    public string Body { get; set; } = "";
+    public string AuthorName { get; set; } = "";
+    public string? AuthorUserId { get; set; }
+    public string MentionedUserIdsJson { get; set; } = "[]";
+    public DateTimeOffset CreatedAt { get; set; }
 }
 
 public sealed class TicketSequenceRow

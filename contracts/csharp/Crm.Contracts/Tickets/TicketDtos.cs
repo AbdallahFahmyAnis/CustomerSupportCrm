@@ -28,7 +28,19 @@ public sealed record TicketDetailDto(
     bool IsEscalated,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    IReadOnlyList<TicketHistoryDto> History);
+    IReadOnlyList<TicketHistoryDto> History,
+    IReadOnlyList<TicketNoteDto> Notes);
+
+/// <summary>SDD CRM-016 — internal agent note on a ticket.</summary>
+public sealed record TicketNoteDto(
+    string Id,
+    string Body,
+    string AuthorName,
+    string? AuthorUserId,
+    IReadOnlyList<string> MentionedUserIds,
+    DateTimeOffset CreatedAt);
+
+public sealed record AddTicketNoteRequest(string Body);
 
 public sealed record TicketHistoryDto(
     string Id,

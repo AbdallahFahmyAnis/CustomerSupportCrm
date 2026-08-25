@@ -28,6 +28,12 @@ public static class DependencyInjection
             var baseUrl = config["Services:Sla"] ?? "http://localhost:5105";
             client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
         });
+        services.AddHttpClient<NotificationsClient>((sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var baseUrl = config["Services:Notifications"] ?? "http://localhost:5202";
+            client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+        });
         return services;
     }
 
