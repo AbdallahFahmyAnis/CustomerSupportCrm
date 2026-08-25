@@ -56,11 +56,13 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/038-departments-branches` — CRM-043 departments and branches
 - [x] `specs/039-custom-branding` — CRM-044 custom branding
 - [x] `specs/040-erp-webhook-stub` — CRM-039 ERP outbound webhook stub
+- [x] `specs/041-external-openapi` — CRM-038 OpenAPI for external v1
 
 ## Next
 
-1. Imported CRM-001…044 story backlog is complete (board closeout done for orphan channel WIs).
-2. Optional polish when needed: external OpenAPI, AI summary persist, chat multi-turn memory, ERP webhook retries.
+1. Persist AI summaries (042) when ready
+2. Chat session memory (043) when ready
+3. ERP webhook retries (044) when ready
 
 ## Constraints
 
