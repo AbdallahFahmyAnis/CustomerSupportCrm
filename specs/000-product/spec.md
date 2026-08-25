@@ -29,11 +29,12 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/010-customers-tickets-ef` — Customers/Tickets EF Core (SQL Server / Sqlite)
 - [x] `specs/011-audit-logs` — CRM-036 Identity audit log API + admin-mfe list
 - [x] `specs/012-system-config` — CRM-037 admin system settings UI + lockout policy
+- [x] `specs/013-whatsapp-channel` — CRM-009 WhatsApp intake + reply (DevWhatsAppProvider)
 
 ## Next
 
-1. CRM-009…011 other channels / richer CRM-040 providers (SendGrid, etc.)
-2. CRM-040 SMS/WhatsApp when needed
+1. CRM-010 live chat / CRM-011 SMS
+2. Richer CRM-040 providers (SendGrid, Meta/Twilio WhatsApp)
 3. CRM-017+ SLA / automation when ready
 
 ## Constraints

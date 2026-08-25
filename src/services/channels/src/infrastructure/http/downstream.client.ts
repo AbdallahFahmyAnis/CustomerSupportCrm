@@ -11,7 +11,25 @@ export class DownstreamClient {
     name: string,
     email: string,
   ): Promise<{ id: string; displayName: string }> {
-    const unique = email.trim().toLowerCase();
+    return this.findOrCreateCustomerWithContact(name, email, 'Email', email);
+  }
+
+  /** SDD CRM-009 — phone unique id + WhatsApp contact. */
+  async findOrCreateCustomerByPhone(
+    name: string,
+    phone: string,
+  ): Promise<{ id: string; displayName: string }> {
+    const unique = phone.trim();
+    return this.findOrCreateCustomerWithContact(name, unique, 'WhatsApp', unique);
+  }
+
+  private async findOrCreateCustomerWithContact(
+    name: string,
+    uniqueIdentifier: string,
+    contactType: string,
+    contactValue: string,
+  ): Promise<{ id: string; displayName: string }> {
+    const unique = uniqueIdentifier.trim();
     const createRes = await fetch(`${this.customersBase}/api/customers`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -32,8 +50,8 @@ export class DownstreamClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'Email',
-          value: unique,
+          type: contactType,
+          value: contactValue.trim(),
           isPrimary: true,
         }),
       }).catch(() => undefined);
@@ -160,6 +178,47 @@ export class DownstreamClient {
       }
       const uid = detail.uniqueIdentifier?.trim().toLowerCase() ?? '';
       if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(uid)) {
+        return uid;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** SDD CRM-009 — resolve WhatsApp/phone contact for outbound. */
+  async getCustomerPhone(customerId: string): Promise<string | null> {
+    try {
+      const res = await fetch(`${this.customersBase}/api/customers/${customerId}`);
+      if (!res.ok) {
+        return null;
+      }
+      const detail = (await res.json()) as {
+        uniqueIdentifier?: string;
+        contacts?: { type: string; value: string; isPrimary: boolean; isActive: boolean }[];
+      };
+      const types = new Set(['whatsapp', 'phone']);
+      const primary = detail.contacts?.find(
+        (c) =>
+          c.isActive &&
+          types.has(c.type.toLowerCase()) &&
+          c.isPrimary &&
+          c.value.replace(/\D/g, '').length >= 8,
+      )?.value;
+      if (primary) {
+        return primary.trim();
+      }
+      const any = detail.contacts?.find(
+        (c) =>
+          c.isActive &&
+          types.has(c.type.toLowerCase()) &&
+          c.value.replace(/\D/g, '').length >= 8,
+      )?.value;
+      if (any) {
+        return any.trim();
+      }
+      const uid = detail.uniqueIdentifier?.trim() ?? '';
+      if (!uid.includes('@') && uid.replace(/\D/g, '').length >= 8) {
         return uid;
       }
       return null;
