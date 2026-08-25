@@ -17,7 +17,7 @@ public sealed class GetSlaPerformanceReportHandler(TicketsDb db)
         var from = request.From ?? to.AddDays(-30);
         if (from > to) (from, to) = (to, from);
 
-        var rows = db.ListTicketRowsCreatedBetween(from, to);
+        var rows = db.ListTicketsCreatedBetween(from, to);
         var asOf = to;
         var evaluated = rows.Select(r =>
         {

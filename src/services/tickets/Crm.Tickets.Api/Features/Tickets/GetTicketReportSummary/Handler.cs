@@ -20,7 +20,7 @@ public sealed class GetTicketReportSummaryHandler(TicketsDb db)
             (from, to) = (to, from);
         }
 
-        var rows = db.ListTicketRowsCreatedBetween(from, to);
+        var rows = db.ListTicketsCreatedBetween(from, to);
         var openStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             TicketStatuses.New, TicketStatuses.InProgress, TicketStatuses.Waiting

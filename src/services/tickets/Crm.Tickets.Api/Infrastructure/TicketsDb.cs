@@ -350,20 +350,28 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         db.SaveChanges();
     }
 
-    /// <summary>SDD CRM-031 / 032 / 033 — tickets created in inclusive range.</summary>
-    public IReadOnlyList<TicketRow> ListTicketRowsCreatedBetween(DateTimeOffset from, DateTimeOffset to)
+    /// <summary>SDD CRM-031 / 032 — tickets created in inclusive range (report snapshot).</summary>
+    public IReadOnlyList<TicketReportSnapshot> ListTicketsCreatedBetween(DateTimeOffset from, DateTimeOffset to)
     {
         using var db = factory.CreateDbContext();
         return db.Tickets.AsNoTracking()
             .ToList()
             .Where(t => t.CreatedAt >= from && t.CreatedAt <= to)
+            .Select(t => new TicketReportSnapshot(
+                t.Id,
+                t.Status,
+                t.Category,
+                t.Priority,
+                t.AssignedAgentId,
+                t.AssignedAgentName,
+                t.IsEscalated,
+                t.CreatedAt,
+                t.UpdatedAt))
             .ToList();
     }
 
     /// <summary>SDD CRM-033 — feedback created in range with ticket assignee.</summary>
-    public IReadOnlyList<(TicketFeedbackRow Feedback, TicketRow? Ticket)> ListFeedbackCreatedBetween(
-        DateTimeOffset from,
-        DateTimeOffset to)
+    public IReadOnlyList<FeedbackReportSnapshot> ListFeedbackForReport(DateTimeOffset from, DateTimeOffset to)
     {
         using var db = factory.CreateDbContext();
         var feedback = db.TicketFeedback.AsNoTracking()
@@ -376,7 +384,14 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             .Where(t => ticketIds.Contains(t.Id))
             .ToDictionary(t => t.Id);
         return feedback
-            .Select(f => (f, tickets.TryGetValue(f.TicketId, out var t) ? t : null))
+            .Select(f =>
+            {
+                tickets.TryGetValue(f.TicketId, out var t);
+                return new FeedbackReportSnapshot(
+                    f.Rating,
+                    t?.AssignedAgentId,
+                    t?.AssignedAgentName);
+            })
             .ToList();
     }
 
@@ -496,3 +511,21 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
     private static TicketFeedback FromFeedbackRow(TicketFeedbackRow row) =>
         TicketFeedback.Rehydrate(row.Id, row.TicketId, row.Rating, row.Comment, row.CreatedAt);
 }
+
+/// <summary>SDD CRM-031 / CRM-032 — lightweight ticket row for reports.</summary>
+public sealed record TicketReportSnapshot(
+    Guid Id,
+    string Status,
+    string Category,
+    string Priority,
+    string? AssignedAgentId,
+    string? AssignedAgentName,
+    bool IsEscalated,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+/// <summary>SDD CRM-033 — feedback + assignee for CSAT reports.</summary>
+public sealed record FeedbackReportSnapshot(
+    int Rating,
+    string? AssignedAgentId,
+    string? AssignedAgentName);
