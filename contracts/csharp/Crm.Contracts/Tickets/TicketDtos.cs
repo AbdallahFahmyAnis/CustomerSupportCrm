@@ -32,7 +32,12 @@ public sealed record TicketDetailDto(
     IReadOnlyList<TicketHistoryDto> History,
     IReadOnlyList<TicketNoteDto> Notes,
     TicketFeedbackDto? Feedback = null,
-    string? DepartmentId = null);
+    string? DepartmentId = null,
+    string? AiSummary = null,
+    IReadOnlyList<string>? AiHighlights = null,
+    DateTimeOffset? AiSummaryAt = null);
+
+public sealed record UpdateAiSummaryRequest(string Summary, IReadOnlyList<string>? Highlights = null);
 
 /// <summary>SDD CRM-016 — internal agent note on a ticket.</summary>
 public sealed record TicketNoteDto(

@@ -26,6 +26,20 @@ export class DownstreamClient {
     return (await res.json()) as TicketSnapshot;
   }
 
+  /** SDD CRM-023 polish / 042 — persist summary on ticket row. */
+  async saveAiSummary(
+    ticketId: string,
+    summary: string,
+    highlights: string[],
+  ): Promise<void> {
+    const res = await fetch(`${this.ticketsBase}/api/tickets/${ticketId}/ai-summary`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ summary, highlights }),
+    });
+    if (!res.ok) throw new Error(`Tickets PUT ai-summary failed: ${res.status}`);
+  }
+
   async searchKnowledge(q: string): Promise<{ id: string; title: string; snippet?: string }[]> {
     const qs = new URLSearchParams({ q: q.trim() || 'help' });
     const res = await fetch(`${this.knowledgeBase}/api/knowledge/search?${qs}`);

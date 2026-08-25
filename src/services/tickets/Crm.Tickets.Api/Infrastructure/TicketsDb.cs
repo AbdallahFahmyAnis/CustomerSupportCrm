@@ -62,6 +62,23 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             {
                 // column may exist
             }
+
+            foreach (var sql in new[]
+                     {
+                         """ALTER TABLE "Tickets" ADD COLUMN "AiSummary" TEXT NULL;""",
+                         """ALTER TABLE "Tickets" ADD COLUMN "AiSummaryHighlightsJson" TEXT NULL;""",
+                         """ALTER TABLE "Tickets" ADD COLUMN "AiSummaryAt" TEXT NULL;""",
+                     })
+            {
+                try
+                {
+                    db.Database.ExecuteSqlRaw(sql);
+                }
+                catch
+                {
+                    // column may exist
+                }
+            }
         }
         catch
         {
@@ -77,6 +94,12 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
                     """
                     IF COL_LENGTH('Tickets', 'DepartmentId') IS NULL
                       ALTER TABLE [Tickets] ADD [DepartmentId] uniqueidentifier NULL;
+                    IF COL_LENGTH('Tickets', 'AiSummary') IS NULL
+                      ALTER TABLE [Tickets] ADD [AiSummary] nvarchar(max) NULL;
+                    IF COL_LENGTH('Tickets', 'AiSummaryHighlightsJson') IS NULL
+                      ALTER TABLE [Tickets] ADD [AiSummaryHighlightsJson] nvarchar(max) NULL;
+                    IF COL_LENGTH('Tickets', 'AiSummaryAt') IS NULL
+                      ALTER TABLE [Tickets] ADD [AiSummaryAt] datetimeoffset NULL;
                     """);
             }
         }
@@ -176,6 +199,9 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         row.AssignedAgentName = ticket.AssignedAgentName;
         row.IsEscalated = ticket.IsEscalated;
         row.DepartmentId = ticket.DepartmentId;
+        row.AiSummary = ticket.AiSummary;
+        row.AiSummaryHighlightsJson = ticket.AiSummaryHighlightsJson;
+        row.AiSummaryAt = ticket.AiSummaryAt;
         row.UpdatedAt = ticket.UpdatedAt;
 
         var existingIds = db.TicketHistory.Where(h => h.TicketId == ticket.Id).Select(h => h.Id).ToHashSet();
@@ -258,7 +284,10 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             row.CreatedAt,
             row.UpdatedAt,
             history,
-            row.DepartmentId);
+            row.DepartmentId,
+            row.AiSummary,
+            row.AiSummaryHighlightsJson,
+            row.AiSummaryAt);
     }
 
     /// <summary>SDD CRM-030 — lookup by ticket number (portal feedback).</summary>
@@ -443,7 +472,10 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             row.IsEscalated,
             row.CreatedAt,
             row.UpdatedAt,
-            departmentId: row.DepartmentId);
+            departmentId: row.DepartmentId,
+            aiSummary: row.AiSummary,
+            aiSummaryHighlightsJson: row.AiSummaryHighlightsJson,
+            aiSummaryAt: row.AiSummaryAt);
 
     private static TicketRow ToRow(Ticket t) => new()
     {
@@ -460,6 +492,9 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         AssignedAgentName = t.AssignedAgentName,
         IsEscalated = t.IsEscalated,
         DepartmentId = t.DepartmentId,
+        AiSummary = t.AiSummary,
+        AiSummaryHighlightsJson = t.AiSummaryHighlightsJson,
+        AiSummaryAt = t.AiSummaryAt,
         CreatedAt = t.CreatedAt,
         UpdatedAt = t.UpdatedAt
     };

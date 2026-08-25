@@ -139,6 +139,12 @@ export class TicketDetailPage implements OnInit {
       this.priority = t.priority;
       this.agentId = t.assignedAgentId ?? '';
       this.status = t.status;
+      if (t.aiSummary) {
+        this.aiSummary.set({
+          summary: t.aiSummary,
+          highlights: t.aiHighlights ?? [],
+        });
+      }
       this.refreshSla(t.priority, t.createdAt);
       this.loadCustomer(t.customerId);
     });
