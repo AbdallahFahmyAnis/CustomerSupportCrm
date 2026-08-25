@@ -17,6 +17,8 @@ import { IngestChatService } from '../features/intake/ingest-chat/service';
 import { IngestSmsRoute } from '../features/intake/ingest-sms/route';
 import { IngestSmsHandler } from '../features/intake/ingest-sms/handler';
 import { IngestSmsService } from '../features/intake/ingest-sms/service';
+import { TwilioSmsWebhookRoute } from '../features/webhooks/twilio-sms/route';
+import { TwilioWhatsAppWebhookRoute } from '../features/webhooks/twilio-whatsapp/route';
 import { ListPortalRequestsRoute } from '../features/portal/list-requests/route';
 import { ListPortalRequestsHandler } from '../features/portal/list-requests/handler';
 import { ListPortalRequestsService } from '../features/portal/list-requests/service';
@@ -65,6 +67,8 @@ import {
     IngestWhatsAppRoute,
     IngestChatRoute,
     IngestSmsRoute,
+    TwilioSmsWebhookRoute,
+    TwilioWhatsAppWebhookRoute,
     ListPortalRequestsRoute,
     ListTicketMessagesRoute,
     ReplyEmailRoute,
