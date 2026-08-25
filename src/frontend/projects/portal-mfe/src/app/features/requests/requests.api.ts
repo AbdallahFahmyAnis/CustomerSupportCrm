@@ -19,6 +19,16 @@ export class RequestsApi {
     );
   }
 
+  /** SDD CRM-010 — start or continue a live chat (returns ticket ids). */
+  chat(body: {
+    name: string;
+    email: string;
+    body: string;
+    ticketId?: string;
+  }): Observable<SubmitRequestResult> {
+    return this.http.post<SubmitRequestResult>('/api/channels/intake/chat', body);
+  }
+
   track(email: string): Observable<PortalRequestSummary[]> {
     return this.http.get<PortalRequestSummary[]>(
       `/api/channels/portal/requests?email=${encodeURIComponent(email.trim())}`,

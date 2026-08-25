@@ -142,3 +142,54 @@ test('whatsapp reply accepts valid body', () => {
   const err = validateReplyWhatsAppInput('ticket-1', { body: 'We are on it.' });
   assert.equal(err, null);
 });
+
+const {
+  validateChatIngestInput,
+} = require('../src/features/intake/ingest-chat/schema');
+const {
+  validateReplyChatInput,
+} = require('../src/features/messages/reply-chat/schema');
+
+/** SDD CRM-010 — live chat ingest validation. */
+test('chat ingest rejects missing fields', () => {
+  const err = validateChatIngestInput({
+    email: '',
+    body: '',
+  });
+  assert.equal(err, 'email and body are required.');
+});
+
+test('chat ingest rejects bad email', () => {
+  const err = validateChatIngestInput({
+    email: 'not-an-email',
+    body: 'Hello',
+  });
+  assert.equal(err, 'email must be a valid address.');
+});
+
+test('chat ingest accepts valid payload', () => {
+  const err = validateChatIngestInput({
+    email: 'visitor@example.com',
+    body: 'Need help with billing.',
+  });
+  assert.equal(err, null);
+});
+
+/** SDD CRM-010 — live chat reply validation. */
+test('chat reply rejects empty body', () => {
+  const err = validateReplyChatInput('ticket-1', { body: '  ' });
+  assert.equal(err, 'body is required.');
+});
+
+test('chat reply rejects bad to', () => {
+  const err = validateReplyChatInput('ticket-1', {
+    body: 'Hello',
+    to: 'not-email',
+  });
+  assert.equal(err, 'to must be a valid email address.');
+});
+
+test('chat reply accepts valid body', () => {
+  const err = validateReplyChatInput('ticket-1', { body: 'We are on it.' });
+  assert.equal(err, null);
+});

@@ -3,7 +3,7 @@
 }
 
 .home-actions {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .action-tile.featured {
@@ -20,6 +20,12 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--crm-primary);
+}
+
+@media (max-width: 900px) {
+  .home-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {

@@ -42,6 +42,13 @@ export class TicketsApi {
     );
   }
 
+  replyChat(ticketId: string, body: string, to?: string): Observable<{ messageId: string; to: string }> {
+    return this.http.post<{ messageId: string; to: string }>(
+      `/api/channels/tickets/${ticketId}/messages/chat`,
+      { body, to },
+    );
+  }
+
   create(body: {
     customerId: string;
     customerName: string;

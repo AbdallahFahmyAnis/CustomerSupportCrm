@@ -17,4 +17,9 @@ export const REQUESTS_ROUTES: Routes = [
     loadComponent: () =>
       import('./track-requests/track-requests.page').then((m) => m.TrackRequestsPage),
   },
+  {
+    path: 'chat',
+    loadComponent: () =>
+      import('./live-chat/live-chat.page').then((m) => m.LiveChatPage),
+  },
 ];
