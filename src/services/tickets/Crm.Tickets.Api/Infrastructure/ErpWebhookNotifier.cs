@@ -1,12 +1,23 @@
+using System.Collections.Concurrent;
 using System.Net.Http.Json;
-using System.Text.Json;
 using Crm.Tickets.Api.Domain;
 
 namespace Crm.Tickets.Api.Infrastructure;
 
-/// <summary>SDD CRM-039 — best-effort ERP outbound webhook on ticket create.</summary>
-public sealed class ErpWebhookNotifier(IHttpClientFactory httpFactory, IConfiguration config, ILogger<ErpWebhookNotifier> log)
+/// <summary>SDD CRM-039 polish / 044 — ERP webhook with in-process retries + delivery log.</summary>
+public sealed class ErpWebhookNotifier(
+    IHttpClientFactory httpFactory,
+    IConfiguration config,
+    ILogger<ErpWebhookNotifier> log)
 {
+    private readonly ConcurrentQueue<ErpDeliveryRecord> _deliveries = new();
+    private const int MaxLog = 50;
+
+    /// <summary>1 initial + 2 retries.</summary>
+    public int MaxAttempts { get; set; } = 3;
+
+    public TimeSpan RetryDelay { get; set; } = TimeSpan.FromMilliseconds(75);
+
     public static object BuildPayload(Ticket ticket) => new
     {
         ticketId = ticket.Id.ToString(),
@@ -16,37 +27,97 @@ public sealed class ErpWebhookNotifier(IHttpClientFactory httpFactory, IConfigur
         customerId = ticket.CustomerId.ToString()
     };
 
+    public IReadOnlyList<ErpDeliveryRecord> RecentDeliveries(int take = 20)
+        => _deliveries.Reverse().Take(Math.Clamp(take, 1, MaxLog)).ToList();
+
     public async Task NotifyTicketCreatedAsync(Ticket ticket, CancellationToken ct = default)
     {
         try
         {
             var client = httpFactory.CreateClient("erp");
             var identity = config["Services:Identity"] ?? "http://localhost:5101";
-            using var settingsRes = await client.GetAsync($"{identity.TrimEnd('/')}/api/identity/integrations/erp", ct);
+            using var settingsRes = await client.GetAsync(
+                $"{identity.TrimEnd('/')}/api/identity/integrations/erp", ct);
             if (!settingsRes.IsSuccessStatusCode)
             {
                 return;
             }
 
             var body = await settingsRes.Content.ReadFromJsonAsync<ErpWebhookSettings>(cancellationToken: ct);
-            var url = body?.WebhookUrl?.Trim();
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                return;
-            }
-
-            var payload = BuildPayload(ticket);
-            using var post = await client.PostAsJsonAsync(url, payload, ct);
-            if (!post.IsSuccessStatusCode)
-            {
-                log.LogWarning("ERP webhook returned {Status}", post.StatusCode);
-            }
+            await DeliverToUrlAsync(body?.WebhookUrl, ticket, ct);
         }
         catch (Exception ex)
         {
             log.LogWarning(ex, "ERP webhook failed (non-fatal)");
+            Append(ticket.Id, "error");
+        }
+    }
+
+    /// <summary>Empty URL is a no-op (CRM-039). Non-2xx / failure: up to 2 retries.</summary>
+    public async Task DeliverToUrlAsync(string? url, Ticket ticket, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return;
+        }
+
+        var client = httpFactory.CreateClient("erp");
+        var payload = BuildPayload(ticket);
+        Exception? lastEx = null;
+        for (var attempt = 1; attempt <= MaxAttempts; attempt++)
+        {
+            try
+            {
+                using var post = await client.PostAsJsonAsync(url.Trim(), payload, ct);
+                if (post.IsSuccessStatusCode)
+                {
+                    Append(ticket.Id, $"ok:{((int)post.StatusCode)}");
+                    return;
+                }
+
+                lastEx = null;
+                log.LogWarning(
+                    "ERP webhook returned {Status} (attempt {Attempt}/{Max})",
+                    post.StatusCode, attempt, MaxAttempts);
+                if (attempt < MaxAttempts)
+                {
+                    await Task.Delay(RetryDelay, ct);
+                    continue;
+                }
+
+                Append(ticket.Id, $"fail:{((int)post.StatusCode)}");
+                return;
+            }
+            catch (Exception ex) when (attempt < MaxAttempts)
+            {
+                lastEx = ex;
+                log.LogWarning(ex, "ERP webhook attempt {Attempt} failed", attempt);
+                await Task.Delay(RetryDelay, ct);
+            }
+            catch (Exception ex)
+            {
+                lastEx = ex;
+                log.LogWarning(ex, "ERP webhook failed after retries");
+                Append(ticket.Id, "error");
+                return;
+            }
+        }
+
+        if (lastEx is not null)
+        {
+            Append(ticket.Id, "error");
+        }
+    }
+
+    private void Append(Guid ticketId, string status)
+    {
+        _deliveries.Enqueue(new ErpDeliveryRecord(ticketId.ToString(), status, DateTimeOffset.UtcNow));
+        while (_deliveries.Count > MaxLog && _deliveries.TryDequeue(out _))
+        {
         }
     }
 
     private sealed record ErpWebhookSettings(string? WebhookUrl);
 }
+
+public sealed record ErpDeliveryRecord(string TicketId, string Status, DateTimeOffset At);
