@@ -39,7 +39,11 @@ export class SettingsStore {
     });
   }
 
-  save(body: Omit<SystemSettings, 'updatedAt'>): void {
+  save(
+    body: Omit<SystemSettings, 'updatedAt'>,
+    onDone?: () => void,
+    onError?: (msg: string) => void,
+  ): void {
     this.saving.set(true);
     this.error.set('');
     this.saved.set(false);
@@ -48,10 +52,13 @@ export class SettingsStore {
         this.settings.set(row);
         this.saving.set(false);
         this.saved.set(true);
+        onDone?.();
       },
       error: (err) => {
-        this.error.set(err?.error?.error ?? 'Save failed.');
+        const msg = err?.error?.error ?? 'Save failed.';
+        this.error.set(msg);
         this.saving.set(false);
+        onError?.(msg);
       },
     });
   }

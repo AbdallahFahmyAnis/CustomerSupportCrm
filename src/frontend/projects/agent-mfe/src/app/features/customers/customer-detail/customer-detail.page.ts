@@ -1,8 +1,14 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CrmModalComponent, CrmTimelineComponent, CrmTimelineItem } from 'shared';
+import {
+  CrmModalComponent,
+  CrmTimelineComponent,
+  CrmTimelineItem,
+  FormFeedbackStore,
+  LanguageStore,
+} from 'shared';
 import { CustomerDetail } from '../customers.models';
 import { CustomersApi } from '../customers.api';
 
@@ -16,7 +22,9 @@ import { CustomersApi } from '../customers.api';
   providers: [DatePipe],
 })
 export class CustomerDetailComponent implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly api = inject(CustomersApi);
+  private readonly feedback = inject(FormFeedbackStore);
   private readonly route = inject(ActivatedRoute);
   private readonly datePipe = inject(DatePipe);
   readonly customer = signal<CustomerDetail | null>(null);
@@ -51,11 +59,30 @@ export class CustomerDetailComponent implements OnInit {
   reload(): void {
     this.api.get(this.id).subscribe({
       next: (c) => this.customer.set(c),
-      error: () => this.error.set('Customer not found.'),
+      error: () => this.error.set(this.lang.t('customerNotFound')),
     });
   }
 
-  addContact(): void {
+  contactTypeLabel(type: string): string {
+    switch (type.toLowerCase()) {
+      case 'email':
+        return this.lang.t('contactEmail');
+      case 'phone':
+        return this.lang.t('contactPhone');
+      case 'whatsapp':
+        return this.lang.t('contactWhatsapp');
+      case 'address':
+        return this.lang.t('contactAddress');
+      default:
+        return type;
+    }
+  }
+
+  addContact(f: NgForm): void {
+    if (f.invalid) {
+      this.feedback.error('formInvalid');
+      return;
+    }
     this.api
       .addContact(this.id, {
         type: this.contactType,
@@ -66,8 +93,11 @@ export class CustomerDetailComponent implements OnInit {
         next: () => {
           this.contactValue = '';
           this.contactPrimary = false;
+          this.feedback.success('contactAddSuccess');
           this.reload();
         },
+        error: (err) =>
+          this.feedback.errorText(err?.error?.error ?? err?.error?.message ?? this.lang.t('failGeneric')),
       });
   }
 
@@ -86,12 +116,19 @@ export class CustomerDetailComponent implements OnInit {
     this.api.deactivateContact(this.id, contactId).subscribe({ next: () => this.reload() });
   }
 
-  addNote(): void {
+  addNote(f: NgForm): void {
+    if (f.invalid) {
+      this.feedback.error('formInvalid');
+      return;
+    }
     this.api.addNote(this.id, this.noteBody).subscribe({
       next: () => {
         this.noteBody = '';
+        this.feedback.success('noteSaveSuccess');
         this.reload();
       },
+      error: (err) =>
+        this.feedback.errorText(err?.error?.error ?? err?.error?.message ?? this.lang.t('failGeneric')),
     });
   }
 

@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { LanguageStore } from 'shared';
 import { FaqsStore } from '../faqs.store';
 
 /** SDD CRM-029 — portal FAQ list. */
@@ -13,6 +14,7 @@ import { FaqsStore } from '../faqs.store';
   styleUrls: ['./faq-list.scss'],
 })
 export class FaqListPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(FaqsStore);
   q = '';
 

@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, effect, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
+import { FormFeedbackStore, LanguageStore } from 'shared';
 import { SettingsStore } from '../settings.store';
 
 /** SDD CRM-037 — system settings smart page. */
@@ -12,7 +13,9 @@ import { SettingsStore } from '../settings.store';
   styleUrls: ['./settings-edit.scss'],
 })
 export class SettingsEditPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(SettingsStore);
+  private readonly feedback = inject(FormFeedbackStore);
 
   organizationName = '';
   supportEmail = '';
@@ -52,19 +55,27 @@ export class SettingsEditPage implements OnInit {
     this.store.loadErpDeliveries();
   }
 
-  submit(): void {
-    this.store.save({
-      organizationName: this.organizationName.trim(),
-      supportEmail: this.supportEmail.trim(),
-      defaultCulture: this.defaultCulture,
-      maxFailedLoginAttempts: Number(this.maxFailedLoginAttempts),
-      lockoutMinutes: Number(this.lockoutMinutes),
-      productTitle: this.productTitle.trim(),
-      primaryColor: this.primaryColor.trim(),
-      logoUrl: this.logoUrl.trim(),
-      erpWebhookUrl: this.erpWebhookUrl.trim(),
-      erpWebhookAuthHeader: this.erpWebhookAuthHeader.trim(),
-    });
+  submit(f: NgForm): void {
+    if (f.invalid) {
+      this.feedback.error('formInvalid');
+      return;
+    }
+    this.store.save(
+      {
+        organizationName: this.organizationName.trim(),
+        supportEmail: this.supportEmail.trim(),
+        defaultCulture: this.defaultCulture,
+        maxFailedLoginAttempts: Number(this.maxFailedLoginAttempts),
+        lockoutMinutes: Number(this.lockoutMinutes),
+        productTitle: this.productTitle.trim(),
+        primaryColor: this.primaryColor.trim(),
+        logoUrl: this.logoUrl.trim(),
+        erpWebhookUrl: this.erpWebhookUrl.trim(),
+        erpWebhookAuthHeader: this.erpWebhookAuthHeader.trim(),
+      },
+      () => this.feedback.success('settingsSaveSuccess'),
+      (msg) => this.feedback.errorText(msg),
+    );
   }
 
   reset(): void {

@@ -1,24 +1,24 @@
 <section class="page">
   <header class="row">
     <div>
-      <h1>Customers</h1>
-      <p class="lede">Contacts and account profiles</p>
+      <h1>{{ lang.t('customers') }}</h1>
+      <p class="lede">{{ lang.t('customersLead') }}</p>
     </div>
-    <a routerLink="/agent/customers/new" class="btn">Create customer</a>
+    <a routerLink="/agent/customers/new" class="btn">{{ lang.t('createCustomer') }}</a>
   </header>
 
   <crm-data-view
-    title="Customer list"
-    subtitle="List or grid of profiles"
+    [title]="lang.t('customerListTitle')"
+    [subtitle]="lang.t('customerListSub')"
     [items]="customers()"
-    [columns]="columns"
+    [columns]="columns()"
     trackKey="id"
     [(viewMode)]="viewMode"
   >
     <ng-template crmDataToolbar>
       <form class="toolbar-form" (ngSubmit)="load()">
-        <input name="q" [(ngModel)]="q" placeholder="Search name, id, organization" />
-        <button type="submit" class="btn secondary">Search</button>
+        <input name="q" [(ngModel)]="q" [placeholder]="lang.t('phSearchCustomers')" />
+        <button type="submit" class="btn secondary">{{ lang.t('search') }}</button>
       </form>
     </ng-template>
 
@@ -27,7 +27,7 @@
     </ng-template>
 
     <ng-template crmDataCell="status" let-c>
-      <span class="badge-soft">{{ c.status }}</span>
+      <span class="badge-soft">{{ c.status === 'Active' ? lang.t('active') : lang.t('inactive') }}</span>
     </ng-template>
 
     <ng-template crmDataCard let-c>
@@ -36,7 +36,7 @@
         <a [routerLink]="['/agent/customers', c.id]"><strong>{{ c.displayName }}</strong></a>
         <span class="muted">{{ c.uniqueIdentifier }}</span>
         <span>{{ c.organization || '—' }}</span>
-        <span class="badge-soft">{{ c.status }}</span>
+        <span class="badge-soft">{{ c.status === 'Active' ? lang.t('active') : lang.t('inactive') }}</span>
       </div>
     </ng-template>
   </crm-data-view>

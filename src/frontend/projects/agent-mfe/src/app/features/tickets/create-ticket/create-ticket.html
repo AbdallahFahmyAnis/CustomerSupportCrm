@@ -1,72 +1,75 @@
 <section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/agent/tickets">Tickets</a>
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/agent/tickets">{{ lang.t('tickets') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">Create</span>
+    <span class="current">{{ lang.t('create') }}</span>
   </nav>
 
   <header class="row">
     <div>
-      <h1>Create ticket</h1>
-      <p class="lede">Customer, details, classification, then review</p>
+      <h1>{{ lang.t('createTicket') }}</h1>
+      <p class="lede">{{ lang.t('createTicketLead') }}</p>
     </div>
   </header>
 
-  @if (store.error()) {
-    <p class="error">{{ store.error() }}</p>
-  }
-
   <crm-wizard
-    [steps]="steps"
+    [steps]="steps()"
     [(step)]="step"
     [canNext]="canAdvance()"
-    finishLabel="Create ticket"
+    [finishLabel]="lang.t('createTicket')"
+    (advanceBlocked)="onAdvanceBlocked()"
     (finish)="submit()"
   >
     <ng-template crmWizardStep>
       <div class="step-intro">
-        <h3>Select customer</h3>
-        <p class="muted">Search by name or identifier, then pick the customer.</p>
+        <h3>{{ lang.t('selectCustomer') }}</h3>
+        <p class="muted">{{ lang.t('selectCustomerHint') }}</p>
       </div>
       <div class="field-stack">
         <label>
-          Customer search
+          {{ lang.t('customerSearch') }}
           <input
             name="cq"
             [(ngModel)]="customerQuery"
             (ngModelChange)="findCustomers()"
-            placeholder="Name or unique id"
+            [placeholder]="lang.t('phNameOrId')"
           />
         </label>
         <label>
-          Customer
+          {{ lang.t('customer') }}
           <select name="customerId" [(ngModel)]="customerId" required>
-            <option value="" disabled>Select customer</option>
+            <option value="" disabled>{{ lang.t('selectCustomer') }}</option>
             @for (c of customers; track c.id) {
               <option [value]="c.id">{{ c.displayName }} ({{ c.uniqueIdentifier }})</option>
             }
           </select>
+          @if (attempted && !customerId) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
         </label>
       </div>
     </ng-template>
 
     <ng-template crmWizardStep>
       <div class="step-intro">
-        <h3>Ticket details</h3>
-        <p class="muted">Subject is required; description helps agents resolve faster.</p>
+        <h3>{{ lang.t('ticketDetails') }}</h3>
+        <p class="muted">{{ lang.t('ticketDetailsHint') }}</p>
       </div>
       <div class="field-stack">
         <label>
-          Subject
-          <input name="subject" [(ngModel)]="subject" required placeholder="Brief summary" />
+          {{ lang.t('subject') }}
+          <input name="subject" [(ngModel)]="subject" required [placeholder]="lang.t('phBriefSummary')" />
+          @if (attempted && !subject.trim()) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
         </label>
         <label>
-          Description
+          {{ lang.t('description') }}
           <textarea
             name="description"
             [(ngModel)]="description"
             rows="5"
-            placeholder="Describe the issue or request…"
+            [placeholder]="lang.t('phDescribeIssue')"
           ></textarea>
         </label>
       </div>
@@ -74,12 +77,12 @@
 
     <ng-template crmWizardStep>
       <div class="step-intro">
-        <h3>Classification</h3>
-        <p class="muted">Category and priority drive routing and SLA.</p>
+        <h3>{{ lang.t('classification') }}</h3>
+        <p class="muted">{{ lang.t('classificationHint') }}</p>
       </div>
       <div class="field-stack">
         <label>
-          Category
+          {{ lang.t('category') }}
           <select name="category" [(ngModel)]="category" required>
             @for (c of store.options()?.categories ?? []; track c) {
               <option [value]="c">{{ c }}</option>
@@ -87,7 +90,7 @@
           </select>
         </label>
         <label>
-          Priority
+          {{ lang.t('priority') }}
           <select name="priority" [(ngModel)]="priority" required>
             @for (p of store.options()?.priorities ?? []; track p) {
               <option [value]="p">{{ p }}</option>
@@ -102,29 +105,29 @@
         <div class="review-hero">
           <div class="avatar">T</div>
           <div>
-            <strong>Almost done</strong>
-            <p class="muted">Confirm the ticket details, then create.</p>
+            <strong>{{ lang.t('almostDone') }}</strong>
+            <p class="muted">{{ lang.t('confirmCreateTicket') }}</p>
           </div>
         </div>
         <table class="review-table">
           <tr>
-            <th>Customer</th>
+            <th>{{ lang.t('customer') }}</th>
             <td>{{ selectedCustomerLabel }}</td>
           </tr>
           <tr>
-            <th>Subject</th>
+            <th>{{ lang.t('subject') }}</th>
             <td>{{ subject }}</td>
           </tr>
           <tr>
-            <th>Description</th>
+            <th>{{ lang.t('description') }}</th>
             <td>{{ description.trim() || '—' }}</td>
           </tr>
           <tr>
-            <th>Category</th>
+            <th>{{ lang.t('category') }}</th>
             <td>{{ category }}</td>
           </tr>
           <tr>
-            <th>Priority</th>
+            <th>{{ lang.t('priority') }}</th>
             <td>
               <span class="badge-soft">{{ priority }}</span>
             </td>

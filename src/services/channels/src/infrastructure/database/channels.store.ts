@@ -72,7 +72,7 @@ export class ChannelsStore implements OnModuleInit {
     }
 
     return this.data.requests
-      .filter((r) => r.email === key)
+      .filter((r) => r.email.trim().toLowerCase() === key)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
@@ -181,8 +181,8 @@ export class ChannelsStore implements OnModuleInit {
       ticketId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
       ticketNumber: 'SEED-PORTAL',
       customerId: 'seed-portal-customer',
-      email: 'portal.customer@example.com',
-      name: 'Portal Customer',
+      email: 'customer@crm.local',
+      name: 'Demo Customer',
       subject: 'Seeded portal request (demo)',
       status: 'New',
       createdAt,
@@ -200,7 +200,19 @@ export class ChannelsStore implements OnModuleInit {
   }
 
   private seedJsonIfEmpty(): void {
-    if (this.data.requests.length > 0) {
+    if (this.data.requests.length === 0) {
+      const { request, message } = this.seedPayload();
+      this.data.requests.push(request);
+      this.data.messages.push(message);
+      this.saveJson();
+    }
+    this.ensureDemoCustomerJson();
+  }
+
+  /** Ensure demo customer@crm.local has at least one trackable request. */
+  private ensureDemoCustomerJson(): void {
+    const email = 'customer@crm.local';
+    if (this.data.requests.some((r) => r.email.toLowerCase() === email)) {
       return;
     }
     const { request, message } = this.seedPayload();
@@ -214,7 +226,21 @@ export class ChannelsStore implements OnModuleInit {
       return;
     }
     const count = await this.requestsRepo.count();
-    if (count > 0) {
+    if (count === 0) {
+      const { request, message } = this.seedPayload();
+      await this.addRequest(request, message);
+      return;
+    }
+    await this.ensureDemoCustomerPostgres();
+  }
+
+  private async ensureDemoCustomerPostgres(): Promise<void> {
+    if (!this.requestsRepo || !this.messagesRepo) {
+      return;
+    }
+    const email = 'customer@crm.local';
+    const existing = await this.requestsRepo.count({ where: { email } });
+    if (existing > 0) {
       return;
     }
     const { request, message } = this.seedPayload();

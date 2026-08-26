@@ -31,17 +31,36 @@ export class DepartmentsStore {
     });
   }
 
-  createDepartment(name: string): void {
+  createDepartment(name: string, onDone?: () => void, onError?: (msg: string) => void): void {
     this.api.createDepartment(name).subscribe({
-      next: () => this.refresh(),
-      error: (err) => this.error.set(err?.error?.error ?? 'Create department failed.'),
+      next: () => {
+        this.refresh();
+        onDone?.();
+      },
+      error: (err) => {
+        const msg = err?.error?.error ?? 'Create department failed.';
+        this.error.set(msg);
+        onError?.(msg);
+      },
     });
   }
 
-  createBranch(departmentId: string, name: string): void {
+  createBranch(
+    departmentId: string,
+    name: string,
+    onDone?: () => void,
+    onError?: (msg: string) => void,
+  ): void {
     this.api.createBranch(departmentId, name).subscribe({
-      next: () => this.refresh(),
-      error: (err) => this.error.set(err?.error?.error ?? 'Create branch failed.'),
+      next: () => {
+        this.refresh();
+        onDone?.();
+      },
+      error: (err) => {
+        const msg = err?.error?.error ?? 'Create branch failed.';
+        this.error.set(msg);
+        onError?.(msg);
+      },
     });
   }
 }

@@ -1,384 +1,465 @@
-<section class="page">
-  <p><a routerLink="/agent/tickets">← Tickets</a></p>
+<section class="page ticket-detail">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/agent/tickets">{{ lang.t('tickets') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">{{ store.selected()?.ticketNumber || lang.t('detail') }}</span>
+  </nav>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
 
   @if (store.selected(); as t) {
-    <header class="row">
-      <div>
-        <h1>{{ t.ticketNumber }} — {{ t.subject }}</h1>
-        <p>
-          <a [routerLink]="['/agent/customers', t.customerId]">{{ t.customerName }}</a>
-          ·
-          <app-ticket-priority-badge
-            [priority]="t.priority"
-            [hot]="t.priority === 'High' || t.priority === 'Urgent'"
-          />
-          · {{ t.status }}
-          @if (t.isEscalated) {
-            · escalated
-          }
-        </p>
-      </div>
-    </header>
-
-    <p class="desc">{{ t.description || 'No description.' }}</p>
-
-    <aside class="customer-summary card">
-      <h2>Customer</h2>
-      @if (customerError()) {
-        <p class="error">{{ customerError() }}</p>
-      }
-      @if (customer(); as c) {
-        <p>
-          <a [routerLink]="['/agent/customers', c.id]"><strong>{{ c.displayName }}</strong></a>
-          · {{ c.status }}
-        </p>
-        <p class="meta">Id: {{ c.uniqueIdentifier }}</p>
-        @if (c.organization) {
-          <p class="meta">{{ c.organization }}</p>
-        }
-        <ul class="contact-list">
-          @for (ct of c.contacts.filter((x) => x.isActive).slice(0, 3); track ct.id) {
-            <li>
-              <span class="badge soft">{{ ct.type }}</span>
-              {{ ct.value }}
-              @if (ct.isPrimary) {
-                <span class="meta">primary</span>
-              }
-            </li>
-          } @empty {
-            <li class="muted">No contacts on file.</li>
-          }
-        </ul>
-        @if (c.notes[0]; as note) {
-          <p class="latest-note">
-            <span class="meta">Latest note · {{ note.createdAt | date: 'short' }}</span><br />
-            {{ note.body }}
-          </p>
-        }
-      } @else if (!customerError()) {
-        <p class="muted">Loading customer…</p>
-      }
-    </aside>
-
-    @if (t.feedback; as fb) {
-      <div class="card csat-card">
-        <h2>Customer feedback</h2>
-        <p class="csat-rating"><strong>{{ fb.rating }}</strong> / 5</p>
-        @if (fb.comment) {
-          <p>{{ fb.comment }}</p>
-        }
-        <p class="meta">Submitted {{ fb.createdAt | date: 'short' }}</p>
-      </div>
-    }
-
-    @if (sla(); as s) {
-      <div class="sla-strip" [class.breached]="s.firstResponseBreached || s.resolutionBreached">
-        <div>
-          <span class="sla-label">First response due</span>
-          <strong [class.warn]="s.firstResponseBreached">{{ s.firstResponseDueAt | date: 'short' }}</strong>
-          @if (s.firstResponseBreached) {
-            <span class="breach">Breached</span>
-          }
-        </div>
-        <div>
-          <span class="sla-label">Resolution due</span>
-          <strong [class.warn]="s.resolutionBreached">{{ s.resolutionDueAt | date: 'short' }}</strong>
-          @if (s.resolutionBreached) {
-            <span class="breach">Breached</span>
-          }
-        </div>
-        <p class="sla-meta">{{ s.priority }} · {{ s.firstResponseMinutes }}m / {{ s.resolutionMinutes }}m</p>
-        <button type="button" class="btn sla-run" (click)="runAutomation()">Run automation</button>
-      </div>
-    }
-
-    <div class="knowledge-panel card">
-      <h2>AI summary</h2>
-      <button type="button" class="btn" (click)="generateAiSummary()" [disabled]="aiBusy()">
-        {{ aiBusy() ? 'Generating…' : 'Generate summary' }}
-      </button>
-      @if (aiError()) {
-        <p class="error">{{ aiError() }}</p>
-      }
-      @if (aiSummary(); as s) {
-        <p class="ai-summary">{{ s.summary }}</p>
-        <ul class="ai-highlights">
-          @for (h of s.highlights; track h) {
-            <li>{{ h }}</li>
-          }
-        </ul>
-      }
-    </div>
-
-    <div class="knowledge-panel card">
-      <h2>AI suggested replies</h2>
-      <button type="button" class="btn" (click)="loadAiSuggestions()" [disabled]="aiBusy()">
-        Suggest replies
-      </button>
-      @if (aiSuggestions().length) {
-        <ul class="ai-suggestions">
-          @for (s of aiSuggestions(); track s.title) {
-            <li>
-              <strong>{{ s.title }}</strong>
-              <div class="mention-row" style="margin-top: 0.35rem">
-                <button type="button" class="btn ghost" (click)="insertAiSuggestion('email', s.body)">
-                  Insert email
-                </button>
-                <button type="button" class="btn ghost" (click)="insertAiSuggestion('chat', s.body)">
-                  Insert chat
-                </button>
-              </div>
-            </li>
-          }
-        </ul>
-      }
-    </div>
-
-    <div class="knowledge-panel card">
-      <h2>AI classification</h2>
-      <button type="button" class="btn" (click)="loadAiCategory()" [disabled]="aiBusy()">
-        Suggest category
-      </button>
-      @if (aiCategory(); as c) {
-        <p class="muted">
-          {{ c.category }} · {{ c.priority }}
-          <span>(confidence {{ c.confidence | number: '1.0-2' }})</span>
-        </p>
-        <button type="button" class="btn" (click)="applyAiCategory()">Apply</button>
-      }
-    </div>
-
-    <div class="knowledge-panel card">
-      <h2>Knowledge</h2>
-      <form class="knowledge-form" (ngSubmit)="searchKnowledge()">
-        <input name="kq" [(ngModel)]="knowledgeQ" placeholder="Search published articles…" />
-        <button type="submit" class="btn">Search</button>
-      </form>
-      @if (knowledgeError) {
-        <p class="error">{{ knowledgeError }}</p>
-      }
-      @if (knowledgeHits().length === 0) {
-        <p class="muted">No hits yet.</p>
-      } @else {
-        <ul class="knowledge-hits">
-          @for (h of knowledgeHits(); track h.id) {
-            <li>
-              <a [href]="'/knowledge/' + h.id" target="_blank" rel="noopener">{{ h.title }}</a>
-              <span class="meta">{{ h.kind }} · score {{ h.score }}</span>
-              <p>{{ h.snippet }}</p>
-            </li>
-          }
-        </ul>
-      }
-    </div>
-
-    <div class="panels">
-      <form class="card" (ngSubmit)="saveClass()">
-        <h2>Classification</h2>
-        <label>
-          Category
-          <select name="category" [(ngModel)]="category">
-            @for (c of store.options()?.categories ?? []; track c) {
-              <option [value]="c">{{ c }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          Priority
-          <select name="priority" [(ngModel)]="priority">
-            @for (p of store.options()?.priorities ?? []; track p) {
-              <option [value]="p">{{ p }}</option>
-            }
-          </select>
-        </label>
-        <button type="submit" class="btn">Save classification</button>
-      </form>
-
-      <form class="card" (ngSubmit)="saveAssign()">
-        <h2>Assignment</h2>
-        <label>
-          Agent
-          <select name="agentId" [(ngModel)]="agentId">
-            <option value="">Unassigned</option>
-            @for (a of store.options()?.agents ?? []; track a.id) {
-              <option [value]="a.id">{{ a.name }}</option>
-            }
-          </select>
-        </label>
-        <button type="submit" class="btn">Assign</button>
-      </form>
-
-      <form class="card" (ngSubmit)="saveStatus()">
-        <h2>Status</h2>
-        <label>
-          New status
-          <select name="status" [(ngModel)]="status">
-            @for (s of store.options()?.statuses ?? []; track s) {
-              <option [value]="s">{{ s }}</option>
-            }
-          </select>
-        </label>
-        <button type="submit" class="btn">Change status</button>
-      </form>
-
-      <form class="card" (ngSubmit)="escalate()">
-        <h2>Escalate</h2>
-        <label>
-          Assign to (optional)
-          <select name="escalateTo" [(ngModel)]="escalateTo">
-            <option value="">Keep / unassigned</option>
-            @for (a of store.options()?.agents ?? []; track a.id) {
-              <option [value]="a.id">{{ a.name }}</option>
-            }
-          </select>
-        </label>
-        <button type="submit" class="btn danger">Escalate</button>
-      </form>
-    </div>
-
-    <h2>Email</h2>
-    <div class="card quick-replies">
-      <label>
-        Quick reply
-        <select name="emailQuick" [(ngModel)]="emailQuickId" (ngModelChange)="insertQuick('email', $event)">
-          <option value="">Insert into email…</option>
-          @for (q of store.quickReplies(); track q.id) {
-            <option [value]="q.id">{{ q.title }}</option>
-          }
-        </select>
-      </label>
-    </div>
-    <crm-email
-      [subject]="t.subject"
-      [messages]="emailMessages()"
-      [replyToLabel]="emailReplyLabel()"
-      [(draft)]="emailDraft"
-      placeholder="Write your email reply…"
-      sendLabel="Send"
-      emptyText="No email messages on this ticket yet."
-      (send)="onEmailSend($event)"
-    />
-
-    <h2>Messaging</h2>
-    <div class="card quick-replies">
-      <label>
-        Quick reply
-        <select name="chatQuick" [(ngModel)]="chatQuickId" (ngModelChange)="insertQuick('chat', $event)">
-          <option value="">Insert into message…</option>
-          @for (q of store.quickReplies(); track q.id) {
-            <option [value]="q.id">{{ q.title }}</option>
-          }
-        </select>
-      </label>
-    </div>
-    <crm-chat
-      [title]="t.customerName"
-      [subtitle]="t.ticketNumber + ' · channel thread'"
-      [avatarText]="(t.customerName || '?').charAt(0).toUpperCase()"
-      [messages]="chatMessages()"
-      [(draft)]="chatDraft"
-      placeholder="Write a reply…"
-      sendLabel="Send"
-      emptyText="No chat, WhatsApp, or SMS messages yet."
-      (send)="onChatSend($event)"
-    >
-      <div crmChatComposeExtra class="channel-pick">
-        <label>
-          Channel
-          <select name="replyChannel" [(ngModel)]="replyChannel">
-            <option value="chat">Live chat</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="sms">SMS</option>
-          </select>
-        </label>
-      </div>
-    </crm-chat>
-
-    <h2>Tasks</h2>
-    <div class="card notes-card">
-      <ul class="note-list">
-        @for (task of store.tasks(); track task.id) {
-          <li class="note-item">
-            <div class="note-head">
-              <strong>{{ task.title }}</strong>
-              <span class="badge soft">{{ task.status }}</span>
-            </div>
+    <div class="ticket-workspace">
+      <div class="ticket-main">
+        <div class="settings-card ticket-sheet">
+          <div class="settings-hero">
+            <div class="avatar">{{ (t.ticketNumber || 'T').charAt(0) }}</div>
             <div class="meta">
-              @if (task.dueAt) {
-                Due {{ task.dueAt | date: 'mediumDate' }} ·
-              }
-              {{ task.assigneeName || 'Unassigned' }}
+              <strong>{{ t.subject }}</strong>
+              <p class="meta-line">
+                <span class="ticket-no">{{ t.ticketNumber }}</span>
+                <span class="dot-sep">·</span>
+                <a [routerLink]="['/agent/customers', t.customerId]">{{ t.customerName }}</a>
+                <span class="dot-sep">·</span>
+                <app-ticket-priority-badge
+                  [priority]="t.priority"
+                  [hot]="t.priority === 'High' || t.priority === 'Urgent'"
+                />
+                <span class="badge-soft" [class.ok]="t.status === 'Resolved' || t.status === 'Closed'">
+                  {{ t.status }}
+                </span>
+                @if (t.isEscalated) {
+                  <span class="badge-soft bad">{{ lang.t('escalated') }}</span>
+                }
+              </p>
             </div>
-            @if (task.status === 'Open') {
-              <div class="mention-row" style="margin-top: 0.5rem">
-                <button type="button" class="btn ghost" (click)="store.completeTask(id, task.id)">
-                  Complete
-                </button>
-                <button type="button" class="btn ghost" (click)="store.cancelTask(id, task.id)">
-                  Cancel
-                </button>
+          </div>
+
+          @if (sla(); as s) {
+            <div class="sla-strip" [class.breached]="s.firstResponseBreached || s.resolutionBreached">
+              <div class="sla-cell">
+                <span class="sla-label">{{ lang.t('firstResponse') }}</span>
+                <strong [class.warn]="s.firstResponseBreached">{{ s.firstResponseDueAt | date: 'short' }}</strong>
+                @if (s.firstResponseBreached) {
+                  <span class="breach">{{ lang.t('breached') }}</span>
+                }
+              </div>
+              <div class="sla-cell">
+                <span class="sla-label">{{ lang.t('resolution') }}</span>
+                <strong [class.warn]="s.resolutionBreached">{{ s.resolutionDueAt | date: 'short' }}</strong>
+                @if (s.resolutionBreached) {
+                  <span class="breach">{{ lang.t('breached') }}</span>
+                }
+              </div>
+              <div class="sla-cell sla-meta-cell">
+                <span class="sla-label">{{ lang.t('target') }}</span>
+                <span>{{ s.priority }} · {{ s.firstResponseMinutes }}m / {{ s.resolutionMinutes }}m</span>
+              </div>
+              <button type="button" class="btn secondary sla-run" (click)="runAutomation()">
+                {{ lang.t('runAutomation') }}
+              </button>
+            </div>
+          }
+
+          <div class="sheet-tabs" role="tablist">
+            <button type="button" class="sheet-tab" role="tab" [class.active]="tab === 'overview'" (click)="tab = 'overview'">
+              {{ lang.t('overview') }}
+            </button>
+            <button type="button" class="sheet-tab" role="tab" [class.active]="tab === 'email'" (click)="tab = 'email'">
+              {{ lang.t('email') }}
+            </button>
+            <button type="button" class="sheet-tab" role="tab" [class.active]="tab === 'messaging'" (click)="tab = 'messaging'">
+              {{ lang.t('messaging') }}
+            </button>
+            <button type="button" class="sheet-tab" role="tab" [class.active]="tab === 'work'" (click)="tab = 'work'">
+              {{ lang.t('tasksAndNotes') }}
+            </button>
+            <button type="button" class="sheet-tab" role="tab" [class.active]="tab === 'assist'" (click)="tab = 'assist'">
+              {{ lang.t('assist') }}
+            </button>
+            <button type="button" class="sheet-tab" role="tab" [class.active]="tab === 'history'" (click)="tab = 'history'">
+              {{ lang.t('history') }}
+            </button>
+          </div>
+
+          <div class="sheet-body">
+            @if (tab === 'overview') {
+              <section class="panel">
+                <h3>{{ lang.t('description') }}</h3>
+                <p class="desc">{{ t.description || lang.t('noDescription') }}</p>
+              </section>
+
+              @if (t.feedback; as fb) {
+                <section class="panel csat-panel">
+                  <div class="csat-head">
+                    <h3>{{ lang.t('customerFeedback') }}</h3>
+                    <p class="csat-rating"><strong>{{ fb.rating }}</strong><span>/ 5</span></p>
+                  </div>
+                  @if (fb.comment) {
+                    <p class="csat-comment">{{ fb.comment }}</p>
+                  }
+                  <p class="muted">{{ lang.t('submittedAt') }} {{ fb.createdAt | date: 'short' }}</p>
+                </section>
+              }
+            }
+
+            @if (tab === 'email') {
+              <div class="compose-toolbar">
+                <label>
+                  {{ lang.t('quickReply') }}
+                  <select name="emailQuick" [(ngModel)]="emailQuickId" (ngModelChange)="insertQuick('email', $event)">
+                    <option value="">{{ lang.t('insertIntoEmail') }}</option>
+                    @for (q of store.quickReplies(); track q.id) {
+                      <option [value]="q.id">{{ q.title }}</option>
+                    }
+                  </select>
+                </label>
+              </div>
+              <crm-email
+                [subject]="t.subject"
+                [messages]="emailMessages()"
+                [replyToLabel]="emailReplyLabel()"
+                [(draft)]="emailDraft"
+                [placeholder]="lang.t('writeEmailReply')"
+                [sendLabel]="lang.t('send')"
+                [emptyText]="lang.t('noEmailMessages')"
+                (send)="onEmailSend($event)"
+              />
+            }
+
+            @if (tab === 'messaging') {
+              <div class="compose-toolbar">
+                <label>
+                  {{ lang.t('quickReply') }}
+                  <select name="chatQuick" [(ngModel)]="chatQuickId" (ngModelChange)="insertQuick('chat', $event)">
+                    <option value="">{{ lang.t('insertIntoMessage') }}</option>
+                    @for (q of store.quickReplies(); track q.id) {
+                      <option [value]="q.id">{{ q.title }}</option>
+                    }
+                  </select>
+                </label>
+              </div>
+              <crm-chat
+                [title]="t.customerName"
+                [subtitle]="t.ticketNumber + ' · ' + lang.t('channelThread')"
+                [avatarText]="(t.customerName || '?').charAt(0).toUpperCase()"
+                [messages]="chatMessages()"
+                [(draft)]="chatDraft"
+                [placeholder]="lang.t('writeReply')"
+                [sendLabel]="lang.t('send')"
+                [emptyText]="lang.t('noChatMessages')"
+                (send)="onChatSend($event)"
+              >
+                <div crmChatComposeExtra class="channel-pick">
+                  <label>
+                    {{ lang.t('channel') }}
+                    <select name="replyChannel" [(ngModel)]="replyChannel">
+                      <option value="chat">{{ lang.t('liveChat') }}</option>
+                      <option value="whatsapp">{{ lang.t('contactWhatsapp') }}</option>
+                      <option value="sms">{{ lang.t('sms') }}</option>
+                    </select>
+                  </label>
+                </div>
+              </crm-chat>
+            }
+
+            @if (tab === 'work') {
+              <div class="work-split">
+                <section class="panel">
+                  <h3>{{ lang.t('tasks') }}</h3>
+                  <ul class="item-list">
+                    @for (task of store.tasks(); track task.id) {
+                      <li class="item-row">
+                        <div class="item-head">
+                          <strong>{{ task.title }}</strong>
+                          <span class="badge-soft">{{ task.status }}</span>
+                        </div>
+                        <p class="muted">
+                          @if (task.dueAt) {
+                            {{ lang.t('duePrefix') }} {{ task.dueAt | date: 'mediumDate' }} ·
+                          }
+                          {{ task.assigneeName || lang.t('unassigned') }}
+                        </p>
+                        @if (task.status === 'Open') {
+                          <div class="action-row">
+                            <button type="button" class="btn ghost" (click)="store.completeTask(id, task.id)">
+                              {{ lang.t('complete') }}
+                            </button>
+                            <button type="button" class="btn ghost" (click)="store.cancelTask(id, task.id)">
+                              {{ lang.t('cancel') }}
+                            </button>
+                          </div>
+                        }
+                      </li>
+                    } @empty {
+                      <li class="muted empty-line">{{ lang.t('noTasksYet') }}</li>
+                    }
+                  </ul>
+                  <form class="stack-form" (ngSubmit)="saveTask()">
+                    <label>
+                      {{ lang.t('newTask') }}
+                      <input name="taskTitle" [(ngModel)]="taskTitle" [placeholder]="lang.t('phFollowUpTask')" />
+                    </label>
+                    <label>
+                      {{ lang.t('dueDate') }}
+                      <input name="taskDue" type="date" [(ngModel)]="taskDue" />
+                    </label>
+                    <button type="submit" class="btn">{{ lang.t('addTask') }}</button>
+                  </form>
+                </section>
+
+                <section class="panel">
+                  <h3>{{ lang.t('teamNotes') }}</h3>
+                  <p class="muted hint">{{ lang.t('internalNotesOnly') }}</p>
+                  <ul class="item-list">
+                    @for (n of t.notes ?? []; track n.id) {
+                      <li class="item-row">
+                        <div class="item-head">
+                          <strong>{{ n.authorName }}</strong>
+                          <span class="muted">{{ n.createdAt | date: 'short' }}</span>
+                        </div>
+                        <p class="note-body">{{ n.body }}</p>
+                      </li>
+                    } @empty {
+                      <li class="muted empty-line">{{ lang.t('noInternalNotesYet') }}</li>
+                    }
+                  </ul>
+                  <form class="stack-form" (ngSubmit)="saveNote()">
+                    <label>
+                      {{ lang.t('addNote') }}
+                      <textarea
+                        name="noteDraft"
+                        rows="3"
+                        [(ngModel)]="noteDraft"
+                        [placeholder]="lang.t('phAskColleague')"
+                      ></textarea>
+                    </label>
+                    <div class="action-row">
+                      @for (a of store.options()?.agents ?? []; track a.id) {
+                        <button type="button" class="btn ghost" (click)="insertMention(a.name)">
+                          {{ '@' + a.name }}
+                        </button>
+                      }
+                      <button type="submit" class="btn">{{ lang.t('saveNote') }}</button>
+                    </div>
+                  </form>
+                </section>
               </div>
             }
-          </li>
-        } @empty {
-          <li class="muted">No tasks yet.</li>
-        }
-      </ul>
-      <form class="note-form" (ngSubmit)="saveTask()">
-        <label class="full">
-          New task
-          <input name="taskTitle" [(ngModel)]="taskTitle" placeholder="Follow up with customer" />
-        </label>
-        <label class="full">
-          Due date
-          <input name="taskDue" type="date" [(ngModel)]="taskDue" />
-        </label>
-        <button type="submit" class="btn">Add task</button>
-      </form>
-    </div>
 
-    <h2>Team notes</h2>
-    <div class="card notes-card">
-      <p class="muted">Internal only — not shown on the customer portal.</p>
-      <ul class="note-list">
-        @for (n of t.notes ?? []; track n.id) {
-          <li class="note-item">
-            <div class="note-head">
-              <strong>{{ n.authorName }}</strong>
-              <span class="meta">{{ n.createdAt | date: 'short' }}</span>
-            </div>
-            <p class="note-body">{{ n.body }}</p>
-          </li>
-        } @empty {
-          <li class="muted">No internal notes yet.</li>
-        }
-      </ul>
-      <form class="note-form" (ngSubmit)="saveNote()">
-        <label class="full">
-          Add note
-          <textarea
-            name="noteDraft"
-            rows="3"
-            [(ngModel)]="noteDraft"
-            placeholder="Ask a colleague… use @Lead Agent"
-          ></textarea>
-        </label>
-        <div class="mention-row">
-          @for (a of store.options()?.agents ?? []; track a.id) {
-            <button type="button" class="btn ghost" (click)="insertMention(a.name)">
-              {{ '@' + a.name }}
-            </button>
-          }
-          <button type="submit" class="btn">Save note</button>
+            @if (tab === 'assist') {
+              <div class="assist-grid">
+                <section class="panel">
+                  <div class="panel-head">
+                    <h3>{{ lang.t('aiSummary') }}</h3>
+                    <button type="button" class="btn secondary" (click)="generateAiSummary()" [disabled]="aiBusy()">
+                      {{ aiBusy() ? lang.t('generating') : lang.t('generateSummary') }}
+                    </button>
+                  </div>
+                  @if (aiError()) {
+                    <p class="error">{{ aiError() }}</p>
+                  }
+                  @if (aiSummary(); as s) {
+                    <p class="ai-summary">{{ s.summary }}</p>
+                    <ul class="ai-highlights">
+                      @for (h of s.highlights; track h) {
+                        <li>{{ h }}</li>
+                      }
+                    </ul>
+                  } @else {
+                    <p class="muted">{{ lang.t('aiSummaryHint') }}</p>
+                  }
+                </section>
+
+                <section class="panel">
+                  <div class="panel-head">
+                    <h3>{{ lang.t('suggestedReplies') }}</h3>
+                    <button type="button" class="btn secondary" (click)="loadAiSuggestions()" [disabled]="aiBusy()">
+                      {{ lang.t('suggestReplies') }}
+                    </button>
+                  </div>
+                  @if (aiSuggestions().length) {
+                    <ul class="ai-suggestions">
+                      @for (s of aiSuggestions(); track s.title) {
+                        <li>
+                          <strong>{{ s.title }}</strong>
+                          <p class="muted">{{ s.body }}</p>
+                          <div class="action-row">
+                            <button type="button" class="btn ghost" (click)="insertAiSuggestion('email', s.body)">
+                              {{ lang.t('insertEmail') }}
+                            </button>
+                            <button type="button" class="btn ghost" (click)="insertAiSuggestion('chat', s.body)">
+                              {{ lang.t('insertChat') }}
+                            </button>
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <p class="muted">{{ lang.t('suggestedRepliesHint') }}</p>
+                  }
+                </section>
+
+                <section class="panel">
+                  <div class="panel-head">
+                    <h3>{{ lang.t('aiClassification') }}</h3>
+                    <button type="button" class="btn secondary" (click)="loadAiCategory()" [disabled]="aiBusy()">
+                      {{ lang.t('suggestCategory') }}
+                    </button>
+                  </div>
+                  @if (aiCategory(); as c) {
+                    <p class="muted">
+                      {{ c.category }} · {{ c.priority }}
+                      <span>({{ lang.t('confidence') }} {{ c.confidence | number: '1.0-2' }})</span>
+                    </p>
+                    <button type="button" class="btn" (click)="applyAiCategory()">{{ lang.t('apply') }}</button>
+                  } @else {
+                    <p class="muted">{{ lang.t('aiClassificationHint') }}</p>
+                  }
+                </section>
+
+                <section class="panel">
+                  <h3>{{ lang.t('knowledge') }}</h3>
+                  <form class="knowledge-form" (ngSubmit)="searchKnowledge()">
+                    <input name="kq" [(ngModel)]="knowledgeQ" [placeholder]="lang.t('phSearchArticles')" />
+                    <button type="submit" class="btn">{{ lang.t('search') }}</button>
+                  </form>
+                  @if (knowledgeError) {
+                    <p class="error">{{ knowledgeError }}</p>
+                  }
+                  @if (knowledgeHits().length === 0) {
+                    <p class="muted">{{ lang.t('noHitsYet') }}</p>
+                  } @else {
+                    <ul class="knowledge-hits">
+                      @for (h of knowledgeHits(); track h.id) {
+                        <li>
+                          <a [href]="'/knowledge/' + h.id" target="_blank" rel="noopener">{{ h.title }}</a>
+                          <span class="muted">{{ h.kind }} · {{ lang.t('score') }} {{ h.score }}</span>
+                          <p>{{ h.snippet }}</p>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
+              </div>
+            }
+
+            @if (tab === 'history') {
+              <crm-timeline [items]="historyItems()" [emptyText]="lang.t('noHistoryYet')" />
+            }
+          </div>
         </div>
-      </form>
-    </div>
+      </div>
 
-    <h2>History</h2>
-    <crm-timeline [items]="historyItems()" emptyText="No history yet." />
+      <aside class="ticket-side">
+        <section class="side-card">
+          <h3>{{ lang.t('customer') }}</h3>
+          @if (customerError()) {
+            <p class="error">{{ customerError() }}</p>
+          }
+          @if (customer(); as c) {
+            <a class="customer-link" [routerLink]="['/agent/customers', c.id]">
+              <span class="side-avatar">{{ (c.displayName || '?').charAt(0).toUpperCase() }}</span>
+              <span>
+                <strong>{{ c.displayName }}</strong>
+                <span class="muted">{{ c.uniqueIdentifier }}</span>
+              </span>
+            </a>
+            <p class="meta-line">
+              <span class="badge-soft" [class.ok]="c.status === 'Active'" [class.bad]="c.status !== 'Active'">
+                {{ c.status === 'Active' ? lang.t('active') : lang.t('inactive') }}
+              </span>
+              @if (c.organization) {
+                <span class="muted">{{ c.organization }}</span>
+              }
+            </p>
+            <ul class="contact-list">
+              @for (ct of activeContacts(c); track ct.id) {
+                <li>
+                  <span class="contact-type">{{ contactTypeLabel(ct.type) }}</span>
+                  <span class="contact-value">{{ ct.value }}</span>
+                  @if (ct.isPrimary) {
+                    <span class="badge-soft">{{ lang.t('primary') }}</span>
+                  }
+                </li>
+              } @empty {
+                <li class="muted">{{ lang.t('noContactsOnFile') }}</li>
+              }
+            </ul>
+            @if (c.notes[0]; as note) {
+              <div class="latest-note">
+                <span class="muted">{{ lang.t('latestNote') }} · {{ note.createdAt | date: 'short' }}</span>
+                <p>{{ note.body }}</p>
+              </div>
+            }
+          } @else if (!customerError()) {
+            <p class="muted">{{ lang.t('loadingCustomer') }}</p>
+          }
+        </section>
+
+        <form class="side-card" (ngSubmit)="saveClass()">
+          <h3>{{ lang.t('classification') }}</h3>
+          <label>
+            {{ lang.t('category') }}
+            <select name="category" [(ngModel)]="category">
+              @for (c of store.options()?.categories ?? []; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            {{ lang.t('priority') }}
+            <select name="priority" [(ngModel)]="priority">
+              @for (p of store.options()?.priorities ?? []; track p) {
+                <option [value]="p">{{ p }}</option>
+              }
+            </select>
+          </label>
+          <button type="submit" class="btn">{{ lang.t('save') }}</button>
+        </form>
+
+        <form class="side-card" (ngSubmit)="saveAssign()">
+          <h3>{{ lang.t('assignment') }}</h3>
+          <label>
+            {{ lang.t('agent') }}
+            <select name="agentId" [(ngModel)]="agentId">
+              <option value="">{{ lang.t('unassigned') }}</option>
+              @for (a of store.options()?.agents ?? []; track a.id) {
+                <option [value]="a.id">{{ a.name }}</option>
+              }
+            </select>
+          </label>
+          <button type="submit" class="btn">{{ lang.t('assign') }}</button>
+        </form>
+
+        <form class="side-card" (ngSubmit)="saveStatus()">
+          <h3>{{ lang.t('status') }}</h3>
+          <label>
+            {{ lang.t('newStatus') }}
+            <select name="status" [(ngModel)]="status">
+              @for (s of store.options()?.statuses ?? []; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </label>
+          <button type="submit" class="btn">{{ lang.t('update') }}</button>
+        </form>
+
+        <form class="side-card escalate-card" (ngSubmit)="escalate()">
+          <h3>{{ lang.t('escalate') }}</h3>
+          <label>
+            {{ lang.t('assignToOptional') }}
+            <select name="escalateTo" [(ngModel)]="escalateTo">
+              <option value="">{{ lang.t('keepUnassigned') }}</option>
+              @for (a of store.options()?.agents ?? []; track a.id) {
+                <option [value]="a.id">{{ a.name }}</option>
+              }
+            </select>
+          </label>
+          <button type="submit" class="btn danger">{{ lang.t('escalate') }}</button>
+        </form>
+      </aside>
+    </div>
   }
 </section>

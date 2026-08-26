@@ -1,4 +1,4 @@
-export * from './lib/i18n';
+export * from './lib/i18n/index';
 export * from './lib/language.store';
 export * from './lib/session.api';
 export * from './lib/auth/roles';
@@ -12,6 +12,8 @@ export * from './lib/ui/wizard/wizard.models';
 export * from './lib/ui/wizard/wizard.directives';
 export * from './lib/ui/wizard/wizard.component';
 export * from './lib/ui/modal/modal.component';
+export * from './lib/ui/form-feedback/form-feedback.store';
+export * from './lib/ui/form-feedback/form-feedback.component';
 export * from './lib/ui/date-field/date-field.component';
 export * from './lib/ui/timeline/timeline.models';
 export * from './lib/ui/timeline/timeline.component';

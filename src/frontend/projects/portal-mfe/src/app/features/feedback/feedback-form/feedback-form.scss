@@ -1,13 +1,128 @@
-.page {
-  max-width: 36rem;
+.portal-page {
+  max-width: 40rem;
 }
 
-.ok {
-  color: #166534;
-  margin-top: 1rem;
+.crumb-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--crm-text-muted);
 }
 
-.error {
-  color: #b91c1c;
-  margin-top: 1rem;
+.crumb-nav a {
+  font-weight: 600;
+}
+
+.crumb-nav .sep {
+  opacity: 0.55;
+}
+
+.crumb-nav .current {
+  color: var(--crm-text);
+  font-weight: 600;
+}
+
+.portal-sheet {
+  max-width: none;
+}
+
+.settings-form textarea {
+  resize: vertical;
+}
+
+.rating-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.rating-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--crm-text);
+}
+
+.rating-scale {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.rating-chip {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: center;
+  padding: 0.7rem 0.35rem;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius-sm);
+  background: rgba(47, 43, 61, 0.02);
+  color: var(--crm-text-muted);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.rating-chip strong {
+  font-size: 1.15rem;
+  color: var(--crm-text);
+}
+
+.rating-chip span {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.rating-chip:hover {
+  border-color: rgba(140, 87, 255, 0.4);
+}
+
+.rating-chip.active {
+  border-color: var(--crm-primary);
+  background: var(--crm-primary-soft);
+  color: var(--crm-primary);
+}
+
+.rating-chip.active strong {
+  color: var(--crm-primary);
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .rating-scale {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.loading-line {
+  padding: 0 1.35rem 1rem;
+}
+
+.empty-panel {
+  display: grid;
+  gap: 0.85rem;
+  justify-items: start;
+  margin: 0 1.35rem 1.25rem;
+  padding: 1.2rem 1.1rem;
+  border: 1px dashed var(--crm-border);
+  border-radius: var(--crm-radius);
+  background: rgba(47, 43, 61, 0.02);
+}
+
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.settings-form select {
+  width: 100%;
+  min-height: 2.5rem;
 }

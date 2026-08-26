@@ -1,4 +1,21 @@
-<section class="soon">
-  <h1>Knowledge base</h1>
-  <p>Coming soon</p>
+<section class="workspace">
+  <header class="row">
+    <div>
+      <h1>{{ lang.t('knowledgeBase') }}</h1>
+      <p class="lede">{{ lang.t('knowledgeHomeLead') }}</p>
+    </div>
+  </header>
+
+  <div class="action-grid home-actions">
+    <a routerLink="/knowledge" class="action-tile featured">
+      <span class="tile-kicker">{{ lang.t('articles') }}</span>
+      <strong>{{ lang.t('articles') }}</strong>
+      <span>{{ lang.t('knowledgeListLead') }}</span>
+    </a>
+    <a routerLink="/knowledge/search" class="action-tile featured">
+      <span class="tile-kicker">{{ lang.t('help') }}</span>
+      <strong>{{ lang.t('search') }}</strong>
+      <span>{{ lang.t('faqsHint') }}</span>
+    </a>
+  </div>
 </section>

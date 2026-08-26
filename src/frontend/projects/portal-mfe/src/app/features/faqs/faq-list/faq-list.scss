@@ -1,4 +1,4 @@
-.page {
+.portal-page {
   max-width: 44rem;
 }
 
@@ -25,9 +25,28 @@
   font-weight: 600;
 }
 
-.filter-card {
+.portal-sheet {
   max-width: none;
   margin-bottom: 1.25rem;
+}
+
+.search-form {
+  padding-top: 0;
+}
+
+.search-form .full {
+  margin: 0;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.search-row input {
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 .btn:disabled {
@@ -45,23 +64,70 @@
 
 .faq-card {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1rem 1.1rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.05rem 1.15rem;
   border: 1px solid var(--crm-border);
   border-radius: var(--crm-radius);
   background: var(--crm-paper);
   box-shadow: var(--crm-shadow);
   text-decoration: none;
   color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
 .faq-card:hover {
-  border-color: var(--crm-primary);
+  border-color: rgba(140, 87, 255, 0.45);
+  transform: translateY(-1px);
+}
+
+.faq-copy {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.faq-copy strong {
+  color: var(--crm-text);
+  line-height: 1.35;
+}
+
+.faq-chevron {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--crm-primary-soft);
+  color: var(--crm-primary);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+html[dir='rtl'] .faq-chevron {
+  transform: scaleX(-1);
 }
 
 .meta,
 .muted {
   font-size: 0.85rem;
   color: var(--crm-text-muted);
+  margin: 0;
+}
+
+.empty-panel {
+  display: grid;
+  gap: 0.85rem;
+  justify-items: start;
+  padding: 1.35rem 1.25rem;
+  border: 1px dashed var(--crm-border);
+  border-radius: var(--crm-radius);
+  background: rgba(47, 43, 61, 0.02);
+}
+
+.error {
+  color: var(--crm-danger);
+  margin: 0 0 1rem;
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit, effect, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormFeedbackStore, LanguageStore } from 'shared';
 import { ARTICLE_KINDS, ARTICLE_STATUSES } from '../articles.models';
 import { ArticlesStore } from '../articles.store';
 
@@ -13,7 +14,9 @@ import { ArticlesStore } from '../articles.store';
   styleUrls: ['./article-edit.scss'],
 })
 export class ArticleEditPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(ArticlesStore);
+  private readonly feedback = inject(FormFeedbackStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -48,7 +51,11 @@ export class ArticleEditPage implements OnInit {
     }
   }
 
-  save(): void {
+  save(f: NgForm): void {
+    if (f.invalid) {
+      this.feedback.error('formInvalid');
+      return;
+    }
     const payload = {
       title: this.title.trim(),
       body: this.body.trim(),
@@ -56,9 +63,21 @@ export class ArticleEditPage implements OnInit {
       status: this.status,
     };
     if (this.isNew) {
-      this.store.create(payload, (id) => void this.router.navigateByUrl(`/knowledge/${id}`));
+      this.store.create(
+        payload,
+        (id) => {
+          this.feedback.success('articleSaveSuccess');
+          void this.router.navigateByUrl(`/knowledge/${id}`);
+        },
+        (msg) => this.feedback.errorText(msg),
+      );
       return;
     }
-    this.store.update(this.id, payload, () => undefined);
+    this.store.update(
+      this.id,
+      payload,
+      () => this.feedback.success('articleSaveSuccess'),
+      (msg) => this.feedback.errorText(msg),
+    );
   }
 }

@@ -12,34 +12,39 @@
     </div>
   </header>
 
-  @if (store.error()) {
-    <p class="error">{{ store.error() }}</p>
-  }
-
   <div class="panels">
-    <form class="card" (ngSubmit)="addDept()">
+    <form class="card" #deptForm="ngForm" (ngSubmit)="addDept(deptForm)">
       <h2>New department</h2>
       <label>
         Name
-        <input name="deptName" [(ngModel)]="deptName" required />
+        <input name="deptName" [(ngModel)]="deptName" required #deptNameCtrl="ngModel" />
+        @if (deptForm.submitted && deptNameCtrl.invalid) {
+          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+        }
       </label>
       <button type="submit" class="btn">Add department</button>
     </form>
 
-    <form class="card" (ngSubmit)="addBranch()">
+    <form class="card" #branchForm="ngForm" (ngSubmit)="addBranch(branchForm)">
       <h2>New branch</h2>
       <label>
         Department
-        <select name="branchDeptId" [(ngModel)]="branchDeptId" required>
+        <select name="branchDeptId" [(ngModel)]="branchDeptId" required #branchDeptCtrl="ngModel">
           <option value="">Select…</option>
           @for (d of store.departments(); track d.id) {
             <option [value]="d.id">{{ d.name }}</option>
           }
         </select>
+        @if (branchForm.submitted && branchDeptCtrl.invalid) {
+          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+        }
       </label>
       <label>
         Name
-        <input name="branchName" [(ngModel)]="branchName" required />
+        <input name="branchName" [(ngModel)]="branchName" required #branchNameCtrl="ngModel" />
+        @if (branchForm.submitted && branchNameCtrl.invalid) {
+          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+        }
       </label>
       <button type="submit" class="btn">Add branch</button>
     </form>

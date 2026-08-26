@@ -1,7 +1,13 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { CrmWizardComponent, CrmWizardStep, CrmWizardStepDirective } from 'shared';
+import {
+  CrmWizardComponent,
+  CrmWizardStep,
+  CrmWizardStepDirective,
+  FormFeedbackStore,
+  LanguageStore,
+} from 'shared';
 import { DepartmentsApi } from '../../departments/departments.api';
 import { Branch, Department } from '../../departments/departments.models';
 import { UsersStore } from '../users.store';
@@ -15,11 +21,14 @@ import { UsersStore } from '../users.store';
   styleUrls: ['./create-user.scss'],
 })
 export class UserCreatePage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(UsersStore);
+  private readonly feedback = inject(FormFeedbackStore);
   private readonly router = inject(Router);
   private readonly departmentsApi = inject(DepartmentsApi);
 
   step = 0;
+  attempted = false;
   email = '';
   displayName = '';
   password = 'Crm!123';
@@ -29,10 +38,10 @@ export class UserCreatePage implements OnInit {
   departments: Department[] = [];
   branches: Branch[] = [];
 
-  readonly steps: CrmWizardStep[] = [
-    { title: 'Details', subtitle: 'Account and access' },
-    { title: 'Review', subtitle: 'Confirm and create' },
-  ];
+  readonly steps = computed<CrmWizardStep[]>(() => [
+    { title: this.lang.t('stepAccount'), subtitle: this.lang.t('accountAccess') },
+    { title: this.lang.t('stepReview'), subtitle: this.lang.t('confirmCreateAccount') },
+  ]);
 
   get avatarLetter(): string {
     return (this.displayName.trim() || this.email.trim() || '?').charAt(0).toUpperCase();
@@ -63,12 +72,21 @@ export class UserCreatePage implements OnInit {
     );
   }
 
+  onAdvanceBlocked(): void {
+    this.attempted = true;
+    this.feedback.error('formInvalid');
+  }
+
   onDeptChange(): void {
     this.branchId = '';
   }
 
   submit(): void {
-    if (!this.canAdvance()) return;
+    this.attempted = true;
+    if (!this.canAdvance()) {
+      this.feedback.error('formInvalid');
+      return;
+    }
     this.store.create(
       {
         email: this.email.trim(),
@@ -78,7 +96,11 @@ export class UserCreatePage implements OnInit {
         departmentId: this.departmentId || null,
         branchId: this.branchId || null,
       },
-      () => void this.router.navigate(['/admin/users']),
+      () => {
+        this.feedback.success('createUserSuccess');
+        void this.router.navigate(['/admin/users']);
+      },
+      (msg) => this.feedback.errorText(msg),
     );
   }
 }

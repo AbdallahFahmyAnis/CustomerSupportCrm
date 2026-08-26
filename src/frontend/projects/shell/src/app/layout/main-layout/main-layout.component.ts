@@ -4,6 +4,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   canAccessAdmin,
   canAccessAgentWorkspace,
+  CrmFormFeedbackComponent,
+  isCustomerRole,
   LanguageStore,
   SessionApi,
 } from 'shared';
@@ -20,7 +22,7 @@ type Branding = {
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CrmFormFeedbackComponent],
   templateUrl: './main-layout.html',
   styleUrls: ['./main-layout.scss'],
 })
@@ -64,6 +66,10 @@ export class MainLayoutComponent implements OnInit {
 
   get showAdminNav(): boolean {
     return canAccessAdmin(this.session.session()?.role);
+  }
+
+  get showPortalNav(): boolean {
+    return isCustomerRole(this.session.session()?.role);
   }
 
   toggleSidebar(): void {

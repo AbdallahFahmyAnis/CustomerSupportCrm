@@ -1,6 +1,5 @@
-.page {
-  max-width: none;
-  width: 100%;
+.portal-page {
+  max-width: 48rem;
 }
 
 .crumb-nav {
@@ -26,24 +25,77 @@
   font-weight: 600;
 }
 
-.identity-card {
+.chat-sheet {
   max-width: none;
-  margin-bottom: 1rem;
+  overflow: hidden;
 }
 
-.identity-card .settings-form {
-  padding-bottom: 0.25rem;
+.settings-hero .badge-soft {
+  margin-inline-start: auto;
 }
 
-crm-chat {
+.identity-block {
+  padding: 1.1rem 1.35rem;
+  border-bottom: 1px solid var(--crm-border);
+  background: rgba(47, 43, 61, 0.015);
+}
+
+.identity-block .settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.identity-block label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.chat-embed {
+  padding: 0;
+}
+
+.chat-embed crm-chat {
   display: block;
-  margin-top: 0.25rem;
 }
 
-.error {
-  margin-top: 0.75rem;
+.chat-embed ::ng-deep .crm-chat {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 26rem;
+  max-height: min(62vh, 36rem);
 }
 
-.back-link {
-  margin-top: 1rem;
+.chat-embed ::ng-deep .crm-chat__header {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .identity-block .settings-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-hero .badge-soft {
+    margin-inline-start: 0;
+  }
+}
+
+.after-chat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.95rem 1.35rem 1.2rem;
+  border-top: 1px solid var(--crm-border);
+  background: rgba(40, 199, 111, 0.06);
+}
+
+.after-chat .muted {
+  margin: 0;
+  color: var(--crm-text-muted);
+  font-size: 0.9rem;
 }

@@ -1,48 +1,59 @@
 <section class="page">
   <header class="row">
     <div>
-      <h1>Account settings</h1>
-      <p class="lede">Organization identity and login lockout policy</p>
+      <h1>{{ lang.t('accountSettings') }}</h1>
+      <p class="lede">{{ lang.t('settingsLead') }}</p>
     </div>
   </header>
 
-  @if (store.error()) {
-    <p class="error">{{ store.error() }}</p>
-  }
-  @if (store.saved()) {
-    <p class="ok">Settings saved.</p>
-  }
   @if (store.loading()) {
-    <p>Loading…</p>
+    <p>{{ lang.t('loading') }}</p>
   } @else {
     <div class="settings-card">
       <div class="settings-hero">
         <div class="avatar">{{ (organizationName || 'O').charAt(0).toUpperCase() }}</div>
         <div class="meta">
-          <strong>{{ organizationName || 'Organization' }}</strong>
-          <p>{{ supportEmail || 'Support contact and lockout defaults' }}</p>
+          <strong>{{ organizationName || lang.t('organizationFallback') }}</strong>
+          <p>{{ supportEmail || lang.t('supportContactHint') }}</p>
         </div>
       </div>
 
-      <form class="settings-form" (ngSubmit)="submit()">
+      <form class="settings-form" #f="ngForm" (ngSubmit)="submit(f)">
         <div class="settings-form-grid">
           <label>
-            Organization name
-            <input name="organizationName" [(ngModel)]="organizationName" required />
+            {{ lang.t('organizationName') }}
+            <input
+              name="organizationName"
+              [(ngModel)]="organizationName"
+              required
+              #orgCtrl="ngModel"
+            />
+            @if (f.submitted && orgCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
           <label>
-            Support email
-            <input name="supportEmail" type="email" [(ngModel)]="supportEmail" required />
+            {{ lang.t('supportEmail') }}
+            <input
+              name="supportEmail"
+              type="email"
+              [(ngModel)]="supportEmail"
+              required
+              #supportCtrl="ngModel"
+            />
+            @if (f.submitted && supportCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
           <label>
-            Default culture
+            {{ lang.t('defaultCulture') }}
             <select name="defaultCulture" [(ngModel)]="defaultCulture" required>
               <option value="en">English (en)</option>
               <option value="ar">Arabic (ar)</option>
             </select>
           </label>
           <label>
-            Max failed login attempts
+            {{ lang.t('maxFailedLogins') }}
             <input
               name="maxFailedLoginAttempts"
               type="number"
@@ -50,10 +61,14 @@
               max="20"
               [(ngModel)]="maxFailedLoginAttempts"
               required
+              #maxFailCtrl="ngModel"
             />
+            @if (f.submitted && maxFailCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
           <label>
-            Lockout minutes
+            {{ lang.t('lockoutMinutes') }}
             <input
               name="lockoutMinutes"
               type="number"
@@ -61,26 +76,30 @@
               max="1440"
               [(ngModel)]="lockoutMinutes"
               required
+              #lockoutCtrl="ngModel"
             />
+            @if (f.submitted && lockoutCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
           <label>
-            Product title
+            {{ lang.t('productTitle') }}
             <input name="productTitle" [(ngModel)]="productTitle" />
           </label>
           <label>
-            Primary color
+            {{ lang.t('primaryColor') }}
             <input name="primaryColor" [(ngModel)]="primaryColor" placeholder="#2563eb" />
           </label>
           <label>
-            Logo URL
+            {{ lang.t('logoUrl') }}
             <input name="logoUrl" [(ngModel)]="logoUrl" placeholder="/brand/azm-squad.png" />
           </label>
           <label>
-            ERP webhook URL
+            {{ lang.t('erpWebhookUrl') }}
             <input name="erpWebhookUrl" [(ngModel)]="erpWebhookUrl" placeholder="https://…" />
           </label>
           <label>
-            ERP Authorization header
+            {{ lang.t('erpAuthHeader') }}
             <input
               name="erpWebhookAuthHeader"
               [(ngModel)]="erpWebhookAuthHeader"
@@ -91,18 +110,18 @@
 
         <div class="erp-deliveries">
           <div class="row" style="justify-content: space-between; align-items: center; margin-bottom: 0.5rem">
-            <strong>ERP outbox (last deliveries)</strong>
-            <button type="button" class="btn secondary" (click)="refreshDeliveries()">Refresh</button>
+            <strong>{{ lang.t('erpOutbox') }}</strong>
+            <button type="button" class="btn secondary" (click)="refreshDeliveries()">{{ lang.t('refresh') }}</button>
           </div>
           @if (store.erpDeliveries().length === 0) {
-            <p class="lede">No deliveries yet (empty URL is a no-op).</p>
+            <p class="lede">{{ lang.t('noDeliveriesYet') }}</p>
           } @else {
             <table class="erp-outbox">
               <thead>
                 <tr>
-                  <th>Ticket</th>
-                  <th>Status</th>
-                  <th>At</th>
+                  <th>{{ lang.t('ticket') }}</th>
+                  <th>{{ lang.t('status') }}</th>
+                  <th>{{ lang.t('at') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,10 +139,10 @@
 
         <div class="settings-actions">
           <button type="submit" class="btn" [disabled]="store.saving()">
-            {{ store.saving() ? 'Saving…' : 'Save changes' }}
+            {{ store.saving() ? lang.t('saving') : lang.t('saveChanges') }}
           </button>
           <button type="button" class="btn secondary" (click)="reset()" [disabled]="store.saving()">
-            Reset
+            {{ lang.t('reset') }}
           </button>
         </div>
       </form>

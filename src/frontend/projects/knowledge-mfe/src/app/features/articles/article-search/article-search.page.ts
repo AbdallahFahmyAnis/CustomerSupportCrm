@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { LanguageStore } from 'shared';
 import { ARTICLE_KINDS, ARTICLE_STATUSES } from '../articles.models';
 import { ArticlesStore } from '../articles.store';
 
@@ -13,6 +14,7 @@ import { ArticlesStore } from '../articles.store';
   styleUrls: ['./article-search.scss'],
 })
 export class ArticleSearchPage {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(ArticlesStore);
   readonly kinds = ARTICLE_KINDS;
   readonly statuses = ARTICLE_STATUSES;

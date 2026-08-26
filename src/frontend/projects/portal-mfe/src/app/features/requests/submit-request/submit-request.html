@@ -1,14 +1,14 @@
 <section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/portal">Portal</a>
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/portal">{{ lang.t('portal') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">Submit request</span>
+    <span class="current">{{ lang.t('submitRequest') }}</span>
   </nav>
 
   <header class="row">
     <div>
-      <h1>Submit a request</h1>
-      <p class="lede">We create a support ticket from this web form.</p>
+      <h1>{{ lang.t('submitRequest') }}</h1>
+      <p class="lede">{{ lang.t('submitRequestLead') }}</p>
     </div>
   </header>
 
@@ -17,20 +17,20 @@
       <div class="settings-hero success-hero">
         <div class="avatar ok">✓</div>
         <div class="meta">
-          <strong>Request received</strong>
-          <p>Thanks — your support ticket was created.</p>
+          <strong>{{ lang.t('requestReceived') }}</strong>
+          <p>{{ lang.t('requestThanks') }}</p>
         </div>
       </div>
       <div class="result-body">
         <table class="review-table">
           <tr>
-            <th>Ticket number</th>
+            <th>{{ lang.t('ticketNumber') }}</th>
             <td><strong>{{ result.ticketNumber }}</strong></td>
           </tr>
         </table>
         <div class="settings-actions">
-          <a routerLink="/portal/track" class="btn">Track requests</a>
-          <button type="button" class="btn secondary" (click)="resetForm()">Submit another</button>
+          <a routerLink="/portal/track" class="btn">{{ lang.t('trackRequests') }}</a>
+          <button type="button" class="btn secondary" (click)="resetForm()">{{ lang.t('submitAnother') }}</button>
         </div>
       </div>
     </div>
@@ -39,53 +39,76 @@
       <div class="settings-hero">
         <div class="avatar">S</div>
         <div class="meta">
-          <strong>New support request</strong>
-          <p>Tell us how we can help — name, email, and message.</p>
+          <strong>{{ lang.t('newSupportRequest') }}</strong>
+          <p>{{ lang.t('newSupportRequestHint') }}</p>
         </div>
       </div>
 
-      <form class="settings-form" (ngSubmit)="onSubmit()">
+      <form class="settings-form" #f="ngForm" (ngSubmit)="onSubmit(f)">
         <div class="settings-form-grid">
           <label>
-            Name
-            <input name="name" [(ngModel)]="name" required autocomplete="name" placeholder="Your name" />
+            {{ lang.t('name') }}
+            <input
+              name="name"
+              [(ngModel)]="name"
+              required
+              autocomplete="name"
+              [placeholder]="lang.t('phYourName')"
+              #nameCtrl="ngModel"
+            />
+            @if (f.submitted && nameCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
           <label>
-            Email
+            {{ lang.t('email') }}
             <input
               name="email"
               type="email"
               [(ngModel)]="email"
               required
               autocomplete="email"
-              placeholder="you@example.com"
+              [placeholder]="lang.t('phYouEmail')"
+              #emailCtrl="ngModel"
             />
+            @if (f.submitted && emailCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
           <label class="full">
-            Subject
-            <input name="subject" [(ngModel)]="subject" required placeholder="Brief summary" />
+            {{ lang.t('subject') }}
+            <input
+              name="subject"
+              [(ngModel)]="subject"
+              required
+              [placeholder]="lang.t('phBriefSummary')"
+              #subjectCtrl="ngModel"
+            />
+            @if (f.submitted && subjectCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
           <label class="full">
-            Message
+            {{ lang.t('message') }}
             <textarea
               name="message"
               [(ngModel)]="message"
               rows="5"
               required
-              placeholder="Describe the issue or question…"
+              [placeholder]="lang.t('phDescribeQuestion')"
+              #messageCtrl="ngModel"
             ></textarea>
+            @if (f.submitted && messageCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
         </div>
 
-        @if (store.submitError(); as err) {
-          <p class="error" role="alert">{{ err }}</p>
-        }
-
         <div class="settings-actions">
           <button type="submit" class="btn" [disabled]="store.submitting()">
-            {{ store.submitting() ? 'Sending…' : 'Submit request' }}
+            {{ store.submitting() ? lang.t('sending') : lang.t('submitRequest') }}
           </button>
-          <a routerLink="/portal" class="btn secondary">Cancel</a>
+          <a routerLink="/portal" class="btn secondary">{{ lang.t('cancel') }}</a>
         </div>
       </form>
     </div>

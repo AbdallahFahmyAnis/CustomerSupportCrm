@@ -1,8 +1,8 @@
 <section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/agent/customers">Customers</a>
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/agent/customers">{{ lang.t('customers') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">{{ customer()?.displayName || 'Detail' }}</span>
+    <span class="current">{{ customer()?.displayName || lang.t('detail') }}</span>
   </nav>
 
   @if (customer(); as c) {
@@ -14,14 +14,14 @@
           <p class="meta-line">
             <span>{{ c.uniqueIdentifier }}</span>
             <span class="dot-sep">·</span>
-            <span>{{ c.organization || 'No organization' }}</span>
+            <span>{{ c.organization || lang.t('noOrganization') }}</span>
             <span class="dot-sep">·</span>
             <span class="badge-soft" [class.ok]="c.status === 'Active'" [class.bad]="c.status !== 'Active'">
-              {{ c.status }}
+              {{ c.status === 'Active' ? lang.t('active') : lang.t('inactive') }}
             </span>
           </p>
         </div>
-        <a class="btn secondary" [routerLink]="['/agent/customers', c.id, 'edit']">Edit</a>
+        <a class="btn secondary" [routerLink]="['/agent/customers', c.id, 'edit']">{{ lang.t('edit') }}</a>
       </div>
 
       <div class="sheet-tabs" role="tablist">
@@ -32,7 +32,7 @@
           [class.active]="tab === 'contacts'"
           (click)="tab = 'contacts'"
         >
-          Contacts
+          {{ lang.t('contactsTab') }}
         </button>
         <button
           type="button"
@@ -41,7 +41,7 @@
           [class.active]="tab === 'activity'"
           (click)="tab = 'activity'"
         >
-          Notes & files
+          {{ lang.t('notesFilesTab') }}
         </button>
         <button
           type="button"
@@ -50,7 +50,7 @@
           [class.active]="tab === 'timeline'"
           (click)="tab = 'timeline'"
         >
-          Timeline
+          {{ lang.t('timelineTab') }}
         </button>
       </div>
 
@@ -60,67 +60,89 @@
             @for (contact of c.contacts; track contact.id) {
               <div class="contact-row" [class.inactive]="!contact.isActive">
                 <div class="contact-main">
-                  <span class="type">{{ contact.type }}</span>
+                  <span class="type">{{ contactTypeLabel(contact.type) }}</span>
                   <span class="value">{{ contact.value }}</span>
                   <span class="flags">
                     @if (contact.isPrimary) {
-                      <span class="badge-soft">primary</span>
+                      <span class="badge-soft">{{ lang.t('primary') }}</span>
                     }
                     @if (!contact.isActive) {
-                      <span class="badge-soft bad">inactive</span>
+                      <span class="badge-soft bad">{{ lang.t('inactive') }}</span>
                     }
                   </span>
                 </div>
                 <div class="contact-actions">
                   @if (contact.isActive) {
-                    <button type="button" class="link" (click)="askDeactivate(contact.id)">Deactivate</button>
+                    <button type="button" class="link" (click)="askDeactivate(contact.id)">
+                      {{ lang.t('deactivate') }}
+                    </button>
                   }
                 </div>
               </div>
             } @empty {
-              <p class="muted">No contacts yet.</p>
+              <p class="muted">{{ lang.t('noContactsYet') }}</p>
             }
           </div>
 
-          <form class="add-contact" (ngSubmit)="addContact()">
+          <form class="add-contact" #contactForm="ngForm" (ngSubmit)="addContact(contactForm)">
             <div class="field">
-              <label for="contact-type">Type</label>
+              <label for="contact-type">{{ lang.t('contactType') }}</label>
               <select id="contact-type" name="type" [(ngModel)]="contactType">
-                <option value="email">email</option>
-                <option value="phone">phone</option>
-                <option value="whatsapp">whatsapp</option>
-                <option value="address">address</option>
+                <option value="email">{{ lang.t('contactEmail') }}</option>
+                <option value="phone">{{ lang.t('contactPhone') }}</option>
+                <option value="whatsapp">{{ lang.t('contactWhatsapp') }}</option>
+                <option value="address">{{ lang.t('contactAddress') }}</option>
               </select>
             </div>
             <div class="field">
-              <label for="contact-value">Value</label>
-              <input id="contact-value" name="value" [(ngModel)]="contactValue" placeholder="Value" required />
+              <label for="contact-value">{{ lang.t('contactValue') }}</label>
+              <input
+                id="contact-value"
+                name="value"
+                [(ngModel)]="contactValue"
+                [placeholder]="lang.t('phContactValue')"
+                required
+                #contactValueCtrl="ngModel"
+              />
+              @if (contactForm.submitted && contactValueCtrl.invalid) {
+                <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+              }
             </div>
             <div class="field check">
               <label class="check-inline">
                 <input type="checkbox" name="primary" [(ngModel)]="contactPrimary" />
-                Primary
+                {{ lang.t('primary') }}
               </label>
             </div>
             <div class="field action">
-              <button type="submit" class="btn">Add contact</button>
+              <button type="submit" class="btn">{{ lang.t('addContact') }}</button>
             </div>
           </form>
         }
 
         @if (tab === 'activity') {
           <div class="split">
-            <form class="stack-form" (ngSubmit)="addNote()">
-              <h3>Add note</h3>
-              <textarea name="note" [(ngModel)]="noteBody" rows="4" required placeholder="Write a note…"></textarea>
-              <button type="submit" class="btn">Add note</button>
+            <form class="stack-form" #noteForm="ngForm" (ngSubmit)="addNote(noteForm)">
+              <h3>{{ lang.t('addNote') }}</h3>
+              <textarea
+                name="note"
+                [(ngModel)]="noteBody"
+                rows="4"
+                required
+                [placeholder]="lang.t('phWriteNote')"
+                #noteCtrl="ngModel"
+              ></textarea>
+              @if (noteForm.submitted && noteCtrl.invalid) {
+                <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+              }
+              <button type="submit" class="btn">{{ lang.t('addNote') }}</button>
             </form>
 
             <div class="stack-form">
-              <h3>Attachments</h3>
+              <h3>{{ lang.t('attachments') }}</h3>
               <label class="file-drop">
                 <input type="file" (change)="onFile($event)" />
-                <span>Choose a file to upload</span>
+                <span>{{ lang.t('chooseFileUpload') }}</span>
               </label>
               <ul class="file-list">
                 @for (a of c.attachments; track a.id) {
@@ -128,7 +150,7 @@
                     <a [href]="api.attachmentUrl(c.id, a.id)" target="_blank" rel="noopener">{{ a.fileName }}</a>
                   </li>
                 } @empty {
-                  <li class="muted">No attachments.</li>
+                  <li class="muted">{{ lang.t('noAttachments') }}</li>
                 }
               </ul>
             </div>
@@ -143,14 +165,14 @@
   } @else if (error()) {
     <p class="error">{{ error() }}</p>
   } @else {
-    <p>Loading…</p>
+    <p>{{ lang.t('loading') }}</p>
   }
 
-  <crm-modal [(open)]="confirmOpen" title="Deactivate contact" size="sm">
-    <p>Deactivate this contact? It will no longer be used as a primary channel.</p>
+  <crm-modal [(open)]="confirmOpen" [title]="lang.t('deactivateContact')" size="sm">
+    <p>{{ lang.t('deactivateContactConfirm') }}</p>
     <div crmModalActions>
-      <button type="button" class="btn secondary" (click)="confirmOpen = false">Cancel</button>
-      <button type="button" class="btn danger" (click)="confirmDeactivate()">Deactivate</button>
+      <button type="button" class="btn secondary" (click)="confirmOpen = false">{{ lang.t('cancel') }}</button>
+      <button type="button" class="btn danger" (click)="confirmDeactivate()">{{ lang.t('deactivate') }}</button>
     </div>
   </crm-modal>
 </section>

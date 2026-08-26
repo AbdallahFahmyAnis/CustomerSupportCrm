@@ -16,7 +16,7 @@
 .crm-tl__item:not(:last-child)::before {
   content: '';
   position: absolute;
-  left: 0.55rem;
+  inset-inline-start: 0.55rem;
   top: 1.15rem;
   bottom: 0;
   width: 2px;

@@ -3,10 +3,12 @@ import {
   Component,
   ContentChildren,
   QueryList,
+  inject,
   input,
   model,
   output,
 } from '@angular/core';
+import { LanguageStore } from '../../language.store';
 import { CrmWizardStepDirective } from './wizard.directives';
 import { CrmWizardStep } from './wizard.models';
 
@@ -22,12 +24,15 @@ import { CrmWizardStep } from './wizard.models';
   styleUrls: ['./wizard.scss'],
 })
 export class CrmWizardComponent {
+  readonly lang = inject(LanguageStore);
   readonly steps = input.required<readonly CrmWizardStep[]>();
   readonly step = model(0);
   readonly canNext = input(true);
   readonly finishLabel = input('Submit');
   readonly finishDisabled = input(false);
   readonly finish = output<void>();
+  /** Emitted when Next is clicked but `canNext` is false (for field-error UI). */
+  readonly advanceBlocked = output<void>();
 
   @ContentChildren(CrmWizardStepDirective) stepTpls!: QueryList<CrmWizardStepDirective>;
 
@@ -49,6 +54,7 @@ export class CrmWizardComponent {
 
   next(): void {
     if (!this.canNext()) {
+      this.advanceBlocked.emit();
       return;
     }
     const last = this.steps().length - 1;

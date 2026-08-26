@@ -14,24 +14,24 @@
           <ng-container *ngTemplateOutlet="actions.template" />
         </div>
       }
-      <div class="dv-toggle" role="group" aria-label="View mode">
+      <div class="dv-toggle" role="group" [attr.aria-label]="lang.t('viewMode')">
         <button
           type="button"
           class="toggle-btn"
           [class.active]="viewMode() === 'list'"
           (click)="setMode('list')"
-          title="List view"
+          [title]="lang.t('listViewTitle')"
         >
-          ☰ List
+          ☰ {{ lang.t('listView') }}
         </button>
         <button
           type="button"
           class="toggle-btn"
           [class.active]="viewMode() === 'grid'"
           (click)="setMode('grid')"
-          title="Grid view"
+          [title]="lang.t('gridViewTitle')"
         >
-          ▦ Grid
+          ▦ {{ lang.t('gridView') }}
         </button>
       </div>
     </div>
@@ -44,7 +44,7 @@
   }
 
   @if (items().length === 0) {
-    <p class="dv-empty">{{ emptyText() }}</p>
+    <p class="dv-empty">{{ emptyLabel() }}</p>
   } @else if (viewMode() === 'list') {
     <div class="dv-table-wrap">
       <table>

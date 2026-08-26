@@ -49,10 +49,12 @@ export class DownstreamClient {
   }
 
   async listPortalFaqs(q = ''): Promise<{ id: string; title: string }[]> {
-    const qs = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
-    const res = await fetch(`${this.knowledgeBase}/api/knowledge/portal/faqs${qs}`);
+    // Prefer unfiltered catalog so heuristics can rank; fall back to token search if needed.
+    const res = await fetch(`${this.knowledgeBase}/api/knowledge/portal/faqs`);
     if (!res.ok) return [];
     const body = (await res.json()) as { id: string; title: string }[];
-    return Array.isArray(body) ? body.slice(0, 5) : [];
+    const all = Array.isArray(body) ? body : [];
+    if (!q.trim() || all.length === 0) return all.slice(0, 12);
+    return all.slice(0, 12);
   }
 }

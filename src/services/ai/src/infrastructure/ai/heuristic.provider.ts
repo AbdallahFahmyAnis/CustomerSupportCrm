@@ -111,33 +111,89 @@ export function chatReply(
     .map((t) => t.text)
     .join(' ');
   const q = `${priorUser} ${message}`.trim().toLowerCase();
-  const hits = faqs.filter((f) => {
-    const t = f.title.toLowerCase();
-    return q.split(/\s+/).some((w) => w.length > 3 && t.includes(w));
-  });
+  const continuing = priorTurns.length > 0;
+  const followTag = continuing ? ' (continuing from our earlier messages)' : '';
+
+  const hits = rankFaqHits(q, faqs);
+  const topic = topicReply(q);
+
   if (hits.length > 0) {
     const top = hits.slice(0, 2);
-    const followUp =
-      priorTurns.length > 0
-        ? ' (continuing from our earlier messages)'
-        : '';
+    const titles = top.map((h) => h.title).join('; ');
+    const lead = topic
+      ? `${topic} Related FAQ${followTag}: ${titles}.`
+      : `Based on our FAQs${followTag}, start with: ${titles}.`;
     return {
-      reply: `Based on our FAQs${followUp}, you may find these helpful: ${top.map((h) => h.title).join('; ')}. If that doesn't resolve it, submit a portal request.`,
+      reply: `${lead} Open the article under FAQs, or Submit a request / Live chat if you still need help.`,
       sources: top,
     };
   }
-  if (priorTurns.length > 0) {
+
+  if (topic) {
+    return {
+      reply: `${topic}${continuing ? ' Still here if you have a follow-up.' : ''} Or browse FAQs, Submit a request, or Live chat.`,
+      sources: [],
+    };
+  }
+
+  if (continuing) {
     return {
       reply:
-        'Still here from our earlier chat. Try asking about passwords, billing, or tickets — or open Submit a request from the portal home.',
+        'Still here from our earlier chat. Ask about password reset, billing/invoices, tracking a ticket, live chat, or rating support — or say “human agent”.',
       sources: [],
     };
   }
   return {
     reply:
-      'I can help with common questions. Try asking about passwords, billing, or tickets — or open Submit a request from the portal home.',
+      'I can help with password reset, billing, tracking tickets, live chat, and feedback. Try one of those topics, browse FAQs, or open Submit a request.',
     sources: [],
   };
+}
+
+function rankFaqHits(
+  q: string,
+  faqs: { id: string; title: string }[],
+): { id: string; title: string }[] {
+  const words = q.split(/\s+/).filter((w) => w.length > 2);
+  return faqs
+    .map((f) => {
+      const t = f.title.toLowerCase();
+      let score = 0;
+      for (const w of words) {
+        if (t.includes(w)) score += w.length > 3 ? 2 : 1;
+      }
+      if (/password|reset|login|access/.test(q) && /password|reset|login|access/.test(t)) score += 3;
+      if (/bill|invoice|payment|refund|charge/.test(q) && /bill|invoice|payment|refund/.test(t)) score += 3;
+      if (/ticket|track|request|status/.test(q) && /track|request|ticket|status/.test(t)) score += 3;
+      if (/chat|agent|live/.test(q) && /chat|live|agent/.test(t)) score += 3;
+      if (/rate|feedback|csat|survey/.test(q) && /rate|feedback|support/.test(t)) score += 3;
+      return { f, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((x) => x.f);
+}
+
+function topicReply(q: string): string | null {
+  if (/password|reset|login|sign[\s-]?in|access/.test(q)) {
+    return 'To reset your password: open the portal sign-in page, choose Forgot password, and use the email link within 30 minutes (check spam).';
+  }
+  if (/bill|invoice|payment|refund|charge|po\b/.test(q)) {
+    return 'For billing: include your invoice or PO number when you Submit a request or start Live chat so agents can match line items and tax.';
+  }
+  if (/track|ticket|status|request|open ticket/.test(q)) {
+    return 'To track a request: open Track my requests. Signed-in customers see their tickets automatically; otherwise search with the email used when submitting.';
+  }
+  if (/live\s*chat|chat with|talk to support/.test(q)) {
+    return 'Open Live chat from the portal menu. Signed-in customers skip name/email — send a message and we create a ticket.';
+  }
+  if (/rate|feedback|csat|survey|satisfied/.test(q)) {
+    return 'After chat or when a ticket is Resolved/Closed, open Rate support (or use the link on Track / after Live chat) and leave a 1–5 rating.';
+  }
+  if (/faq|help center|knowledge/.test(q)) {
+    return 'Browse FAQs in the portal for published answers, or ask me about passwords, billing, tickets, or chat.';
+  }
+  return null;
 }
 
 /** SDD CRM-026 deferred / 047 — detect request for a human agent. */

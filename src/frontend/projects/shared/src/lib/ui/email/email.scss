@@ -13,7 +13,7 @@
 .crm-email__list {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--crm-border);
+  border-inline-end: 1px solid var(--crm-border);
   background: var(--crm-bg);
   min-height: 0;
 }
@@ -271,7 +271,7 @@
   }
 
   .crm-email__list {
-    border-right: 0;
+    border-inline-end: 0;
     border-bottom: 1px solid var(--crm-border);
     max-height: 12rem;
   }

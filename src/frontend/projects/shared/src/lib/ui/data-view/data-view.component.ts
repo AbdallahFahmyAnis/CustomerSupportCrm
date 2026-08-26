@@ -4,9 +4,11 @@ import {
   ContentChild,
   ContentChildren,
   QueryList,
+  inject,
   input,
   model,
 } from '@angular/core';
+import { LanguageStore } from '../../language.store';
 import {
   CrmDataActionsDirective,
   CrmDataCardDirective,
@@ -27,10 +29,11 @@ import { CrmDataViewColumn, CrmDataViewMode } from './data-view.models';
   styleUrls: ['./data-view.scss'],
 })
 export class CrmDataViewComponent {
+  readonly lang = inject(LanguageStore);
   readonly items = input.required<readonly unknown[]>();
   readonly columns = input.required<CrmDataViewColumn[]>();
   readonly trackKey = input<string>('id');
-  readonly emptyText = input('No records found.');
+  readonly emptyText = input('');
   readonly title = input('');
   readonly subtitle = input('');
   readonly viewMode = model<CrmDataViewMode>('list');
@@ -39,6 +42,10 @@ export class CrmDataViewComponent {
   @ContentChild(CrmDataActionsDirective) actions?: CrmDataActionsDirective;
   @ContentChild(CrmDataCardDirective) cardTpl?: CrmDataCardDirective;
   @ContentChildren(CrmDataCellDirective) cells!: QueryList<CrmDataCellDirective>;
+
+  emptyLabel(): string {
+    return this.emptyText() || this.lang.t('noRecordsFound');
+  }
 
   cellFor(key: string): CrmDataCellDirective | undefined {
     return this.cells?.find((c) => c.column() === key);

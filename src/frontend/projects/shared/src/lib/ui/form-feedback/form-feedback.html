@@ -1,0 +1,20 @@
+<crm-modal
+  [open]="feedback.open()"
+  (openChange)="onOpenChange($event)"
+  [title]="feedback.title()"
+  size="sm"
+>
+  <div class="crm-feedback" [class.is-success]="feedback.kind() === 'success'" [class.is-error]="feedback.kind() === 'error'">
+    <div class="crm-feedback__icon" aria-hidden="true">
+      @if (feedback.kind() === 'success') {
+        ✓
+      } @else {
+        !
+      }
+    </div>
+    <p class="crm-feedback__message">{{ feedback.message() }}</p>
+  </div>
+  <div crmModalActions>
+    <button type="button" class="btn" (click)="feedback.close()">{{ lang.t('dismissOk') }}</button>
+  </div>
+</crm-modal>

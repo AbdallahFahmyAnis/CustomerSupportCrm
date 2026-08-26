@@ -30,7 +30,11 @@ export class RequestsStore {
   readonly trackEmail = this._trackEmail.asReadonly();
   readonly hasRequests = computed(() => this._requests().length > 0);
 
-  submit(body: SubmitRequestBody): void {
+  submit(
+    body: SubmitRequestBody,
+    onDone?: () => void,
+    onError?: (msg: string) => void,
+  ): void {
     this._submitting.set(true);
     this._submitError.set(null);
     this._lastResult.set(null);
@@ -38,10 +42,13 @@ export class RequestsStore {
       next: (result) => {
         this._lastResult.set(result);
         this._submitting.set(false);
+        onDone?.();
       },
       error: (err) => {
-        this._submitError.set(this.readError(err));
+        const msg = this.readError(err);
+        this._submitError.set(msg);
         this._submitting.set(false);
+        onError?.(msg);
       },
     });
   }
@@ -51,7 +58,11 @@ export class RequestsStore {
     this._submitError.set(null);
   }
 
-  track(email: string): void {
+  track(
+    email: string,
+    onDone?: () => void,
+    onError?: (msg: string) => void,
+  ): void {
     this._trackEmail.set(email);
     this._tracking.set(true);
     this._trackError.set(null);
@@ -59,11 +70,14 @@ export class RequestsStore {
       next: (rows) => {
         this._requests.set(rows);
         this._tracking.set(false);
+        onDone?.();
       },
       error: (err) => {
-        this._trackError.set(this.readError(err));
+        const msg = this.readError(err);
+        this._trackError.set(msg);
         this._requests.set([]);
         this._tracking.set(false);
+        onError?.(msg);
       },
     });
   }

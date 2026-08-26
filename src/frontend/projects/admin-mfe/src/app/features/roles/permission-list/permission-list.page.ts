@@ -9,6 +9,7 @@ import {
   CrmDataViewComponent,
   CrmDataViewMode,
   CrmModalComponent,
+  LanguageStore,
 } from 'shared';
 import { RolesStore } from '../roles.store';
 
@@ -34,6 +35,7 @@ interface PermissionRow {
   styleUrls: ['./permission-list.scss'],
 })
 export class PermissionListPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(RolesStore);
 
   viewMode: CrmDataViewMode = 'list';
@@ -44,11 +46,11 @@ export class PermissionListPage implements OnInit {
   formName = '';
   formDescription = '';
 
-  readonly columns: CrmDataViewColumn[] = [
-    { key: 'name', header: 'Name' },
-    { key: 'roles', header: 'Assigned to' },
-    { key: 'actions', header: 'Actions' },
-  ];
+  readonly columns = computed<CrmDataViewColumn[]>(() => [
+    { key: 'name', header: this.lang.t('name') },
+    { key: 'roles', header: this.lang.t('assignedToCol') },
+    { key: 'actions', header: this.lang.t('actions') },
+  ]);
 
   readonly rows = computed<PermissionRow[]>(() => {
     const roles = this.store.roles();

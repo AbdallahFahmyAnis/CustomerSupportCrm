@@ -6,27 +6,41 @@
           <img class="brand-logo" [src]="branding().logoUrl" alt="" width="36" height="36" />
           <span class="brand-text">{{ branding().productTitle || lang.t('product') }}</span>
         </a>
-        <button type="button" class="icon-btn ghost" (click)="toggleSidebar()" aria-label="Toggle menu">☰</button>
+        <button type="button" class="icon-btn ghost" (click)="toggleSidebar()" [attr.aria-label]="lang.t('toggleMenu')">☰</button>
       </div>
 
       <nav class="side-nav">
+        @if (showPortalNav) {
+          <p class="nav-label">{{ lang.t('portal') }}</p>
+          <a routerLink="/portal" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ lang.t('portalHomeTitle') }}</a>
+          <a routerLink="/portal/submit" routerLinkActive="active">{{ lang.t('submitRequest') }}</a>
+          <a routerLink="/portal/chat" routerLinkActive="active">{{ lang.t('liveChat') }}</a>
+          <a routerLink="/portal/track" routerLinkActive="active">{{ lang.t('trackRequests') }}</a>
+          <a routerLink="/portal/faqs" routerLinkActive="active">{{ lang.t('faqs') }}</a>
+          <a routerLink="/portal/assistant" routerLinkActive="active">{{ lang.t('supportAssistant') }}</a>
+          <a routerLink="/portal/feedback" routerLinkActive="active">{{ lang.t('rateSupport') }}</a>
+        }
+
         @if (showAgentNav) {
-          <p class="nav-label">Workspace</p>
+          <p class="nav-label">{{ lang.t('workspace') }}</p>
           <a routerLink="/agent" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ lang.t('agent') }}</a>
           <a routerLink="/agent/customers" routerLinkActive="active">{{ lang.t('customers') }}</a>
           <a routerLink="/agent/tickets" routerLinkActive="active">{{ lang.t('tickets') }}</a>
-          <a routerLink="/portal" routerLinkActive="active">{{ lang.t('portal') }}</a>
+          @if (!showPortalNav) {
+            <a routerLink="/portal" routerLinkActive="active">{{ lang.t('portal') }}</a>
+          }
         }
 
         @if (showAdminNav) {
-          <p class="nav-label">Admin</p>
+          <p class="nav-label">{{ lang.t('admin') }}</p>
           <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ lang.t('admin') }}</a>
           <a routerLink="/admin/users" routerLinkActive="active">{{ lang.t('users') }}</a>
-          <a routerLink="/admin/roles" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Roles</a>
-          <a routerLink="/admin/roles/permissions" routerLinkActive="active">Permissions</a>
-          <a routerLink="/admin/audit" routerLinkActive="active">Audit</a>
-          <a routerLink="/admin/settings" routerLinkActive="active">Settings</a>
-          <a routerLink="/admin/reports" routerLinkActive="active">Reports</a>
+          <a routerLink="/admin/roles" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ lang.t('roles') }}</a>
+          <a routerLink="/admin/roles/permissions" routerLinkActive="active">{{ lang.t('permissions') }}</a>
+          <a routerLink="/admin/audit" routerLinkActive="active">{{ lang.t('audit') }}</a>
+          <a routerLink="/admin/settings" routerLinkActive="active">{{ lang.t('settings') }}</a>
+          <a routerLink="/admin/reports" routerLinkActive="active">{{ lang.t('reports') }}</a>
+          <a routerLink="/admin/departments" routerLinkActive="active">{{ lang.t('departments') }}</a>
           <a routerLink="/knowledge" routerLinkActive="active">{{ lang.t('knowledge') }}</a>
         }
       </nav>
@@ -45,7 +59,7 @@
     <div class="content-column">
       <header class="topbar">
         <div class="topbar-start">
-          <button type="button" class="icon-btn" (click)="toggleSidebar()" aria-label="Menu">☰</button>
+          <button type="button" class="icon-btn" (click)="toggleSidebar()" [attr.aria-label]="lang.t('menu')">☰</button>
           <span class="crumb">CRM</span>
         </div>
         <div class="topbar-actions">
@@ -54,9 +68,9 @@
               type="button"
               class="ghost-btn notif-bell"
               (click)="toggleInbox($event)"
-              aria-label="Notifications"
+              [attr.aria-label]="lang.t('notifications')"
             >
-              Alerts
+              {{ lang.t('alerts') }}
               @if (unreadCount() > 0) {
                 <span class="badge">{{ unreadCount() }}</span>
               }
@@ -64,11 +78,11 @@
             @if (inboxOpen()) {
               <div class="notif-panel">
                 <header>
-                  <strong>Notifications</strong>
-                  <span>{{ unreadCount() }} unread</span>
+                  <strong>{{ lang.t('notifications') }}</strong>
+                  <span>{{ unreadCount() }} {{ lang.t('unread') }}</span>
                 </header>
                 @if (notifications().length === 0) {
-                  <p class="empty">No alerts.</p>
+                  <p class="empty">{{ lang.t('noAlerts') }}</p>
                 } @else {
                   <ul>
                     @for (n of notifications(); track n.id) {
@@ -81,7 +95,7 @@
                           </div>
                           @if (!n.readAt) {
                             <button type="button" class="ghost-btn" (click)="markRead(n, $event)">
-                              Mark read
+                              {{ lang.t('markRead') }}
                             </button>
                           }
                         </div>
@@ -101,10 +115,15 @@
       </main>
     </div>
   </div>
+  <crm-form-feedback />
 } @else {
   <div class="auth-shell">
+    <header class="auth-topbar">
+      <button type="button" class="ghost-btn" (click)="lang.toggle()">{{ lang.t('languageToggle') }}</button>
+    </header>
     <main class="auth-main">
       <router-outlet />
     </main>
   </div>
+  <crm-form-feedback />
 }

@@ -43,6 +43,10 @@ public sealed class IdentityDataSeeder(
                 PermissionCatalog.CustomersRead
             ], cancellationToken);
 
+            await EnsureRoleAsync(RoleNames.Customer, "Customer portal client",
+            [
+            ], cancellationToken);
+
             await EnsureUserAsync(
                 Guid.Parse(DevUsers.AgentId),
                 DevUsers.AgentEmail,
@@ -65,6 +69,14 @@ public sealed class IdentityDataSeeder(
                 "Lead Agent",
                 DevUsers.Password,
                 RoleNames.Lead,
+                cancellationToken);
+
+            await EnsureUserAsync(
+                Guid.Parse(DevUsers.CustomerId),
+                DevUsers.CustomerEmail,
+                DevUsers.CustomerName,
+                DevUsers.Password,
+                RoleNames.Customer,
                 cancellationToken);
 
             await EnsureGatewayClientAsync(cancellationToken);

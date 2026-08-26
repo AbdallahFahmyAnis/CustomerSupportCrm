@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LanguageStore } from 'shared';
 import { ReportsStore } from '../../reports/reports.store';
 
 /** SDD CRM-035 / CRM-034 — admin home with management KPIs. */
@@ -11,6 +12,7 @@ import { ReportsStore } from '../../reports/reports.store';
   styleUrls: ['./home.scss'],
 })
 export class AdminHomePage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly reports = inject(ReportsStore);
 
   ngOnInit(): void {

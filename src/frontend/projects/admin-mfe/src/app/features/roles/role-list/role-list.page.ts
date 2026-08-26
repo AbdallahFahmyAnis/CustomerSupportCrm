@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CrmModalComponent, CrmRoleCardComponent } from 'shared';
+import { CrmModalComponent, CrmRoleCardComponent, LanguageStore } from 'shared';
 import { RoleSummary } from '../../users/users.models';
 import { RolesStore } from '../roles.store';
 
@@ -14,6 +14,7 @@ import { RolesStore } from '../roles.store';
   styleUrls: ['./role-list.scss'],
 })
 export class RoleListPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(RolesStore);
 
   editOpen = false;

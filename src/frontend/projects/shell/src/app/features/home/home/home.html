@@ -2,13 +2,23 @@
   <div class="auth-basic">
     <section class="auth-panel">
       <img class="logo" src="/brand/azm-squad.png" alt="AZM Squad" width="160" height="160" />
-      <h1>Welcome to CRM! 👋</h1>
+      <h1>{{ lang.t('welcomeCrm') }}</h1>
       <p class="lead">{{ lang.t('homeLead') }}</p>
 
-      <form class="auth-form" (ngSubmit)="signIn()">
+      <form class="auth-form" #f="ngForm" (ngSubmit)="signIn(f)">
         <label>
           {{ lang.t('email') }}
-          <input name="email" [(ngModel)]="email" autocomplete="username" placeholder="agent@crm.local" />
+          <input
+            name="email"
+            [(ngModel)]="email"
+            required
+            autocomplete="username"
+            placeholder="customer@crm.local"
+            #emailCtrl="ngModel"
+          />
+          @if (f.submitted && emailCtrl.invalid) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
         </label>
         <label>
           {{ lang.t('password') }}
@@ -16,40 +26,92 @@
             name="password"
             type="password"
             [(ngModel)]="password"
+            required
             autocomplete="current-password"
             placeholder="············"
+            #passwordCtrl="ngModel"
           />
+          @if (f.submitted && passwordCtrl.invalid) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
         </label>
         <button type="submit" class="btn">{{ lang.t('signIn') }}</button>
-        @if (error) {
-          <p class="error">{{ error }}</p>
-        }
       </form>
+
+      <div class="demo-accounts">
+        <p class="demo-label">{{ lang.t('demoAccounts') }}</p>
+        <button type="button" class="demo-chip" (click)="useDemo('customer')">
+          {{ lang.t('demoCustomer') }}
+        </button>
+        <button type="button" class="demo-chip" (click)="useDemo('agent')">
+          {{ lang.t('demoAgent') }}
+        </button>
+        <button type="button" class="demo-chip" (click)="useDemo('admin')">
+          {{ lang.t('demoAdmin') }}
+        </button>
+      </div>
     </section>
   </div>
 } @else {
   <section class="workspace">
     <header class="row">
       <div>
-        <h1>{{ lang.t('product') }}</h1>
-        <p class="lede">{{ lang.t('homeLead') }}</p>
+        <h1>{{ showPortal ? lang.t('portalHomeTitle') : lang.t('product') }}</h1>
+        <p class="lede">{{ showPortal ? lang.t('portalHomeLead') : lang.t('homeLead') }}</p>
       </div>
     </header>
     <div class="action-grid home-actions">
+      @if (showPortal) {
+        <a routerLink="/portal" class="action-tile featured">
+          <span class="tile-kicker">{{ lang.t('portal') }}</span>
+          <strong>{{ lang.t('portalHomeTitle') }}</strong>
+          <span>{{ lang.t('portalHint') }}</span>
+        </a>
+        <a routerLink="/portal/submit" class="action-tile featured">
+          <span class="tile-kicker">{{ lang.t('newLabel') }}</span>
+          <strong>{{ lang.t('submitRequest') }}</strong>
+          <span>{{ lang.t('submitRequestHint') }}</span>
+        </a>
+        <a routerLink="/portal/chat" class="action-tile featured">
+          <span class="tile-kicker">{{ lang.t('chat') }}</span>
+          <strong>{{ lang.t('liveChat') }}</strong>
+          <span>{{ lang.t('liveChatHint') }}</span>
+        </a>
+        <a routerLink="/portal/track" class="action-tile featured">
+          <span class="tile-kicker">{{ lang.t('status') }}</span>
+          <strong>{{ lang.t('trackRequests') }}</strong>
+          <span>{{ lang.t('trackRequestsHint') }}</span>
+        </a>
+        <a routerLink="/portal/faqs" class="action-tile featured">
+          <span class="tile-kicker">{{ lang.t('help') }}</span>
+          <strong>{{ lang.t('faqs') }}</strong>
+          <span>{{ lang.t('faqsHint') }}</span>
+        </a>
+        <a routerLink="/portal/assistant" class="action-tile featured">
+          <span class="tile-kicker">{{ lang.t('ai') }}</span>
+          <strong>{{ lang.t('supportAssistant') }}</strong>
+          <span>{{ lang.t('supportAssistantHint') }}</span>
+        </a>
+        <a routerLink="/portal/feedback" class="action-tile featured">
+          <span class="tile-kicker">{{ lang.t('csat') }}</span>
+          <strong>{{ lang.t('rateSupport') }}</strong>
+          <span>{{ lang.t('rateSupportHint') }}</span>
+        </a>
+      }
       @if (showAgent) {
         <a routerLink="/agent" class="action-tile">
-          <strong>Agent workspace</strong>
-          <span>Customers, tickets, and channels</span>
+          <strong>{{ lang.t('agentWorkspace') }}</strong>
+          <span>{{ lang.t('agentWorkspaceHint') }}</span>
         </a>
         <a routerLink="/portal" class="action-tile">
-          <strong>Portal</strong>
-          <span>Submit and track customer requests</span>
+          <strong>{{ lang.t('portal') }}</strong>
+          <span>{{ lang.t('portalHint') }}</span>
         </a>
       }
       @if (showAdmin) {
         <a routerLink="/admin" class="action-tile">
-          <strong>Administration</strong>
-          <span>Users, roles, audit, and settings</span>
+          <strong>{{ lang.t('administration') }}</strong>
+          <span>{{ lang.t('administrationHint') }}</span>
         </a>
       }
     </div>

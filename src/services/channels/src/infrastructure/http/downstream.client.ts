@@ -166,22 +166,18 @@ export class DownstreamClient {
         uniqueIdentifier?: string;
         contacts?: { type: string; value: string; isPrimary: boolean; isActive: boolean }[];
       };
+      const isEmailContact = (c: { type: string; value: string; isActive: boolean }) =>
+        c.isActive &&
+        c.type.toLowerCase() === 'email' &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value.trim());
+
       const primaryEmail = detail.contacts?.find(
-        (c) =>
-          c.isActive &&
-          c.type === 'Email' &&
-          c.isPrimary &&
-          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value),
+        (c) => isEmailContact(c) && c.isPrimary,
       )?.value;
       if (primaryEmail) {
         return primaryEmail.trim().toLowerCase();
       }
-      const anyEmail = detail.contacts?.find(
-        (c) =>
-          c.isActive &&
-          c.type === 'Email' &&
-          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value),
-      )?.value;
+      const anyEmail = detail.contacts?.find((c) => isEmailContact(c))?.value;
       if (anyEmail) {
         return anyEmail.trim().toLowerCase();
       }

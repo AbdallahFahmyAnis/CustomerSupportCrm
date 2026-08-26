@@ -1,31 +1,5 @@
-.workspace {
-  max-width: 48rem;
-}
-
 .home-actions {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.action-tile.featured {
-  min-height: 8.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.35rem;
-}
-
-.tile-kicker {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--crm-primary);
-}
-
-@media (max-width: 640px) {
-  .home-actions {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
 }
 
 .due-tasks,
@@ -39,6 +13,7 @@
   align-items: baseline;
   gap: 1rem;
   margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .my-head h2 {
@@ -57,16 +32,18 @@
 .mine-card {
   display: block;
   padding: 0.85rem 1rem;
-  border: 1px solid var(--crm-border, #e2e8f0);
-  border-radius: 0.5rem;
-  background: #fff;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  background: var(--crm-paper);
   text-decoration: none;
   color: inherit;
-  box-shadow: var(--crm-shadow, none);
+  box-shadow: var(--crm-shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .mine-card:hover {
-  border-color: var(--crm-primary, #2563eb);
+  border-color: var(--crm-primary);
+  box-shadow: 0 0.35rem 1.2rem rgba(140, 87, 255, 0.14);
 }
 
 .mine-top {
@@ -98,9 +75,15 @@
 .meta,
 .muted {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--crm-text-muted);
 }
 
 .error {
-  color: #b91c1c;
+  color: var(--crm-danger);
+}
+
+@media (max-width: 640px) {
+  .home-actions {
+    grid-template-columns: 1fr;
+  }
 }

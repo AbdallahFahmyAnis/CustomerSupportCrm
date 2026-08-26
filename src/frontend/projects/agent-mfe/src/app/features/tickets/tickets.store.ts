@@ -84,11 +84,16 @@ export class TicketsStore {
       priority: string;
     },
     onDone: (id: string) => void,
+    onError?: (msg: string) => void,
   ): void {
     this.error.set('');
     this.api.create(body).subscribe({
       next: (t) => onDone(t.id),
-      error: (err) => this.error.set(err?.error?.error ?? 'Create failed.'),
+      error: (err) => {
+        const msg = err?.error?.error ?? 'Create failed.';
+        this.error.set(msg);
+        onError?.(msg);
+      },
     });
   }
 

@@ -1,31 +1,31 @@
 <section class="workspace">
   <header class="row">
     <div>
-      <h1>Agent workspace</h1>
-      <p class="lede">Your assigned queue with customer context — start work without hunting.</p>
+      <h1>{{ lang.t('agentWorkspace') }}</h1>
+      <p class="lede">{{ lang.t('agentHomeLead') }}</p>
     </div>
   </header>
 
   <div class="action-grid home-actions">
     <a routerLink="/agent/customers" class="action-tile featured">
-      <span class="tile-kicker">Profiles</span>
-      <strong>Customers</strong>
-      <span>Search profiles, contacts, and history</span>
+      <span class="tile-kicker">{{ lang.t('profiles') }}</span>
+      <strong>{{ lang.t('customers') }}</strong>
+      <span>{{ lang.t('customersTileHint') }}</span>
     </a>
     <a routerLink="/agent/tickets" class="action-tile featured">
-      <span class="tile-kicker">Queue</span>
-      <strong>Tickets</strong>
-      <span>Work the queue and reply on channel</span>
+      <span class="tile-kicker">{{ lang.t('queue') }}</span>
+      <strong>{{ lang.t('tickets') }}</strong>
+      <span>{{ lang.t('ticketsTileHint') }}</span>
     </a>
   </div>
 
   <section class="due-tasks">
     <div class="my-head">
-      <h2>Due today</h2>
-      <span class="muted">{{ dueTasks().length }} open</span>
+      <h2>{{ lang.t('dueToday') }}</h2>
+      <span class="muted">{{ dueTasks().length }} {{ lang.t('openCount') }}</span>
     </div>
     @if (dueTasks().length === 0) {
-      <p class="muted">No open tasks due today.</p>
+      <p class="muted">{{ lang.t('noTasksDueToday') }}</p>
     } @else {
       <ul class="mine-list">
         @for (task of dueTasks(); track task.id) {
@@ -36,7 +36,7 @@
                 <span class="badge soft">{{ task.status }}</span>
               </div>
               @if (task.dueAt) {
-                <div class="meta">Due {{ task.dueAt | date: 'short' }}</div>
+                <div class="meta">{{ lang.t('duePrefix') }} {{ task.dueAt | date: 'short' }}</div>
               }
             </a>
           </li>
@@ -47,18 +47,18 @@
 
   <section class="my-tickets">
     <div class="my-head">
-      <h2>My tickets</h2>
-      <a routerLink="/agent/tickets">Open full queue</a>
+      <h2>{{ lang.t('myTickets') }}</h2>
+      <a routerLink="/agent/tickets">{{ lang.t('openFullQueue') }}</a>
     </div>
     @if (loading()) {
-      <p class="muted">Loading assigned tickets…</p>
+      <p class="muted">{{ lang.t('loadingAssigned') }}</p>
     }
     @if (error()) {
       <p class="error">{{ error() }}</p>
     }
     @if (!loading() && !error()) {
       @if (mine().length === 0) {
-        <p class="muted">No tickets assigned to you right now.</p>
+        <p class="muted">{{ lang.t('noTicketsAssigned') }}</p>
       } @else {
         <ul class="mine-list">
           @for (t of mine(); track t.id) {

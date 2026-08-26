@@ -1,59 +1,90 @@
-<section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/portal">Portal</a>
+<section class="page portal-page">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/portal">{{ lang.t('portal') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">Assistant</span>
+    <span class="current">{{ lang.t('assistant') }}</span>
   </nav>
 
-  <header class="row">
-    <div>
-      <h1>Support assistant</h1>
-      <p class="lede">Ask a common question — we match FAQs when we can.</p>
+  <div class="settings-card assistant-sheet">
+    <div class="settings-hero">
+      <div class="avatar">AI</div>
+      <div class="meta">
+        <strong>{{ lang.t('supportAssistant') }}</strong>
+        <p>{{ lang.t('supportAssistantHint') }}</p>
+      </div>
     </div>
-  </header>
 
-  <div class="thread" aria-live="polite">
-    @if (store.turns().length === 0) {
-      <p class="muted">Try “password reset” or “billing invoice”.</p>
+    <div class="thread" aria-live="polite">
+      @if (store.turns().length === 0) {
+        <div class="empty-hint">
+          <p class="muted">{{ lang.t('assistantEmptyHint') }}</p>
+          <div class="hint-chips">
+            <button type="button" class="btn ghost" (click)="askHint('password reset')">password reset</button>
+            <button type="button" class="btn ghost" (click)="askHint('billing invoice')">billing invoice</button>
+            <button type="button" class="btn ghost" (click)="askHint('track my ticket')">track my ticket</button>
+          </div>
+        </div>
+      }
+      @for (t of store.turns(); track t.id) {
+        <div class="turn" [class.mine]="t.role === 'user'">
+          <div class="turn-head">
+            <span class="turn-avatar">{{ t.role === 'user' ? 'U' : 'AI' }}</span>
+            <strong>{{ t.role === 'user' ? lang.t('you') : lang.t('assistant') }}</strong>
+          </div>
+          <p>{{ t.body }}</p>
+          @if (t.sources?.length) {
+            <div class="sources-block">
+              <span class="sources-label">{{ lang.t('relatedArticles') }}</span>
+              <ul class="sources">
+                @for (s of t.sources; track s.id) {
+                  <li>
+                    <a [routerLink]="['/portal/faqs', s.id]">{{ s.title }}</a>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <form class="compose" (ngSubmit)="submit()">
+      <label>
+        {{ lang.t('askQuestion') }}
+        <input
+          name="draft"
+          [(ngModel)]="draft"
+          [placeholder]="lang.t('phHowDoI')"
+          [disabled]="store.sending()"
+        />
+      </label>
+      <button type="submit" class="btn" [disabled]="store.sending() || !draft.trim()">
+        {{ store.sending() ? lang.t('sending') : lang.t('submit') }}
+      </button>
+    </form>
+
+    @if (store.error()) {
+      <p class="error" role="alert">{{ store.error() }}</p>
     }
-    @for (t of store.turns(); track t.id) {
-      <div class="turn" [class.mine]="t.role === 'user'">
-        <strong>{{ t.role === 'user' ? 'You' : 'Assistant' }}</strong>
-        <p>{{ t.body }}</p>
-        @if (t.sources?.length) {
-          <ul class="sources">
-            @for (s of t.sources; track s.id) {
-              <li>
-                <a [routerLink]="['/portal/faqs', s.id]">{{ s.title }}</a>
-              </li>
-            }
-          </ul>
-        }
+
+    @if (store.handoffNeeded()) {
+      <div class="handoff">
+        <p>
+          {{ lang.t('handoffNeeded') }}
+          <a routerLink="/portal/submit">{{ lang.t('submitRequest') }}</a>
+          {{ lang.t('handoffFollowUp') }}
+        </p>
+      </div>
+    }
+
+    @if (store.turns().length > 0) {
+      <div class="after-assist">
+        <p class="muted">{{ lang.t('rateAfterAssistant') }}</p>
+        <div class="after-actions">
+          <a routerLink="/portal/chat" class="btn secondary">{{ lang.t('liveChat') }}</a>
+          <a routerLink="/portal/feedback" [queryParams]="{ from: 'assistant' }" class="btn">{{ lang.t('rateSupport') }}</a>
+        </div>
       </div>
     }
   </div>
-
-  <form class="compose" (ngSubmit)="submit()">
-    <label>
-      Question
-      <input name="draft" [(ngModel)]="draft" placeholder="How do I…?" [disabled]="store.sending()" />
-    </label>
-    <button type="submit" class="btn" [disabled]="store.sending()">
-      {{ store.sending() ? 'Thinking…' : 'Ask' }}
-    </button>
-  </form>
-
-  @if (store.error()) {
-    <p class="error" role="alert">{{ store.error() }}</p>
-  }
-
-  @if (store.handoffNeeded()) {
-    <p class="ok">
-      Human help requested —
-      <a routerLink="/portal/submit">Submit a request</a>
-      so an agent can follow up.
-    </p>
-  }
-
-  <p class="back-link"><a routerLink="/portal">← Portal home</a></p>
 </section>

@@ -1,41 +1,41 @@
 <section class="workspace">
   <header class="row">
     <div>
-      <h1>Customer portal</h1>
-      <p class="lede">Submit a support request, track open requests, or read FAQs.</p>
+      <h1>{{ lang.t('portalHomeTitle') }}</h1>
+      <p class="lede">{{ lang.t('portalHomeLead') }}</p>
     </div>
   </header>
 
   <div class="action-grid home-actions">
     <a routerLink="submit" class="action-tile featured">
-      <span class="tile-kicker">New</span>
-      <strong>Submit a request</strong>
-      <span>Open a ticket from the web form</span>
+      <span class="tile-kicker">{{ lang.t('newLabel') }}</span>
+      <strong>{{ lang.t('submitRequest') }}</strong>
+      <span>{{ lang.t('submitRequestHint') }}</span>
     </a>
     <a routerLink="chat" class="action-tile featured">
-      <span class="tile-kicker">Chat</span>
-      <strong>Live chat</strong>
-      <span>Message an agent in real time</span>
+      <span class="tile-kicker">{{ lang.t('chat') }}</span>
+      <strong>{{ lang.t('liveChat') }}</strong>
+      <span>{{ lang.t('liveChatHint') }}</span>
     </a>
     <a routerLink="track" class="action-tile featured">
-      <span class="tile-kicker">Status</span>
-      <strong>Track my requests</strong>
-      <span>Look up tickets by email</span>
+      <span class="tile-kicker">{{ lang.t('status') }}</span>
+      <strong>{{ lang.t('trackRequests') }}</strong>
+      <span>{{ lang.t('trackRequestsHint') }}</span>
     </a>
     <a routerLink="faqs" class="action-tile featured">
-      <span class="tile-kicker">Help</span>
-      <strong>FAQs</strong>
-      <span>Browse published answers</span>
+      <span class="tile-kicker">{{ lang.t('help') }}</span>
+      <strong>{{ lang.t('faqs') }}</strong>
+      <span>{{ lang.t('faqsHint') }}</span>
     </a>
     <a routerLink="assistant" class="action-tile featured">
-      <span class="tile-kicker">AI</span>
-      <strong>Support assistant</strong>
-      <span>Ask a question before opening a ticket</span>
+      <span class="tile-kicker">{{ lang.t('ai') }}</span>
+      <strong>{{ lang.t('supportAssistant') }}</strong>
+      <span>{{ lang.t('supportAssistantHint') }}</span>
     </a>
     <a routerLink="feedback" class="action-tile featured">
-      <span class="tile-kicker">CSAT</span>
-      <strong>Rate support</strong>
-      <span>Share feedback on a resolved ticket</span>
+      <span class="tile-kicker">{{ lang.t('csat') }}</span>
+      <strong>{{ lang.t('rateSupport') }}</strong>
+      <span>{{ lang.t('rateSupportHint') }}</span>
     </a>
   </div>
 </section>

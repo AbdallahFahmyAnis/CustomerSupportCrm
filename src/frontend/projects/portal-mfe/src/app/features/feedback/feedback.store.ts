@@ -11,7 +11,13 @@ export class FeedbackStore {
   readonly error = signal('');
   readonly success = signal<TicketFeedback | null>(null);
 
-  submit(ticketNumber: string, rating: number, comment: string): void {
+  submit(
+    ticketNumber: string,
+    rating: number,
+    comment: string,
+    onDone?: () => void,
+    onError?: (msg: string) => void,
+  ): void {
     this.submitting.set(true);
     this.error.set('');
     this.success.set(null);
@@ -25,6 +31,7 @@ export class FeedbackStore {
         next: (row) => {
           this.success.set(row);
           this.submitting.set(false);
+          onDone?.();
         },
         error: (err) => {
           const msg =
@@ -33,6 +40,7 @@ export class FeedbackStore {
             'Could not submit feedback.';
           this.error.set(msg);
           this.submitting.set(false);
+          onError?.(msg);
         },
       });
   }

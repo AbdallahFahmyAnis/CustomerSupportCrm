@@ -1,5 +1,5 @@
 <div class="crm-wizard">
-  <ol class="crm-wizard__steps" aria-label="Wizard steps">
+  <ol class="crm-wizard__steps" [attr.aria-label]="lang.t('stepDetails')">
     @for (s of steps(); track $index; let i = $index) {
       <li
         class="crm-wizard__step"
@@ -28,12 +28,12 @@
 
     <footer class="crm-wizard__footer">
       <button type="button" class="btn secondary" (click)="back()" [disabled]="step() === 0">
-        Previous
+        {{ lang.t('previous') }}
       </button>
       @if (step() < steps().length - 1) {
-        <button type="button" class="btn" (click)="next()" [disabled]="!canNext()">Next</button>
+        <button type="button" class="btn" (click)="next()">{{ lang.t('next') }}</button>
       } @else {
-        <button type="button" class="btn" (click)="finish.emit()" [disabled]="!canNext() || finishDisabled()">
+        <button type="button" class="btn" (click)="finish.emit()" [disabled]="finishDisabled()">
           {{ finishLabel() }}
         </button>
       }
