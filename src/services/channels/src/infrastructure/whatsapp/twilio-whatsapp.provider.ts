@@ -55,7 +55,14 @@ export class TwilioWhatsAppProvider implements WhatsAppProvider {
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`Twilio WhatsApp send failed (${res.status}): ${text}`);
+      let hint = '';
+      if (text.includes('63007')) {
+        hint =
+          ' Activate WhatsApp Sandbox in Twilio Console (Messaging → Try it out → WhatsApp), use Live Account SID/Auth Token (not Test), From must be whatsapp:+14155238886, and the recipient must join the sandbox.';
+      }
+      throw new Error(
+        `Twilio WhatsApp send failed (${res.status}): ${text}.${hint}`,
+      );
     }
 
     this.logger.log(
