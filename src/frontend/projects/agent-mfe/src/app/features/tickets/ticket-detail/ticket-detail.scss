@@ -267,10 +267,16 @@ html[dir='rtl'] .sla-label {
 
 .channel-pick {
   margin-bottom: 0.15rem;
+  display: grid;
+  gap: 0.55rem;
 }
 
 .channel-pick label {
-  max-width: 14rem;
+  max-width: none;
+}
+
+.channel-pick .to-phone input {
+  width: 100%;
 }
 
 .work-split,

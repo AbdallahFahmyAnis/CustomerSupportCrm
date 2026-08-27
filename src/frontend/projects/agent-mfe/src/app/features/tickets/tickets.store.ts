@@ -119,9 +119,14 @@ export class TicketsStore {
     });
   }
 
-  replyWhatsApp(ticketId: string, body: string, onDone?: () => void): void {
+  replyWhatsApp(
+    ticketId: string,
+    body: string,
+    onDone?: () => void,
+    to?: string,
+  ): void {
     this.error.set('');
-    this.api.replyWhatsApp(ticketId, body).subscribe({
+    this.api.replyWhatsApp(ticketId, body, to).subscribe({
       next: () => {
         this.loadChannelMessages(ticketId);
         onDone?.();
@@ -133,9 +138,9 @@ export class TicketsStore {
     });
   }
 
-  replyChat(ticketId: string, body: string, onDone?: () => void): void {
+  replyChat(ticketId: string, body: string, onDone?: () => void, to?: string): void {
     this.error.set('');
-    this.api.replyChat(ticketId, body).subscribe({
+    this.api.replyChat(ticketId, body, to).subscribe({
       next: () => {
         this.loadChannelMessages(ticketId);
         onDone?.();
@@ -147,9 +152,9 @@ export class TicketsStore {
     });
   }
 
-  replySms(ticketId: string, body: string, onDone?: () => void): void {
+  replySms(ticketId: string, body: string, onDone?: () => void, to?: string): void {
     this.error.set('');
-    this.api.replySms(ticketId, body).subscribe({
+    this.api.replySms(ticketId, body, to).subscribe({
       next: () => {
         this.loadChannelMessages(ticketId);
         onDone?.();

@@ -142,9 +142,10 @@
               </div>
               <crm-chat
                 [title]="t.customerName"
-                [subtitle]="t.ticketNumber + ' · ' + lang.t('channelThread')"
+                [subtitle]="messagingSubtitle()"
                 [avatarText]="(t.customerName || '?').charAt(0).toUpperCase()"
                 [messages]="chatMessages()"
+                [variant]="chatVariant()"
                 [(draft)]="chatDraft"
                 [placeholder]="lang.t('writeReply')"
                 [sendLabel]="lang.t('send')"
@@ -154,12 +155,23 @@
                 <div crmChatComposeExtra class="channel-pick">
                   <label>
                     {{ lang.t('channel') }}
-                    <select name="replyChannel" [(ngModel)]="replyChannel">
+                    <select name="replyChannel" [ngModel]="replyChannel()" (ngModelChange)="replyChannel.set($event)">
                       <option value="chat">{{ lang.t('liveChat') }}</option>
                       <option value="whatsapp">{{ lang.t('contactWhatsapp') }}</option>
                       <option value="sms">{{ lang.t('sms') }}</option>
                     </select>
                   </label>
+                  @if (replyChannel() === 'sms' || replyChannel() === 'whatsapp') {
+                    <label class="to-phone">
+                      {{ lang.t('recipientPhone') }}
+                      <input
+                        name="replyToPhone"
+                        [(ngModel)]="replyToPhone"
+                        autocomplete="tel"
+                        [placeholder]="lang.t('phRecipientPhone')"
+                      />
+                    </label>
+                  }
                 </div>
               </crm-chat>
             }

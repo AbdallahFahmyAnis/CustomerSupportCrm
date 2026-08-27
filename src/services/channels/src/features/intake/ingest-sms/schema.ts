@@ -1,15 +1,7 @@
 import { IngestSmsBody } from './sms.types';
+import { normalizePhone } from '../../../infrastructure/phone/normalize-phone';
 
-/** Normalize to digits with optional leading +. */
-export function normalizePhone(raw: string): string {
-  const trimmed = raw.trim();
-  const hasPlus = trimmed.startsWith('+');
-  const digits = trimmed.replace(/\D/g, '');
-  if (!digits) {
-    return '';
-  }
-  return hasPlus || digits.length > 10 ? `+${digits}` : digits;
-}
+export { normalizePhone };
 
 /** SDD CRM-011 — SMS intake validation. */
 export function validateSmsIngestInput(input: IngestSmsBody): string | null {

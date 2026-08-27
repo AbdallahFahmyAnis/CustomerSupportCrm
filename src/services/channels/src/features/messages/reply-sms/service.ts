@@ -55,17 +55,23 @@ export class ReplySmsService {
     if (!to) {
       to = (await this.downstream.getCustomerPhone(ticket.customerId)) ?? '';
     }
-    if (!to) {
+    to = normalizePhone(to);
+    if (!to || !to.startsWith('+')) {
       throw new BadRequestException(
-        'Could not resolve recipient phone for this ticket.',
+        'Could not resolve a valid E.164 recipient phone for this ticket (e.g. +2010…).',
       );
     }
 
-    await this.smsProvider.sendOutbound({
-      to,
-      body,
-      ticketId,
-    });
+    try {
+      await this.smsProvider.sendOutbound({
+        to,
+        body,
+        ticketId,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new BadRequestException(msg);
+    }
 
     const messageId = randomUUID();
     await this.store.addMessage({

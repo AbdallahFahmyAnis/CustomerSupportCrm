@@ -38,7 +38,7 @@
                 name="ticketNumber"
                 [(ngModel)]="ticketNumber"
                 required
-                #ticketCtrl="ngModel"
+                #ticketSelect="ngModel"
               >
                 @for (row of eligibleTickets; track row.requestId) {
                   <option [value]="row.ticketNumber">
@@ -46,6 +46,9 @@
                   </option>
                 }
               </select>
+              @if (f.submitted && ticketSelect.invalid) {
+                <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+              }
             } @else {
               <input
                 name="ticketNumber"
@@ -53,11 +56,11 @@
                 placeholder="TKT-1001"
                 autocomplete="off"
                 required
-                #ticketCtrl="ngModel"
+                #ticketInput="ngModel"
               />
-            }
-            @if (f.submitted && ticketCtrl.invalid) {
-              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+              @if (f.submitted && ticketInput.invalid) {
+                <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+              }
             }
           </label>
 

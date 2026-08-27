@@ -1,12 +1,22 @@
-<section class="crm-chat">
+<section
+  class="crm-chat"
+  [class.crm-chat--whatsapp]="variant() === 'whatsapp'"
+  [class.crm-chat--sms]="variant() === 'sms'"
+>
   <header class="crm-chat__header">
-    <span class="crm-chat__avatar">{{ avatarText() }}</span>
+    @if (variant() === 'whatsapp') {
+      <button type="button" class="crm-chat__back" tabindex="-1" aria-hidden="true">‹</button>
+    }
+    <span class="crm-chat__avatar" [attr.data-variant]="variant()">{{ avatarText() }}</span>
     <div class="crm-chat__who">
       <strong>{{ title() }}</strong>
       @if (subtitle()) {
         <small>{{ subtitle() }}</small>
       }
     </div>
+    @if (variant() === 'whatsapp') {
+      <span class="crm-chat__wa-badge" title="WhatsApp">WA</span>
+    }
   </header>
 
   <div class="crm-chat__messages" role="log" aria-live="polite">
@@ -18,11 +28,14 @@
           <div class="crm-chat__bubble">
             <p>{{ m.body }}</p>
             <footer>
-              @if (m.meta) {
+              @if (m.meta && variant() !== 'whatsapp') {
                 <span>{{ m.meta }}</span>
               }
               @if (m.timeLabel) {
                 <time>{{ m.timeLabel }}</time>
+              }
+              @if (m.mine && variant() === 'whatsapp') {
+                <span class="crm-chat__ticks" aria-hidden="true">✓✓</span>
               }
             </footer>
           </div>
@@ -43,7 +56,12 @@
         [disabled]="composeDisabled() || sending()"
         autocomplete="off"
       />
-      <button type="submit" class="btn" [disabled]="composeDisabled() || sending() || !draft().trim()">
+      <button
+        type="submit"
+        class="btn"
+        [class.crm-chat__send-fab]="variant() === 'whatsapp'"
+        [disabled]="composeDisabled() || sending() || !draft().trim()"
+      >
         {{ sending() ? '…' : sendLabel() }}
       </button>
     </div>
