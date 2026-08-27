@@ -157,21 +157,14 @@
                     {{ lang.t('channel') }}
                     <select name="replyChannel" [ngModel]="replyChannel()" (ngModelChange)="replyChannel.set($event)">
                       <option value="chat">{{ lang.t('liveChat') }}</option>
-                      <option value="whatsapp">{{ lang.t('contactWhatsapp') }}</option>
-                      <option value="sms">{{ lang.t('sms') }}</option>
+                      @if (hasWhatsAppContact()) {
+                        <option value="whatsapp">{{ lang.t('contactWhatsapp') }}</option>
+                      }
+                      @if (hasSmsContact()) {
+                        <option value="sms">{{ lang.t('sms') }}</option>
+                      }
                     </select>
                   </label>
-                  @if (replyChannel() === 'sms' || replyChannel() === 'whatsapp') {
-                    <label class="to-phone">
-                      {{ lang.t('recipientPhone') }}
-                      <input
-                        name="replyToPhone"
-                        [(ngModel)]="replyToPhone"
-                        autocomplete="tel"
-                        [placeholder]="lang.t('phRecipientPhone')"
-                      />
-                    </label>
-                  }
                 </div>
               </crm-chat>
             }

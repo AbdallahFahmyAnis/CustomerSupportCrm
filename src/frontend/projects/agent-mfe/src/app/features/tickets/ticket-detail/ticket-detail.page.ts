@@ -51,8 +51,6 @@ export class TicketDetailPage implements OnInit {
   status = '';
   escalateTo = '';
   replyChannel = signal<'whatsapp' | 'chat' | 'sms'>('chat');
-  /** Recipient for SMS / WhatsApp (E.164). */
-  replyToPhone = '';
   chatDraft = '';
   emailDraft = '';
   emailQuickId = '';
@@ -74,6 +72,21 @@ export class TicketDetailPage implements OnInit {
   taskDue = '';
   readonly customer = signal<CustomerDetail | null>(null);
   readonly customerError = signal('');
+
+  /** Show WhatsApp channel only when customer has an active WhatsApp contact. */
+  readonly hasWhatsAppContact = computed(() => !!this.contactValue('whatsapp'));
+  /** Show SMS channel only when customer has an active phone/sms contact. */
+  readonly hasSmsContact = computed(
+    () => !!this.contactValue('phone') || !!this.contactValue('sms'),
+  );
+
+  private contactValue(...types: string[]): string {
+    const want = new Set(types.map((t) => t.toLowerCase()));
+    const row = this.customer()?.contacts?.find(
+      (c) => c.isActive && want.has((c.type || '').toLowerCase()) && !!c.value?.trim(),
+    );
+    return row?.value?.trim() ?? '';
+  }
 
   /** Active contacts for summary strip (Angular templates disallow arrow fns). */
   activeContacts(c: CustomerDetail) {
@@ -156,8 +169,14 @@ export class TicketDetailPage implements OnInit {
     const t = this.store.selected();
     const num = t?.ticketNumber ?? '';
     const c = this.replyChannel();
-    if (c === 'whatsapp') return `${num} · WhatsApp`;
-    if (c === 'sms') return `${num} · SMS`;
+    if (c === 'whatsapp') {
+      const to = this.toE164Hint(this.contactValue('whatsapp'));
+      return to ? `${num} · WhatsApp → ${to}` : `${num} · WhatsApp`;
+    }
+    if (c === 'sms') {
+      const to = this.toE164Hint(this.contactValue('phone') || this.contactValue('sms'));
+      return to ? `${num} · SMS → ${to}` : `${num} · SMS`;
+    }
     return `${num} · ${this.lang.t('channelThread')}`;
   });
 
@@ -210,26 +229,31 @@ export class TicketDetailPage implements OnInit {
     this.customersApi.get(customerId).subscribe({
       next: (row) => {
         this.customer.set(row);
-        if (!this.replyToPhone.trim()) {
-          const phone =
-            row.contacts?.find(
-              (c) => c.isActive && c.type.toLowerCase() === 'whatsapp' && c.value,
-            )?.value ||
-            row.contacts?.find(
-              (c) => c.isActive && c.type.toLowerCase() === 'phone' && c.value,
-            )?.value ||
-            '';
-          this.replyToPhone = this.toE164Hint(phone);
+        const channel = this.replyChannel();
+        const hasWa = row.contacts?.some(
+          (c) => c.isActive && c.type.toLowerCase() === 'whatsapp' && c.value?.trim(),
+        );
+        const hasSms = row.contacts?.some(
+          (c) =>
+            c.isActive &&
+            (c.type.toLowerCase() === 'phone' || c.type.toLowerCase() === 'sms') &&
+            c.value?.trim(),
+        );
+        if ((channel === 'whatsapp' && !hasWa) || (channel === 'sms' && !hasSms)) {
+          this.replyChannel.set('chat');
         }
       },
       error: () => {
         this.customer.set(null);
         this.customerError.set(this.lang.t('couldNotLoadCustomerProfile'));
+        if (this.replyChannel() !== 'chat') {
+          this.replyChannel.set('chat');
+        }
       },
     });
   }
 
-  /** Light client hint: Egyptian 01… → +201… for the To field. */
+  /** Light client hint: Egyptian 01… → +201… for Twilio To. */
   private toE164Hint(raw: string): string {
     const t = raw.trim().replace(/^whatsapp:/i, '');
     if (!t) return '';
@@ -297,19 +321,21 @@ export class TicketDetailPage implements OnInit {
     const clear = () => {
       this.chatDraft = '';
     };
-    const to = this.replyToPhone.trim() || undefined;
-    if (
-      (this.replyChannel() === 'whatsapp' || this.replyChannel() === 'sms') &&
-      !to
-    ) {
-      this.store.error.set(this.lang.t('recipientPhoneRequired'));
-      return;
-    }
     if (this.replyChannel() === 'whatsapp') {
+      const to = this.toE164Hint(this.contactValue('whatsapp'));
+      if (!to) {
+        this.store.error.set(this.lang.t('noWhatsAppContact'));
+        return;
+      }
       this.store.replyWhatsApp(this.id, text, clear, to);
       return;
     }
     if (this.replyChannel() === 'sms') {
+      const to = this.toE164Hint(this.contactValue('phone') || this.contactValue('sms'));
+      if (!to) {
+        this.store.error.set(this.lang.t('noSmsContact'));
+        return;
+      }
       this.store.replySms(this.id, text, clear, to);
       return;
     }
