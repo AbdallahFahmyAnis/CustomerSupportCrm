@@ -1,6 +1,6 @@
 import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import {
   canAccessAdmin,
   canAccessAgentWorkspace,
@@ -31,6 +31,7 @@ export class MainLayoutComponent implements OnInit {
   readonly session = inject(SessionApi);
   private readonly notificationsApi = inject(NotificationsApi);
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   readonly sidebarCollapsed = signal(false);
   readonly inboxOpen = signal(false);
   readonly unreadCount = signal(0);
@@ -81,7 +82,10 @@ export class MainLayoutComponent implements OnInit {
   }
 
   signOut(): void {
-    this.session.logout().subscribe();
+    this.session.logout().subscribe({
+      next: () => void this.router.navigateByUrl('/login'),
+      error: () => void this.router.navigateByUrl('/login'),
+    });
   }
 
   toggleInbox(event: Event): void {

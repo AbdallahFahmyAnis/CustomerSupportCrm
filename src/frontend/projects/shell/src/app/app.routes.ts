@@ -5,6 +5,7 @@ import { HomePage } from './features/home/home/home.page';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomePage },
+  { path: 'login', component: HomePage },
   {
     path: 'agent',
     canActivate: [authGuard, agentRoleGuard],

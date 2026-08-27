@@ -1,70 +1,55 @@
-.page {
+@use '../knowledge-shared';
+
+.article-grid {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
   gap: 1rem;
 }
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: flex-start;
-  flex-wrap: wrap;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.lede {
-  margin: 0.25rem 0 0;
-  color: var(--crm-text-muted);
-}
-
-.filter {
-  display: flex;
-  gap: 0.5rem;
-  max-width: 36rem;
-  width: 100%;
-}
-
-.filter input {
-  flex: 1;
-  min-width: 0;
-  padding: 0.45rem 0.6rem;
-}
-
-.list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.article-card {
   display: grid;
-  gap: 0.5rem;
-}
-
-.list a {
-  display: grid;
-  gap: 0.2rem;
-  padding: 0.75rem 0.85rem;
+  gap: 0.65rem;
+  align-content: start;
+  padding: 1.1rem 1.15rem;
   border: 1px solid var(--crm-border);
   border-radius: var(--crm-radius);
-  text-decoration: none;
-  color: inherit;
   background: var(--crm-paper);
   box-shadow: var(--crm-shadow);
-  transition: border-color 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.list a:hover {
-  border-color: var(--crm-primary);
+.article-card:hover {
+  border-color: rgba(140, 87, 255, 0.45);
+  box-shadow: 0 0.45rem 1.25rem rgba(47, 43, 61, 0.08);
+  transform: translateY(-1px);
+  color: inherit;
 }
 
-.list span {
-  font-size: 0.85rem;
+.article-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.article-card h2 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--crm-text);
+}
+
+.article-card__meta {
+  margin: 0;
+  font-size: 0.82rem;
   color: var(--crm-text-muted);
 }
 
-.error {
-  color: var(--crm-danger);
+.article-card__cta {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--crm-primary);
 }

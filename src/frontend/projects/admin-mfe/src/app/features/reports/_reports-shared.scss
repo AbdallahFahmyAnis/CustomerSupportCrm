@@ -1,0 +1,247 @@
+.page {
+  max-width: 72rem;
+}
+
+.crumb-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--crm-text-muted);
+}
+
+.crumb-nav a {
+  font-weight: 600;
+}
+
+.crumb-nav .sep {
+  opacity: 0.55;
+}
+
+.crumb-nav .current {
+  color: var(--crm-text);
+  font-weight: 600;
+}
+
+.report-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.15rem;
+}
+
+.report-tabs a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--crm-text-muted);
+  background: transparent;
+  border: 1px solid var(--crm-border);
+}
+
+.report-tabs a:hover {
+  color: var(--crm-primary);
+  border-color: rgba(140, 87, 255, 0.35);
+  background: var(--crm-primary-soft);
+}
+
+.report-tabs a.active {
+  color: #fff;
+  background: var(--crm-primary);
+  border-color: var(--crm-primary);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: end;
+  margin-bottom: 1.15rem;
+  padding: 1rem 1.15rem;
+  background: var(--crm-paper);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  box-shadow: var(--crm-shadow);
+}
+
+.filters label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--crm-text-muted);
+}
+
+.filters input[type='date'] {
+  min-width: 10.5rem;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.9rem;
+  margin: 0 0 1.15rem;
+}
+
+.kpi {
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 1.1rem;
+  background: var(--crm-paper);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  box-shadow: var(--crm-shadow);
+}
+
+.kpi::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--crm-primary);
+}
+
+.kpi.tone-ok::before {
+  background: #56ca00;
+}
+
+.kpi.tone-warn::before {
+  background: #ffb400;
+}
+
+.kpi.tone-danger::before {
+  background: #ff4c51;
+}
+
+.kpi.tone-info::before {
+  background: #16b1ff;
+}
+
+.kpi span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--crm-text-muted);
+}
+
+.kpi strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--crm-text);
+}
+
+.kpi .hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: var(--crm-text-muted);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.charts-grid.wide > .chart-card:last-child {
+  grid-column: 1 / -1;
+}
+
+.chart-card {
+  padding: 0;
+  overflow: hidden;
+  background: var(--crm-paper);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  box-shadow: var(--crm-shadow);
+}
+
+.chart-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.95rem 1.1rem 0.35rem;
+}
+
+.chart-card__head h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--crm-text);
+}
+
+.chart-card__head p {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--crm-text-muted);
+}
+
+.chart-card__body {
+  padding: 0 0.5rem 0.65rem;
+  min-height: 16rem;
+}
+
+.chart-card__body.compact {
+  min-height: 14rem;
+}
+
+.meta {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--crm-text-muted);
+}
+
+.error {
+  color: var(--crm-danger);
+  margin: 0 0 1rem;
+}
+
+.empty-state {
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  background: var(--crm-paper);
+  border: 1px dashed var(--crm-border);
+  border-radius: var(--crm-radius);
+}
+
+.empty-state strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--crm-text-muted);
+  font-size: 0.9rem;
+}
+
+.table-card {
+  margin-top: 0.25rem;
+}
+
+.table-card table {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grid.wide > .chart-card:last-child {
+    grid-column: auto;
+  }
+}
