@@ -1,60 +1,107 @@
 <section class="page">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/admin">{{ lang.t('admin') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <a routerLink="/knowledge">{{ lang.t('knowledge') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">{{ lang.t('search') }}</span>
+  </nav>
+
   <header class="row">
     <div>
       <h1>{{ lang.t('searchKnowledge') }}</h1>
       <p class="lede">{{ lang.t('searchKnowledgeLead') }}</p>
     </div>
-    <a routerLink="/knowledge" class="btn secondary">{{ lang.t('allArticles') }}</a>
+    <div class="header-actions">
+      <a routerLink="/knowledge" class="btn secondary">{{ lang.t('allArticles') }}</a>
+      <a routerLink="/knowledge/new" class="btn">{{ lang.t('newArticle') }}</a>
+    </div>
   </header>
 
-  <form class="filters" (ngSubmit)="run()">
-    <label>
-      {{ lang.t('query') }}
-      <input name="q" [(ngModel)]="q" required [placeholder]="lang.t('queryPlaceholder')" />
-    </label>
-    <label>
-      {{ lang.t('kind') }}
-      <select name="kind" [(ngModel)]="kind">
-        <option value="">{{ lang.t('any') }}</option>
-        @for (k of kinds; track k) {
-          <option [value]="k">{{ k }}</option>
-        }
-      </select>
-    </label>
-    <label>
-      {{ lang.t('status') }}
-      <select name="status" [(ngModel)]="status" [disabled]="publishedOnly">
-        <option value="">{{ lang.t('any') }}</option>
-        @for (s of statuses; track s) {
-          <option [value]="s">{{ s }}</option>
-        }
-      </select>
-    </label>
-    <label class="check">
-      <input type="checkbox" name="pub" [(ngModel)]="publishedOnly" />
-      {{ lang.t('publishedOnly') }}
-    </label>
-    <button type="submit" class="btn" [disabled]="store.loading()">{{ lang.t('search') }}</button>
+  <nav class="kb-tabs" aria-label="Knowledge views">
+    <a routerLink="/knowledge" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      {{ lang.t('allArticles') }}
+    </a>
+    <a routerLink="/knowledge/search" routerLinkActive="active">{{ lang.t('searchKnowledge') }}</a>
+  </nav>
+
+  <form class="search-panel" (ngSubmit)="run()">
+    <div class="search-panel__hero">
+      <label class="query">
+        {{ lang.t('query') }}
+        <input
+          name="q"
+          [(ngModel)]="q"
+          required
+          [placeholder]="lang.t('queryPlaceholder')"
+          autocomplete="off"
+        />
+      </label>
+      <button type="submit" class="btn" [disabled]="store.loading() || !q.trim()">
+        {{ store.loading() ? lang.t('searching') : lang.t('search') }}
+      </button>
+    </div>
+
+    <div class="search-panel__filters">
+      <label>
+        {{ lang.t('kind') }}
+        <select name="kind" [(ngModel)]="kind">
+          <option value="">{{ lang.t('any') }}</option>
+          @for (k of kinds; track k) {
+            <option [value]="k">{{ k }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        {{ lang.t('status') }}
+        <select name="status" [(ngModel)]="status" [disabled]="publishedOnly">
+          <option value="">{{ lang.t('any') }}</option>
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </label>
+      <label class="check">
+        <input type="checkbox" name="pub" [(ngModel)]="publishedOnly" />
+        {{ lang.t('publishedOnly') }}
+      </label>
+    </div>
   </form>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
-  @if (store.loading()) {
-    <p>{{ lang.t('searching') }}</p>
-  } @else if (store.searchHits().length === 0) {
-    <p class="muted">{{ lang.t('noSearchHits') }}</p>
+
+  @if (!searched()) {
+    <div class="empty-state">
+      <strong>{{ lang.t('searchReadyTitle') }}</strong>
+      <p>{{ lang.t('searchReadyHint') }}</p>
+    </div>
+  } @else if (store.loading()) {
+    <div class="empty-state"><strong>{{ lang.t('searching') }}</strong></div>
+  } @else if (!store.searchHits().length) {
+    <div class="empty-state">
+      <strong>{{ lang.t('noSearchHits') }}</strong>
+      <p>{{ lang.t('noSearchHitsHint') }}</p>
+    </div>
   } @else {
+    <p class="results-meta">{{ store.searchHits().length }} {{ lang.t('resultsFound') }}</p>
     <ul class="hits">
       @for (h of store.searchHits(); track h.id) {
         <li>
           <a [routerLink]="['/knowledge', h.id]">
             <div class="hit-top">
-              <strong>{{ h.title }}</strong>
+              <div class="hit-badges">
+                <span class="badge badge-kind" [attr.data-kind]="h.kind.toLowerCase()">{{ h.kind }}</span>
+                <span class="badge badge-status" [attr.data-status]="h.status.toLowerCase()">{{ h.status }}</span>
+              </div>
               <span class="score">{{ lang.t('score') }} {{ h.score }}</span>
             </div>
+            <strong>{{ h.title }}</strong>
             <p class="snippet">{{ h.snippet }}</p>
-            <span class="meta">{{ h.kind }} · {{ h.status }}</span>
+            <div class="score-bar" aria-hidden="true">
+              <span [style.width]="scoreWidth(h.score)"></span>
+            </div>
           </a>
         </li>
       }

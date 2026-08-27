@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FormFeedbackStore, LanguageStore } from 'shared';
+import { Branch } from '../departments.models';
 import { DepartmentsStore } from '../departments.store';
 
 /** SDD CRM-043 */
@@ -24,6 +25,10 @@ export class DepartmentsPage implements OnInit {
     this.store.refresh();
   }
 
+  branchesFor(departmentId: string): Branch[] {
+    return this.store.branches().filter((b) => b.departmentId === departmentId);
+  }
+
   addDept(f: NgForm): void {
     if (f.invalid) {
       this.feedback.error('formInvalid');
@@ -35,6 +40,7 @@ export class DepartmentsPage implements OnInit {
       () => {
         this.feedback.success('departmentAddSuccess');
         this.deptName = '';
+        f.resetForm();
       },
       (msg) => this.feedback.errorText(msg),
     );
@@ -53,6 +59,8 @@ export class DepartmentsPage implements OnInit {
       () => {
         this.feedback.success('branchAddSuccess');
         this.branchName = '';
+        f.resetForm({ branchDeptId: deptId });
+        this.branchDeptId = deptId;
       },
       (msg) => this.feedback.errorText(msg),
     );

@@ -1,21 +1,64 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { Component, OnInit, computed, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { LanguageStore } from 'shared';
+import { NgApexchartsModule } from 'ng-apexcharts';
+import { barChart, donutChart, emptyDonut } from '../report-charts';
 import { ReportsStore } from '../reports.store';
 
 /** SDD CRM-031 — ticket volume report. */
 @Component({
   selector: 'app-ticket-reports-page',
   standalone: true,
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, RouterLink, RouterLinkActive, DatePipe, NgApexchartsModule],
   templateUrl: './ticket-reports.html',
   styleUrls: ['./ticket-reports.scss'],
 })
 export class TicketReportsPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(ReportsStore);
   from = '';
   to = '';
+
+  readonly statusChart = computed(() => {
+    const s = this.store.summary();
+    if (!s?.byStatus?.length) return emptyDonut(this.lang.t('noChartData'));
+    return donutChart(
+      s.byStatus.map((b) => b.count),
+      s.byStatus.map((b) => b.key),
+    );
+  });
+
+  readonly categoryChart = computed(() => {
+    const s = this.store.summary();
+    const rows = s?.byCategory ?? [];
+    return barChart(
+      rows.map((b) => b.key),
+      rows.map((b) => b.count),
+      { name: this.lang.t('tickets') },
+    );
+  });
+
+  readonly priorityChart = computed(() => {
+    const s = this.store.summary();
+    const rows = s?.byPriority ?? [];
+    return barChart(
+      rows.map((b) => b.key),
+      rows.map((b) => b.count),
+      { name: this.lang.t('tickets'), color: '#16b1ff' },
+    );
+  });
+
+  readonly agentChart = computed(() => {
+    const s = this.store.summary();
+    const rows = [...(s?.byAgent ?? [])].sort((a, b) => b.count - a.count).slice(0, 8);
+    return barChart(
+      rows.map((b) => b.agentName || this.lang.t('unassigned')),
+      rows.map((b) => b.count),
+      { horizontal: true, name: this.lang.t('tickets'), color: '#8c57ff' },
+    );
+  });
 
   ngOnInit(): void {
     const end = new Date();

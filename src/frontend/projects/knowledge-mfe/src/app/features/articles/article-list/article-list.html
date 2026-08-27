@@ -1,37 +1,104 @@
 <section class="page">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/admin">{{ lang.t('admin') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">{{ lang.t('knowledge') }}</span>
+  </nav>
+
   <header class="row">
     <div>
       <h1>{{ lang.t('knowledgeBase') }}</h1>
       <p class="lede">{{ lang.t('knowledgeListLead') }}</p>
     </div>
     <div class="header-actions">
-      <a routerLink="/knowledge/search" class="btn secondary">{{ lang.t('search') }}</a>
+      <a routerLink="/knowledge/search" class="btn secondary">{{ lang.t('searchKnowledge') }}</a>
       <a routerLink="/knowledge/new" class="btn">{{ lang.t('newArticle') }}</a>
     </div>
   </header>
 
-  <form class="filter" (ngSubmit)="search()">
-    <input name="q" [(ngModel)]="q" [placeholder]="lang.t('filterByTitleOrBody')" />
-    <button type="submit" class="btn secondary">{{ lang.t('search') }}</button>
+  <nav class="kb-tabs" aria-label="Knowledge views">
+    <a routerLink="/knowledge" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      {{ lang.t('allArticles') }}
+    </a>
+    <a routerLink="/knowledge/search" routerLinkActive="active">{{ lang.t('searchKnowledge') }}</a>
+  </nav>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <p class="label">{{ lang.t('articles') }}</p>
+      <p class="value">{{ stats().total }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="label">{{ lang.t('published') }}</p>
+      <p class="value">{{ stats().published }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="label">{{ lang.t('drafts') }}</p>
+      <p class="value">{{ stats().draft }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="label">{{ lang.t('faqs') }}</p>
+      <p class="value">{{ stats().faqs }}</p>
+    </div>
+  </div>
+
+  <form class="toolbar" (ngSubmit)="search()">
+    <label class="grow">
+      {{ lang.t('search') }}
+      <input name="q" [(ngModel)]="q" [placeholder]="lang.t('filterByTitleOrBody')" />
+    </label>
+    <button type="submit" class="btn secondary" [disabled]="store.loading()">{{ lang.t('applyFilters') }}</button>
   </form>
+
+  <div class="chip-row" role="group" [attr.aria-label]="lang.t('filterByKind')">
+    <button type="button" class="chip" [class.active]="!kindFilter()" (click)="setKind('')">
+      {{ lang.t('any') }}
+    </button>
+    @for (k of kinds; track k) {
+      <button type="button" class="chip" [class.active]="kindFilter() === k" (click)="setKind(k)">
+        {{ k }}
+      </button>
+    }
+  </div>
+
+  <div class="chip-row" role="group" [attr.aria-label]="lang.t('filterByStatus')">
+    <button type="button" class="chip" [class.active]="!statusFilter()" (click)="setStatus('')">
+      {{ lang.t('allStatuses') }}
+    </button>
+    @for (s of statuses; track s) {
+      <button type="button" class="chip" [class.active]="statusFilter() === s" (click)="setStatus(s)">
+        {{ s }}
+      </button>
+    }
+  </div>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
+
   @if (store.loading()) {
-    <p>{{ lang.t('loading') }}</p>
-  } @else if (store.items().length === 0) {
-    <p>{{ lang.t('noArticlesYet') }}</p>
+    <div class="empty-state"><strong>{{ lang.t('loading') }}</strong></div>
+  } @else if (!filtered().length) {
+    <div class="empty-state">
+      <strong>{{ lang.t('noArticlesYet') }}</strong>
+      <p>{{ lang.t('noArticlesHint') }}</p>
+      <a routerLink="/knowledge/new" class="btn">{{ lang.t('newArticle') }}</a>
+    </div>
   } @else {
-    <ul class="list">
-      @for (a of store.items(); track a.id) {
-        <li>
-          <a [routerLink]="['/knowledge', a.id]">
-            <strong>{{ a.title }}</strong>
-            <span>{{ a.kind }} · {{ a.status }} · {{ a.updatedAt | date: 'short' }}</span>
-          </a>
-        </li>
+    <div class="article-grid">
+      @for (a of filtered(); track a.id) {
+        <a class="article-card" [routerLink]="['/knowledge', a.id]">
+          <div class="article-card__badges">
+            <span class="badge badge-kind" [attr.data-kind]="a.kind.toLowerCase()">{{ a.kind }}</span>
+            <span class="badge badge-status" [attr.data-status]="a.status.toLowerCase()">{{ a.status }}</span>
+          </div>
+          <h2>{{ excerpt(a.title) }}</h2>
+          <p class="article-card__meta">
+            {{ lang.t('updated') }} · {{ a.updatedAt | date: 'mediumDate' }}
+          </p>
+          <span class="article-card__cta">{{ lang.t('openArticle') }} →</span>
+        </a>
       }
-    </ul>
+    </div>
   }
 </section>

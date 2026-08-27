@@ -1,50 +1,105 @@
 <section class="page">
-  <p><a routerLink="/knowledge">← {{ lang.t('backToArticles') }}</a></p>
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/admin">{{ lang.t('admin') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <a routerLink="/knowledge">{{ lang.t('knowledge') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">{{ isNew ? lang.t('newArticle') : lang.t('editArticle') }}</span>
+  </nav>
 
   <header class="row">
     <div>
       <h1>{{ isNew ? lang.t('newArticle') : lang.t('editArticle') }}</h1>
       <p class="lede">{{ lang.t('articleAuthorLead') }}</p>
     </div>
+    <div class="header-actions">
+      <a routerLink="/knowledge" class="btn secondary">{{ lang.t('backToArticles') }}</a>
+    </div>
   </header>
 
   @if (!isNew && store.loading() && !store.selected()) {
-    <p>{{ lang.t('loading') }}</p>
+    <div class="empty-state"><strong>{{ lang.t('loading') }}</strong></div>
   } @else {
-    <form class="form" #f="ngForm" (ngSubmit)="save(f)">
-      <label>
-        {{ lang.t('title') }}
-        <input name="title" [(ngModel)]="title" required #titleCtrl="ngModel" />
-        @if (f.submitted && titleCtrl.invalid) {
-          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
-        }
-      </label>
-      <label>
-        {{ lang.t('kind') }}
-        <select name="kind" [(ngModel)]="kind">
-          @for (k of kinds; track k) {
-            <option [value]="k">{{ k }}</option>
+    <div class="author-layout">
+      <form class="card author-form" #f="ngForm" (ngSubmit)="save(f)">
+        <header class="author-form__head">
+          <h2>{{ lang.t('articleContent') }}</h2>
+          <p>{{ lang.t('articleContentHint') }}</p>
+        </header>
+
+        <div class="author-form__body">
+          <label class="full">
+            {{ lang.t('title') }}
+            <input name="title" [(ngModel)]="title" required #titleCtrl="ngModel" />
+            @if (f.submitted && titleCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
+          </label>
+
+          <label>
+            {{ lang.t('kind') }}
+            <select name="kind" [(ngModel)]="kind">
+              @for (k of kinds; track k) {
+                <option [value]="k">{{ k }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            {{ lang.t('status') }}
+            <select name="status" [(ngModel)]="status">
+              @for (s of statuses; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="full body">
+            {{ lang.t('body') }}
+            <textarea name="body" rows="14" [(ngModel)]="body" required #bodyCtrl="ngModel"></textarea>
+            @if (f.submitted && bodyCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
+          </label>
+        </div>
+
+        <footer class="author-form__foot">
+          <button type="submit" class="btn" [disabled]="store.saving()">
+            {{ store.saving() ? lang.t('saving') : lang.t('save') }}
+          </button>
+        </footer>
+      </form>
+
+      <aside class="card author-aside">
+        <header class="author-aside__head">
+          <h2>{{ lang.t('articlePreview') }}</h2>
+          <p>{{ lang.t('articlePreviewHint') }}</p>
+        </header>
+        <div class="author-aside__body">
+          <div class="preview-badges">
+            <span class="badge badge-kind" [attr.data-kind]="kind.toLowerCase()">{{ kind }}</span>
+            <span class="badge badge-status" [attr.data-status]="status.toLowerCase()">{{ status }}</span>
+          </div>
+          <h3>{{ title.trim() || lang.t('untitledArticle') }}</h3>
+          <p class="preview-body">{{ body.trim() || lang.t('articleBodyPlaceholder') }}</p>
+          @if (!isNew && store.selected(); as row) {
+            <dl class="meta-list">
+              <div>
+                <dt>{{ lang.t('created') }}</dt>
+                <dd>{{ row.createdAt | date: 'medium' }}</dd>
+              </div>
+              <div>
+                <dt>{{ lang.t('updated') }}</dt>
+                <dd>{{ row.updatedAt | date: 'medium' }}</dd>
+              </div>
+              <div>
+                <dt>{{ lang.t('author') }}</dt>
+                <dd>{{ row.createdBy || '—' }}</dd>
+              </div>
+            </dl>
           }
-        </select>
-      </label>
-      <label>
-        {{ lang.t('status') }}
-        <select name="status" [(ngModel)]="status">
-          @for (s of statuses; track s) {
-            <option [value]="s">{{ s }}</option>
-          }
-        </select>
-      </label>
-      <label class="body">
-        {{ lang.t('body') }}
-        <textarea name="body" rows="12" [(ngModel)]="body" required #bodyCtrl="ngModel"></textarea>
-        @if (f.submitted && bodyCtrl.invalid) {
-          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
-        }
-      </label>
-      <button type="submit" class="btn" [disabled]="store.saving()">
-        {{ store.saving() ? lang.t('saving') : lang.t('save') }}
-      </button>
-    </form>
+        </div>
+      </aside>
+    </div>
   }
 </section>

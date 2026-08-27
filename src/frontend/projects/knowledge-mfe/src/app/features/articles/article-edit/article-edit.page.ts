@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, effect, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,7 +10,7 @@ import { ArticlesStore } from '../articles.store';
 @Component({
   selector: 'app-article-edit-page',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DatePipe],
   templateUrl: './article-edit.html',
   styleUrls: ['./article-edit.scss'],
 })

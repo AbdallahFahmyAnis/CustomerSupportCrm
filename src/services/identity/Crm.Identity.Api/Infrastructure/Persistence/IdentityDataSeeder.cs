@@ -93,35 +93,51 @@ public sealed class IdentityDataSeeder(
 
     private async Task EnsureDepartmentsAsync(CancellationToken cancellationToken)
     {
-        if (!await db.Departments.AnyAsync(d => d.Id == Department.DemoSupportId, cancellationToken))
+        var now = DateTimeOffset.UtcNow;
+        var departments = new (Guid Id, string Name)[]
         {
+            (Department.DemoSupportId, "Demo Support"),
+            (Department.CustomerSuccessId, "Customer Success"),
+            (Department.TechnicalOpsId, "Technical Operations"),
+        };
+        var branches = new (Guid Id, Guid DepartmentId, string Name)[]
+        {
+            (Branch.HqId, Department.DemoSupportId, "HQ"),
+            (Branch.RiyadhId, Department.DemoSupportId, "Riyadh"),
+            (Branch.JeddahId, Department.CustomerSuccessId, "Jeddah"),
+            (Branch.CairoId, Department.CustomerSuccessId, "Cairo"),
+            (Branch.RemoteId, Department.TechnicalOpsId, "Remote"),
+            (Branch.DammamId, Department.TechnicalOpsId, "Dammam"),
+        };
+
+        foreach (var (id, name) in departments)
+        {
+            if (await db.Departments.AnyAsync(d => d.Id == id, cancellationToken))
+            {
+                continue;
+            }
+
             db.Departments.Add(new Department
             {
-                Id = Department.DemoSupportId,
-                Name = "Demo Support",
-                CreatedAt = DateTimeOffset.UtcNow
+                Id = id,
+                Name = name,
+                CreatedAt = now
             });
         }
 
-        if (!await db.Branches.AnyAsync(b => b.Id == Branch.HqId, cancellationToken))
+        foreach (var (id, departmentId, name) in branches)
         {
-            db.Branches.Add(new Branch
+            if (await db.Branches.AnyAsync(b => b.Id == id, cancellationToken))
             {
-                Id = Branch.HqId,
-                DepartmentId = Department.DemoSupportId,
-                Name = "HQ",
-                CreatedAt = DateTimeOffset.UtcNow
-            });
-        }
+                continue;
+            }
 
-        if (!await db.Branches.AnyAsync(b => b.Id == Branch.RiyadhId, cancellationToken))
-        {
             db.Branches.Add(new Branch
             {
-                Id = Branch.RiyadhId,
-                DepartmentId = Department.DemoSupportId,
-                Name = "Riyadh",
-                CreatedAt = DateTimeOffset.UtcNow
+                Id = id,
+                DepartmentId = departmentId,
+                Name = name,
+                CreatedAt = now
             });
         }
 
@@ -133,6 +149,14 @@ public sealed class IdentityDataSeeder(
             agent.DepartmentId = Department.DemoSupportId;
             agent.BranchId = Branch.HqId;
             await users.UpdateAsync(agent);
+        }
+
+        var lead = await users.FindByEmailAsync("lead@crm.local");
+        if (lead is not null && lead.DepartmentId is null)
+        {
+            lead.DepartmentId = Department.CustomerSuccessId;
+            lead.BranchId = Branch.JeddahId;
+            await users.UpdateAsync(lead);
         }
     }
 

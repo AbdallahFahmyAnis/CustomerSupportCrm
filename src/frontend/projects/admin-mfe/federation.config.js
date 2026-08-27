@@ -13,6 +13,8 @@ module.exports = withNativeFederation({
     'rxjs/fetch',
     'rxjs/testing',
     'rxjs/webSocket',
+    'apexcharts',
+    'ng-apexcharts',
   ],
   features: {
     ignoreUnusedDeps: true,
