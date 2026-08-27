@@ -1,51 +1,70 @@
-<section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/portal">Portal</a>
+<section class="page portal-page">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/portal">{{ lang.t('portal') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">Live chat</span>
+    <span class="current">{{ lang.t('liveChat') }}</span>
   </nav>
 
-  <header class="row">
-    <div>
-      <h1>Live chat</h1>
-      <p class="lede">Message support — your conversation becomes a ticket.</p>
+  <div class="settings-card chat-sheet">
+    <div class="settings-hero">
+      <div class="avatar">C</div>
+      <div class="meta">
+        <strong>{{ lang.t('liveChat') }}</strong>
+        <p>{{ lang.t('liveChatLead') }}</p>
+      </div>
+      @if (ticketNumber) {
+        <span class="badge-soft ok">{{ lang.t('ticketLabel') }} {{ ticketNumber }}</span>
+      }
     </div>
-  </header>
 
-  @if (!ticketId) {
-    <div class="identity-card settings-card">
-      <form class="settings-form" (ngSubmit)="$event.preventDefault()">
+    @if (!ticketId && !signedInCustomer) {
+      <div class="identity-block">
         <div class="settings-form-grid">
           <label>
-            Name
-            <input name="name" [(ngModel)]="name" autocomplete="name" />
+            {{ lang.t('name') }}
+            <input name="name" [(ngModel)]="name" autocomplete="name" [placeholder]="lang.t('phYourName')" />
           </label>
           <label>
-            Email
-            <input name="email" type="email" [(ngModel)]="email" required autocomplete="email" />
+            {{ lang.t('email') }}
+            <input
+              name="email"
+              type="email"
+              [(ngModel)]="email"
+              required
+              autocomplete="email"
+              [placeholder]="lang.t('phYouEmail')"
+            />
+            @if (attempted && !email.trim()) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
         </div>
-      </form>
+      </div>
+    }
+
+    <div class="chat-embed">
+      <crm-chat
+        [title]="chatTitle"
+        [subtitle]="chatSubtitle"
+        avatarText="S"
+        [messages]="messages()"
+        [(draft)]="draft"
+        [sending]="sending()"
+        [composeDisabled]="false"
+        [placeholder]="lang.t('typeMessage')"
+        [sendLabel]="lang.t('send')"
+        [emptyText]="lang.t('chatEmpty')"
+        (send)="onSend($event)"
+      />
     </div>
-  }
 
-  <crm-chat
-    [title]="chatTitle"
-    [subtitle]="chatSubtitle"
-    avatarText="S"
-    [messages]="messages()"
-    [(draft)]="draft"
-    [sending]="sending()"
-    [composeDisabled]="!email.trim()"
-    placeholder="Type a message…"
-    sendLabel="Send"
-    emptyText="Say hello to start a conversation with support."
-    (send)="onSend($event)"
-  />
-
-  @if (error()) {
-    <p class="error" role="alert">{{ error() }}</p>
-  }
-
-  <p class="back-link"><a routerLink="/portal">← Portal home</a></p>
+    @if (ticketNumber) {
+      <div class="after-chat">
+        <p class="muted">{{ lang.t('rateAfterChat') }}</p>
+        <a class="btn secondary" [routerLink]="['/portal/feedback']" [queryParams]="{ ticket: ticketNumber }">
+          {{ lang.t('rateSupport') }}
+        </a>
+      </div>
+    }
+  </div>
 </section>

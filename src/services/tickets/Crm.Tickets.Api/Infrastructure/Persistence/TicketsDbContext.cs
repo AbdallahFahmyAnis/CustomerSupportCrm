@@ -9,6 +9,7 @@ public sealed class TicketsDbContext(DbContextOptions<TicketsDbContext> options)
     public DbSet<TicketHistoryRow> TicketHistory => Set<TicketHistoryRow>();
     public DbSet<TicketNoteRow> TicketNotes => Set<TicketNoteRow>();
     public DbSet<TicketTaskRow> TicketTasks => Set<TicketTaskRow>();
+    public DbSet<TicketFeedbackRow> TicketFeedback => Set<TicketFeedbackRow>();
     public DbSet<TicketSequenceRow> TicketSequence => Set<TicketSequenceRow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -60,6 +61,14 @@ public sealed class TicketsDbContext(DbContextOptions<TicketsDbContext> options)
             e.HasIndex(x => x.AssigneeUserId);
         });
 
+        modelBuilder.Entity<TicketFeedbackRow>(e =>
+        {
+            e.ToTable("TicketFeedback");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Comment).HasMaxLength(2000);
+            e.HasIndex(x => x.TicketId).IsUnique();
+        });
+
         modelBuilder.Entity<TicketSequenceRow>(e =>
         {
             e.ToTable("TicketSequence");
@@ -83,6 +92,10 @@ public sealed class TicketRow
     public string? AssignedAgentId { get; set; }
     public string? AssignedAgentName { get; set; }
     public bool IsEscalated { get; set; }
+    public Guid? DepartmentId { get; set; }
+    public string? AiSummary { get; set; }
+    public string? AiSummaryHighlightsJson { get; set; }
+    public DateTimeOffset? AiSummaryAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }
@@ -120,6 +133,15 @@ public sealed class TicketTaskRow
     public string Status { get; set; } = "Open";
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+}
+
+public sealed class TicketFeedbackRow
+{
+    public Guid Id { get; set; }
+    public Guid TicketId { get; set; }
+    public int Rating { get; set; }
+    public string? Comment { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }
 
 public sealed class TicketSequenceRow

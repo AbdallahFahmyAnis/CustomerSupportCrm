@@ -1,60 +1,91 @@
-<section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/portal">Portal</a>
+<section class="page portal-page">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/portal">{{ lang.t('portal') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">Track requests</span>
+    <span class="current">{{ lang.t('trackRequests') }}</span>
   </nav>
 
-  <header class="row">
-    <div>
-      <h1>Track my requests</h1>
-      <p class="lede">Enter the email you used when submitting.</p>
-    </div>
-  </header>
-
-  <div class="settings-card track-card">
-    <form class="settings-form" (ngSubmit)="search()">
-      <div class="settings-form-grid">
-        <label class="full">
-          Email
-          <input
-            name="email"
-            type="email"
-            [(ngModel)]="email"
-            required
-            autocomplete="email"
-            placeholder="you@example.com"
-          />
-        </label>
+  <div class="settings-card portal-sheet">
+    <div class="settings-hero">
+      <div class="avatar">T</div>
+      <div class="meta">
+        <strong>{{ lang.t('trackRequests') }}</strong>
+        <p>
+          {{ signedIn ? lang.t('trackRequestsSignedInLead') : lang.t('trackRequestsLead') }}
+        </p>
       </div>
-      <div class="settings-actions">
-        <button type="submit" class="btn" [disabled]="store.tracking()">
-          {{ store.tracking() ? 'Searching…' : 'Find requests' }}
+    </div>
+
+    @if (!signedIn) {
+      <form class="settings-form" #f="ngForm" (ngSubmit)="search(f)">
+        <label class="full">
+          {{ lang.t('email') }}
+          <div class="search-row">
+            <input
+              name="email"
+              type="email"
+              [(ngModel)]="email"
+              required
+              autocomplete="email"
+              [placeholder]="lang.t('phYouEmail')"
+              #emailCtrl="ngModel"
+            />
+            <button type="submit" class="btn" [disabled]="store.tracking()">
+              {{ store.tracking() ? lang.t('searching') : lang.t('findRequests') }}
+            </button>
+          </div>
+          @if (f.submitted && emailCtrl.invalid) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
+        </label>
+      </form>
+    } @else {
+      <div class="signed-in-bar">
+        <span class="muted">{{ lang.t('signedInAs') }} <strong>{{ email }}</strong></span>
+        <button type="button" class="btn secondary" (click)="refresh()" [disabled]="store.tracking()">
+          {{ store.tracking() ? lang.t('searching') : lang.t('refresh') }}
         </button>
       </div>
-    </form>
+    }
   </div>
 
-  @if (store.trackError(); as err) {
-    <p class="error" role="alert">{{ err }}</p>
+  @if (store.tracking()) {
+    <p class="muted">{{ lang.t('loading') }}</p>
   }
 
   @if (!store.tracking() && store.trackEmail()) {
     @if (store.hasRequests()) {
+      <div class="results-head">
+        <h2>{{ lang.t('trackResults') }}</h2>
+        <span class="muted">{{ store.requests().length }}</span>
+      </div>
       <ul class="request-list">
         @for (row of store.requests(); track row.requestId) {
           <li class="request-card">
-            <div class="row-head">
-              <strong>{{ row.ticketNumber }}</strong>
-              <span class="badge-soft">{{ row.status }}</span>
+            <div class="ticket-mark">{{ (row.ticketNumber || 'T').charAt(0) }}</div>
+            <div class="request-body">
+              <div class="row-head">
+                <strong>{{ row.ticketNumber }}</strong>
+                <span class="badge-soft" [class.ok]="row.status === 'Resolved' || row.status === 'Closed'">
+                  {{ row.status }}
+                </span>
+              </div>
+              <div class="subject">{{ row.subject }}</div>
+              <div class="meta">{{ row.createdAt | date: 'medium' }}</div>
+              @if (row.status === 'Resolved' || row.status === 'Closed') {
+                <a class="btn ghost rate-link" [routerLink]="['/portal/feedback']" [queryParams]="{ ticket: row.ticketNumber }">
+                  {{ lang.t('rateSupport') }}
+                </a>
+              }
             </div>
-            <div class="subject">{{ row.subject }}</div>
-            <div class="meta">{{ row.createdAt | date: 'medium' }}</div>
           </li>
         }
       </ul>
     } @else {
-      <p class="muted">No requests found for that email.</p>
+      <div class="empty-panel">
+        <p class="muted">{{ lang.t('noRequestsFound') }}</p>
+        <a routerLink="/portal/submit" class="btn secondary">{{ lang.t('submitRequest') }}</a>
+      </div>
     }
   }
 </section>

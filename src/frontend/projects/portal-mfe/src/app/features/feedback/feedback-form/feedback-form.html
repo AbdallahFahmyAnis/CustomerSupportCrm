@@ -1,0 +1,103 @@
+<section class="page portal-page">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/portal">{{ lang.t('portal') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">{{ lang.t('rateSupport') }}</span>
+  </nav>
+
+  <div class="settings-card portal-sheet">
+    <div class="settings-hero">
+      <div class="avatar">★</div>
+      <div class="meta">
+        <strong>{{ lang.t('rateSupport') }}</strong>
+        <p>
+          {{ fromAssistant ? lang.t('rateSupportFromAssistant') : lang.t('rateSupportLead') }}
+        </p>
+      </div>
+    </div>
+
+    @if (loadingTickets) {
+      <p class="muted loading-line">{{ lang.t('loading') }}</p>
+    }
+
+    @if (!loadingTickets && !ticketNumber && eligibleTickets.length === 0) {
+      <div class="empty-panel">
+        <p class="muted">{{ lang.t('feedbackNoEligibleTicket') }}</p>
+        <div class="empty-actions">
+          <a routerLink="/portal/track" class="btn secondary">{{ lang.t('trackRequests') }}</a>
+          <a routerLink="/portal/submit" class="btn">{{ lang.t('submitRequest') }}</a>
+        </div>
+      </div>
+    } @else {
+      <form class="settings-form" #f="ngForm" (ngSubmit)="submit(f)">
+        <div class="settings-form-grid">
+          <label class="full">
+            {{ lang.t('ticketNumber') }}
+            @if (eligibleTickets.length > 0) {
+              <select
+                name="ticketNumber"
+                [(ngModel)]="ticketNumber"
+                required
+                #ticketCtrl="ngModel"
+              >
+                @for (row of eligibleTickets; track row.requestId) {
+                  <option [value]="row.ticketNumber">
+                    {{ row.ticketNumber }} — {{ row.subject }} ({{ row.status }})
+                  </option>
+                }
+              </select>
+            } @else {
+              <input
+                name="ticketNumber"
+                [(ngModel)]="ticketNumber"
+                placeholder="TKT-1001"
+                autocomplete="off"
+                required
+                #ticketCtrl="ngModel"
+              />
+            }
+            @if (f.submitted && ticketCtrl.invalid) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
+          </label>
+
+          <div class="full rating-field">
+            <span class="rating-label">{{ lang.t('rating') }}</span>
+            <div class="rating-scale" role="radiogroup" [attr.aria-label]="lang.t('rating')">
+              @for (opt of ratingOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="rating-chip"
+                  role="radio"
+                  [class.active]="rating === opt.value"
+                  [attr.aria-checked]="rating === opt.value"
+                  (click)="rating = opt.value"
+                >
+                  <strong>{{ opt.value }}</strong>
+                  <span>{{ lang.t(opt.labelKey) }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <label class="full">
+            {{ lang.t('commentOptional') }}
+            <textarea
+              name="comment"
+              rows="4"
+              [(ngModel)]="comment"
+              [placeholder]="lang.t('phFeedbackComment')"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="settings-actions">
+          <button type="submit" class="btn" [disabled]="store.submitting() || !ticketNumber.trim()">
+            {{ store.submitting() ? lang.t('submitting') : lang.t('submitFeedback') }}
+          </button>
+          <a routerLink="/portal" class="btn secondary">{{ lang.t('cancel') }}</a>
+        </div>
+      </form>
+    }
+  </div>
+</section>

@@ -1,10 +1,13 @@
 @use './tokens';
 
-/* Shared Materio-like page primitives for MFEs. */
+/* Shared Materio-like page primitives for MFEs — RTL via logical properties. */
 .page,
 .workspace {
-  padding: 1.5rem;
+  padding: var(--crm-content-pad);
   color: var(--crm-text);
+  max-width: var(--crm-page-max);
+  margin-inline: auto;
+  width: 100%;
 }
 
 .page-header,
@@ -20,14 +23,23 @@
   letter-spacing: -0.01em;
   color: var(--crm-text);
   margin: 0;
+  line-height: 1.35;
+}
+
+html[dir='rtl'] .page h1,
+html[dir='rtl'] .workspace h1 {
+  letter-spacing: 0;
 }
 
 .page .lede,
+.workspace .lede,
 .workspace > p,
 .page > header.row p {
   color: var(--crm-text-muted);
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
   font-size: 0.925rem;
+  line-height: 1.5;
+  max-width: 42rem;
 }
 
 .row {
@@ -35,7 +47,8 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
-  margin-bottom: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1.15rem;
 }
 
 .card,
@@ -184,6 +197,24 @@ textarea:focus {
   color: var(--crm-danger);
 }
 
+.field-error {
+  color: var(--crm-danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 0.15rem;
+}
+
+.ng-submitted .ng-invalid:not(form),
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched,
+.ng-submitted input.ng-invalid,
+.ng-submitted select.ng-invalid,
+.ng-submitted textarea.ng-invalid {
+  border-color: var(--crm-danger) !important;
+  box-shadow: 0 0 0 0.15rem rgba(255, 76, 81, 0.12);
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
@@ -220,12 +251,14 @@ textarea:focus {
 
 .action-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
   gap: 1rem;
 }
 
 .action-tile {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   background: var(--crm-paper);
   border: 1px solid var(--crm-border);
   border-radius: var(--crm-radius);
@@ -233,23 +266,42 @@ textarea:focus {
   padding: 1.15rem 1.25rem;
   text-decoration: none;
   color: var(--crm-text) !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  min-height: 7.5rem;
 }
 
 .action-tile:hover {
   border-color: var(--crm-primary);
   box-shadow: 0 0.35rem 1.4rem rgba(140, 87, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.action-tile.featured {
+  justify-content: flex-end;
+  min-height: 8.5rem;
+}
+
+.action-tile .tile-kicker,
+.tile-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--crm-primary);
+  margin-bottom: 0.15rem;
 }
 
 .action-tile strong {
   display: block;
   font-size: 1rem;
-  margin-bottom: 0.25rem;
+  margin: 0;
+  line-height: 1.3;
 }
 
-.action-tile span {
+.action-tile span:not(.tile-kicker) {
   color: var(--crm-text-muted);
   font-size: 0.85rem;
+  line-height: 1.4;
 }
 
 .badge-soft {
@@ -360,5 +412,10 @@ textarea:focus {
 @media (max-width: 720px) {
   .settings-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .page,
+  .workspace {
+    padding: 1rem;
   }
 }

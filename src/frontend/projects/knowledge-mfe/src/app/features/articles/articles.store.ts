@@ -65,7 +65,11 @@ export class ArticlesStore {
     });
   }
 
-  create(body: { title: string; body: string; kind: string; status: string }, onDone: (id: string) => void): void {
+  create(
+    body: { title: string; body: string; kind: string; status: string },
+    onDone: (id: string) => void,
+    onError?: (msg: string) => void,
+  ): void {
     this.saving.set(true);
     this.error.set('');
     this.api.create(body).subscribe({
@@ -74,8 +78,10 @@ export class ArticlesStore {
         onDone(row.id);
       },
       error: (err) => {
-        this.error.set(err?.error?.error ?? 'Create failed.');
+        const msg = err?.error?.error ?? 'Create failed.';
+        this.error.set(msg);
         this.saving.set(false);
+        onError?.(msg);
       },
     });
   }
@@ -84,6 +90,7 @@ export class ArticlesStore {
     id: string,
     body: { title: string; body: string; kind: string; status: string },
     onDone: () => void,
+    onError?: (msg: string) => void,
   ): void {
     this.saving.set(true);
     this.error.set('');
@@ -94,8 +101,10 @@ export class ArticlesStore {
         onDone();
       },
       error: (err) => {
-        this.error.set(err?.error?.error ?? 'Save failed.');
+        const msg = err?.error?.error ?? 'Save failed.';
+        this.error.set(msg);
         this.saving.set(false);
+        onError?.(msg);
       },
     });
   }

@@ -55,7 +55,13 @@
   flex-direction: column;
   gap: 0.75rem;
   background:
-    radial-gradient(circle at top left, rgba(140, 87, 255, 0.05), transparent 40%),
+    radial-gradient(circle at 0% 0%, rgba(140, 87, 255, 0.05), transparent 40%),
+    var(--crm-bg);
+}
+
+html[dir='rtl'] .crm-chat__messages {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(140, 87, 255, 0.05), transparent 40%),
     var(--crm-bg);
 }
 
@@ -78,14 +84,16 @@
 .crm-chat__bubble {
   max-width: min(85%, 28rem);
   padding: 0.65rem 0.85rem;
-  border-radius: 0.75rem 0.75rem 0.75rem 0.2rem;
+  border-radius: 0.75rem;
+  border-end-start-radius: 0.2rem;
   background: var(--crm-paper);
   border: 1px solid var(--crm-border);
   box-shadow: 0 0.1rem 0.35rem rgba(47, 43, 61, 0.06);
 }
 
 .crm-chat__row.is-mine .crm-chat__bubble {
-  border-radius: 0.75rem 0.75rem 0.2rem 0.75rem;
+  border-radius: 0.75rem;
+  border-end-end-radius: 0.2rem;
   background: var(--crm-primary);
   border-color: transparent;
   color: #fff;

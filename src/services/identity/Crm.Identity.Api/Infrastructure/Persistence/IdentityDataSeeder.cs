@@ -43,6 +43,10 @@ public sealed class IdentityDataSeeder(
                 PermissionCatalog.CustomersRead
             ], cancellationToken);
 
+            await EnsureRoleAsync(RoleNames.Customer, "Customer portal client",
+            [
+            ], cancellationToken);
+
             await EnsureUserAsync(
                 Guid.Parse(DevUsers.AgentId),
                 DevUsers.AgentEmail,
@@ -67,14 +71,68 @@ public sealed class IdentityDataSeeder(
                 RoleNames.Lead,
                 cancellationToken);
 
+            await EnsureUserAsync(
+                Guid.Parse(DevUsers.CustomerId),
+                DevUsers.CustomerEmail,
+                DevUsers.CustomerName,
+                DevUsers.Password,
+                RoleNames.Customer,
+                cancellationToken);
+
             await EnsureGatewayClientAsync(cancellationToken);
             await EnsureDemoAuditAsync(cancellationToken);
             await EnsureSettingsAsync(cancellationToken);
             await EnsurePermissionCatalogAsync(cancellationToken);
+            await EnsureDepartmentsAsync(cancellationToken);
         }
         catch
         {
             // never brick startup
+        }
+    }
+
+    private async Task EnsureDepartmentsAsync(CancellationToken cancellationToken)
+    {
+        if (!await db.Departments.AnyAsync(d => d.Id == Department.DemoSupportId, cancellationToken))
+        {
+            db.Departments.Add(new Department
+            {
+                Id = Department.DemoSupportId,
+                Name = "Demo Support",
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        if (!await db.Branches.AnyAsync(b => b.Id == Branch.HqId, cancellationToken))
+        {
+            db.Branches.Add(new Branch
+            {
+                Id = Branch.HqId,
+                DepartmentId = Department.DemoSupportId,
+                Name = "HQ",
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        if (!await db.Branches.AnyAsync(b => b.Id == Branch.RiyadhId, cancellationToken))
+        {
+            db.Branches.Add(new Branch
+            {
+                Id = Branch.RiyadhId,
+                DepartmentId = Department.DemoSupportId,
+                Name = "Riyadh",
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        var agent = await users.FindByIdAsync(DevUsers.AgentId);
+        if (agent is not null && agent.DepartmentId is null)
+        {
+            agent.DepartmentId = Department.DemoSupportId;
+            agent.BranchId = Branch.HqId;
+            await users.UpdateAsync(agent);
         }
     }
 

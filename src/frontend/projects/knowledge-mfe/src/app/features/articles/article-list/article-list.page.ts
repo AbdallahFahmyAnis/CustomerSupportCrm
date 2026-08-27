@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { LanguageStore } from 'shared';
 import { ArticlesStore } from '../articles.store';
 
 /** SDD CRM-021 — article list. */
@@ -13,6 +14,7 @@ import { ArticlesStore } from '../articles.store';
   styleUrls: ['./article-list.scss'],
 })
 export class ArticleListPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(ArticlesStore);
   q = '';
 

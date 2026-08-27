@@ -1,10 +1,12 @@
 import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
   canAccessAdmin,
   canAccessAgentWorkspace,
+  FormFeedbackStore,
   homePathForRole,
+  isCustomerRole,
   LanguageStore,
   SessionApi,
 } from 'shared';
@@ -20,10 +22,10 @@ import {
 export class HomePage {
   readonly lang = inject(LanguageStore);
   readonly session = inject(SessionApi);
+  private readonly feedback = inject(FormFeedbackStore);
   private readonly router = inject(Router);
-  email = 'agent@crm.local';
+  email = 'customer@crm.local';
   password = 'Crm!123';
-  error = '';
 
   get showAgent(): boolean {
     return canAccessAgentWorkspace(this.session.session()?.role);
@@ -33,13 +35,32 @@ export class HomePage {
     return canAccessAdmin(this.session.session()?.role);
   }
 
-  signIn(): void {
-    this.error = '';
+  get showPortal(): boolean {
+    return isCustomerRole(this.session.session()?.role);
+  }
+
+  useDemo(kind: 'customer' | 'agent' | 'admin'): void {
+    if (kind === 'customer') {
+      this.email = 'customer@crm.local';
+    } else if (kind === 'admin') {
+      this.email = 'admin@crm.local';
+    } else {
+      this.email = 'agent@crm.local';
+    }
+    this.password = 'Crm!123';
+  }
+
+  signIn(f: NgForm): void {
+    if (f.invalid) {
+      this.feedback.error('formInvalid');
+      return;
+    }
     this.session.login(this.email, this.password).subscribe({
       next: (s) => {
+        this.feedback.success('signInSuccess');
         void this.router.navigateByUrl(homePathForRole(s.role));
       },
-      error: () => (this.error = 'Sign-in failed'),
+      error: () => this.feedback.error('signInFailed'),
     });
   }
 }

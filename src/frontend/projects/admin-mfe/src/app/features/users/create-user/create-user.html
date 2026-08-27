@@ -1,58 +1,61 @@
 <section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/admin/users">Users</a>
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/admin/users">{{ lang.t('users') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">Create</span>
+    <span class="current">{{ lang.t('create') }}</span>
   </nav>
 
   <header class="row">
     <div>
-      <h1>Create user</h1>
-      <p class="lede">Account details and access, then a quick review</p>
+      <h1>{{ lang.t('createUser') }}</h1>
+      <p class="lede">{{ lang.t('createUserLead') }}</p>
     </div>
   </header>
 
-  @if (store.error()) {
-    <p class="error">{{ store.error() }}</p>
-  }
-
   <crm-wizard
-    [steps]="steps"
+    [steps]="steps()"
     [(step)]="step"
     [canNext]="canAdvance()"
-    finishLabel="Create user"
+    [finishLabel]="lang.t('createUser')"
+    (advanceBlocked)="onAdvanceBlocked()"
     (finish)="submit()"
   >
     <ng-template crmWizardStep>
       <div class="step-intro">
-        <h3>Account & access</h3>
-        <p class="muted">Email and display name identify the account; role controls permissions.</p>
+        <h3>{{ lang.t('accountAccess') }}</h3>
+        <p class="muted">{{ lang.t('accountAccessHint') }}</p>
       </div>
       <div class="field-stack">
         <label>
-          Email
+          {{ lang.t('email') }}
           <input
             name="email"
             type="email"
             [(ngModel)]="email"
             required
-            placeholder="user@example.com"
+            [placeholder]="lang.t('phEmailExample')"
             autocomplete="username"
           />
+          @if (attempted && !email.trim()) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
         </label>
         <label>
-          Display name
+          {{ lang.t('displayName') }}
           <input
             name="displayName"
             [(ngModel)]="displayName"
             required
-            placeholder="Full name"
+            [placeholder]="lang.t('phFullName')"
             autocomplete="name"
           />
+          @if (attempted && !displayName.trim()) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
         </label>
         <div class="field-row">
           <label>
-            Password
+            {{ lang.t('password') }}
             <input
               name="password"
               type="password"
@@ -60,12 +63,38 @@
               required
               autocomplete="new-password"
             />
+            @if (attempted && !password) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
           </label>
           <label>
-            Role
+            {{ lang.t('role') }}
             <select name="role" [(ngModel)]="role" required>
               @for (r of store.roles(); track r.name) {
                 <option [value]="r.name">{{ r.name }}</option>
+              }
+            </select>
+            @if (attempted && !role) {
+              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+            }
+          </label>
+        </div>
+        <div class="field-row">
+          <label>
+            {{ lang.t('department') }}
+            <select name="departmentId" [(ngModel)]="departmentId" (ngModelChange)="onDeptChange()">
+              <option value="">{{ lang.t('noneOption') }}</option>
+              @for (d of departments; track d.id) {
+                <option [value]="d.id">{{ d.name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            {{ lang.t('branch') }}
+            <select name="branchId" [(ngModel)]="branchId">
+              <option value="">{{ lang.t('noneOption') }}</option>
+              @for (b of filteredBranches; track b.id) {
+                <option [value]="b.id">{{ b.name }}</option>
               }
             </select>
           </label>
@@ -78,27 +107,27 @@
         <div class="review-hero">
           <div class="avatar">{{ avatarLetter }}</div>
           <div>
-            <strong>Almost done</strong>
-            <p class="muted">Confirm the account, then create.</p>
+            <strong>{{ lang.t('almostDone') }}</strong>
+            <p class="muted">{{ lang.t('confirmCreateAccount') }}</p>
           </div>
         </div>
         <table class="review-table">
           <tr>
-            <th>Email</th>
+            <th>{{ lang.t('email') }}</th>
             <td>{{ email.trim() || '—' }}</td>
           </tr>
           <tr>
-            <th>Display name</th>
+            <th>{{ lang.t('displayName') }}</th>
             <td>{{ displayName.trim() || '—' }}</td>
           </tr>
           <tr>
-            <th>Role</th>
+            <th>{{ lang.t('role') }}</th>
             <td>
               <span class="badge-soft">{{ role }}</span>
             </td>
           </tr>
           <tr>
-            <th>Password</th>
+            <th>{{ lang.t('password') }}</th>
             <td>{{ password ? '••••••••' : '—' }}</td>
           </tr>
         </table>

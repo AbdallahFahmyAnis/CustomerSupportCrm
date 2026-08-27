@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -8,6 +8,7 @@ import {
   CrmDataViewColumn,
   CrmDataViewComponent,
   CrmDataViewMode,
+  LanguageStore,
   SessionApi,
 } from 'shared';
 import { TicketPriorityBadgeComponent } from '../components/ticket-priority-badge/ticket-priority-badge.component';
@@ -30,20 +31,21 @@ import { TicketsStore } from '../tickets.store';
   styleUrls: ['./ticket-list.scss'],
 })
 export class TicketListPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(TicketsStore);
   private readonly session = inject(SessionApi);
   q = '';
   mine = false;
   viewMode: CrmDataViewMode = 'list';
 
-  readonly columns: CrmDataViewColumn[] = [
-    { key: 'ticketNumber', header: 'ID' },
-    { key: 'subject', header: 'Subject' },
-    { key: 'customerName', header: 'Customer' },
-    { key: 'priority', header: 'Priority' },
-    { key: 'status', header: 'Status' },
-    { key: 'assignedAgentName', header: 'Assignee' },
-  ];
+  readonly columns = computed<CrmDataViewColumn[]>(() => [
+    { key: 'ticketNumber', header: this.lang.t('ticketId') },
+    { key: 'subject', header: this.lang.t('subject') },
+    { key: 'customerName', header: this.lang.t('customer') },
+    { key: 'priority', header: this.lang.t('priority') },
+    { key: 'status', header: this.lang.t('status') },
+    { key: 'assignedAgentName', header: this.lang.t('assignee') },
+  ]);
 
   ngOnInit(): void {
     this.store.loadOptions();

@@ -16,8 +16,26 @@ public sealed class CreateUserHandler(IdentityDirectory directory)
             return new CreateUserResponse(null, validation);
         }
 
+        Guid? deptId = null;
+        Guid? branchId = null;
+        if (!string.IsNullOrWhiteSpace(request.DepartmentId) && Guid.TryParse(request.DepartmentId, out var d))
+        {
+            deptId = d;
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.BranchId) && Guid.TryParse(request.BranchId, out var b))
+        {
+            branchId = b;
+        }
+
         var (user, error) = await directory.CreateUserAsync(
-            request.Email, request.DisplayName, request.Password, request.Role, cancellationToken);
+            request.Email,
+            request.DisplayName,
+            request.Password,
+            request.Role,
+            cancellationToken,
+            deptId,
+            branchId);
         if (error is not null || user is null)
         {
             return new CreateUserResponse(null, error ?? "Create failed.");
@@ -41,7 +59,14 @@ public sealed class CreateUserHandler(IdentityDirectory directory)
             cancellationToken);
 
         return new CreateUserResponse(
-            new UserSummaryDto(user.Id.ToString(), user.Email, user.DisplayName, user.Role, user.IsActive),
+            new UserSummaryDto(
+                user.Id.ToString(),
+                user.Email,
+                user.DisplayName,
+                user.Role,
+                user.IsActive,
+                deptId?.ToString(),
+                branchId?.ToString()),
             null);
     }
 }

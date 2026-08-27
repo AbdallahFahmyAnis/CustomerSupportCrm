@@ -1,11 +1,8 @@
 <section class="page">
   <header class="row">
     <div>
-      <h1>Roles List</h1>
-      <p class="lede">
-        A role provides access to predefined menus and features so administrators can grant what each
-        user needs.
-      </p>
+      <h1>{{ lang.t('rolesList') }}</h1>
+      <p class="lede">{{ lang.t('rolesLead') }}</p>
     </div>
   </header>
 
@@ -16,10 +13,10 @@
   <section class="roles-panel card">
     <header class="roles-panel__head">
       <div>
-        <h2>Total users with their roles</h2>
-        <p>Find all of your company’s administrator accounts and their associate roles.</p>
+        <h2>{{ lang.t('totalUsersRoles') }}</h2>
+        <p>{{ lang.t('totalUsersRolesHint') }}</p>
       </div>
-      <a routerLink="/admin/roles/permissions" class="btn">Permissions</a>
+      <a routerLink="/admin/roles/permissions" class="btn">{{ lang.t('permissions') }}</a>
     </header>
 
     <div class="role-grid">
@@ -28,25 +25,25 @@
           [name]="r.name"
           [description]="r.description"
           [permissions]="r.permissions"
-          [userCountLabel]="r.permissions.length + ' permissions'"
+          [userCountLabel]="r.permissions.length + ' ' + lang.t('permissionsCount')"
           (edit)="askEditRole(r)"
         />
       }
     </div>
   </section>
 
-  <crm-modal [(open)]="editOpen" title="Edit role">
+  <crm-modal [(open)]="editOpen" [title]="lang.t('editRole')">
     @if (pendingRole; as role) {
       <div class="edit-role">
         <div class="edit-hero">
           <div class="avatar">{{ role.name.charAt(0) }}</div>
           <div>
             <strong>{{ role.name }}</strong>
-            <p class="muted">{{ role.description || 'Select permissions for this role.' }}</p>
+            <p class="muted">{{ role.description || lang.t('selectPermsHint') }}</p>
           </div>
         </div>
         <fieldset class="perm-checks">
-          <legend>Permissions</legend>
+          <legend>{{ lang.t('permissions') }}</legend>
           @for (p of store.catalog(); track p) {
             <label class="check">
               <input
@@ -57,14 +54,14 @@
               <span>{{ p }}</span>
             </label>
           } @empty {
-            <p class="muted">No permissions in catalog. Add some on the Permissions page.</p>
+            <p class="muted">{{ lang.t('noPermsCatalog') }}</p>
           }
         </fieldset>
       </div>
     }
     <div crmModalActions>
-      <button type="button" class="btn secondary" (click)="editOpen = false">Cancel</button>
-      <button type="button" class="btn" (click)="confirmEditRole()">Save changes</button>
+      <button type="button" class="btn secondary" (click)="editOpen = false">{{ lang.t('cancel') }}</button>
+      <button type="button" class="btn" (click)="confirmEditRole()">{{ lang.t('saveChanges') }}</button>
     </div>
   </crm-modal>
 </section>

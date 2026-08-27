@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Crm.Contracts.Tickets;
 using Crm.Tickets.Api.Domain;
 
@@ -16,9 +17,13 @@ internal static class TicketMap
         t.Status,
         t.AssignedAgentId,
         t.AssignedAgentName,
-        t.IsEscalated);
+        t.IsEscalated,
+        t.DepartmentId?.ToString());
 
-    public static TicketDetailDto Detail(Ticket t, IReadOnlyList<TicketNote>? notes = null) => new(
+    public static TicketDetailDto Detail(
+        Ticket t,
+        IReadOnlyList<TicketNote>? notes = null,
+        TicketFeedback? feedback = null) => new(
         t.Id.ToString(),
         t.TicketNumber,
         t.CustomerId.ToString(),
@@ -52,7 +57,36 @@ internal static class TicketMap
                 n.AuthorUserId,
                 n.MentionedUserIds,
                 n.CreatedAt))
-            .ToList());
+            .ToList(),
+        feedback is null
+            ? null
+            : new TicketFeedbackDto(
+                feedback.Id.ToString(),
+                feedback.TicketId.ToString(),
+                feedback.Rating,
+                feedback.Comment,
+                feedback.CreatedAt),
+        t.DepartmentId?.ToString(),
+        t.AiSummary,
+        ParseHighlights(t.AiSummaryHighlightsJson),
+        t.AiSummaryAt);
+
+    static IReadOnlyList<string>? ParseHighlights(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(json);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
 
 internal static class TicketHttp

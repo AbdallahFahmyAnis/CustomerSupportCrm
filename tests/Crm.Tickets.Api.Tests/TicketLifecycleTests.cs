@@ -135,6 +135,104 @@ public sealed class TicketLifecycleTests : IClassFixture<TicketsApiFactory>
     }
 
     [Fact]
+    [Trait("Story", "CRM-015")]
+    public async Task Quick_replies_catalog_returns_shared_seed()
+    {
+        var replies = await _client.GetFromJsonAsync<List<QuickReplyDto>>("/api/tickets/quick-replies");
+        replies.Should().NotBeNull();
+        replies!.Count.Should().BeGreaterThanOrEqualTo(3);
+        replies.Should().Contain(r => r.Title.Contains("Billing", StringComparison.OrdinalIgnoreCase));
+        replies.Should().OnlyContain(r => !string.IsNullOrWhiteSpace(r.Body));
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-030")]
+    public async Task Feedback_requires_resolved_and_rejects_duplicate()
+    {
+        var created = await CreateAsync("Feedback Co", "Need CSAT later");
+        var open = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/feedback",
+            new SubmitTicketFeedbackRequest(created.Id, null, 5, "Too soon"));
+        open.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var resolve = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/status",
+            new ChangeStatusRequest("InProgress"));
+        resolve.EnsureSuccessStatusCode();
+        resolve = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/status",
+            new ChangeStatusRequest("Resolved"));
+        resolve.EnsureSuccessStatusCode();
+
+        var badRating = await _client.PostAsJsonAsync("/api/tickets/feedback",
+            new SubmitTicketFeedbackRequest(null, created.TicketNumber, 0, null));
+        badRating.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var ok = await _client.PostAsJsonAsync("/api/tickets/feedback",
+            new SubmitTicketFeedbackRequest(null, created.TicketNumber, 4, "Helpful agent"));
+        ok.EnsureSuccessStatusCode();
+        var fb = await ok.Content.ReadFromJsonAsync<TicketFeedbackDto>();
+        fb!.Rating.Should().Be(4);
+
+        var dup = await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/feedback",
+            new SubmitTicketFeedbackRequest(created.Id, null, 3, "again"));
+        dup.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var detail = await _client.GetFromJsonAsync<TicketDetailDto>($"/api/tickets/{created.Id}");
+        detail!.Feedback.Should().NotBeNull();
+        detail.Feedback!.Comment.Should().Be("Helpful agent");
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-031")]
+    public async Task Ticket_report_summary_counts_created_in_range()
+    {
+        var created = await CreateAsync("Report Co", "Need volume metrics");
+        var from = DateTimeOffset.UtcNow.AddDays(-1).ToString("O");
+        var to = DateTimeOffset.UtcNow.AddDays(1).ToString("O");
+        var report = await _client.GetFromJsonAsync<TicketReportSummaryDto>(
+            $"/api/tickets/reports/summary?from={Uri.EscapeDataString(from)}&to={Uri.EscapeDataString(to)}");
+        report.Should().NotBeNull();
+        report!.Created.Should().BeGreaterThanOrEqualTo(1);
+        report.ByStatus.Should().Contain(b => b.Count >= 1);
+        report.ByCategory.Should().Contain(b => b.Key.Equals("General", StringComparison.OrdinalIgnoreCase));
+        created.Id.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-032")]
+    public async Task Sla_performance_report_returns_breach_stats()
+    {
+        await CreateAsync("Sla Co", "Check breach metrics");
+        var from = DateTimeOffset.UtcNow.AddDays(-1).ToString("O");
+        var to = DateTimeOffset.UtcNow.AddDays(1).ToString("O");
+        var report = await _client.GetFromJsonAsync<SlaPerformanceReportDto>(
+            $"/api/tickets/reports/sla-performance?from={Uri.EscapeDataString(from)}&to={Uri.EscapeDataString(to)}");
+        report.Should().NotBeNull();
+        report!.TicketCount.Should().BeGreaterThanOrEqualTo(1);
+        report.BreachPercent.Should().BeGreaterThanOrEqualTo(0);
+        report.ByAgent.Should().NotBeNull();
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-033")]
+    public async Task Csat_report_includes_submitted_feedback()
+    {
+        var created = await CreateAsync("Csat Co", "Need feedback aggregate");
+        await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/status", new ChangeStatusRequest("InProgress"));
+        await _client.PostAsJsonAsync($"/api/tickets/{created.Id}/status", new ChangeStatusRequest("Resolved"));
+        var submitted = await _client.PostAsJsonAsync("/api/tickets/feedback",
+            new SubmitTicketFeedbackRequest(null, created.TicketNumber, 5, "Great"));
+        submitted.EnsureSuccessStatusCode();
+
+        var from = DateTimeOffset.UtcNow.AddDays(-1).ToString("O");
+        var to = DateTimeOffset.UtcNow.AddDays(1).ToString("O");
+        var report = await _client.GetFromJsonAsync<CsatReportDto>(
+            $"/api/tickets/reports/csat?from={Uri.EscapeDataString(from)}&to={Uri.EscapeDataString(to)}");
+        report.Should().NotBeNull();
+        report!.Count.Should().BeGreaterThanOrEqualTo(1);
+        report.AverageRating.Should().BeGreaterThan(0);
+        report.Distribution.Should().Contain(d => d.Rating == 5 && d.Count >= 1);
+    }
+
+    [Fact]
     [Trait("Story", "CRM-016")]
     public async Task Internal_note_with_mention_persists_on_detail()
     {

@@ -43,12 +43,33 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/024-inbound-webhooks` — CRM-040 Twilio inbound webhook signature verification
 - [x] `specs/025-agent-workspace` — CRM-013 my tickets + customer summary on detail
 - [x] `specs/026-ticket-tasks` — CRM-014 ticket tasks + due-today home
+- [x] `specs/027-quick-replies` — CRM-015 shared quick reply catalog
+- [x] `specs/028-customer-feedback` — CRM-030 portal CSAT + agent read-only
+- [x] `specs/029-ticket-reports` — CRM-031 ticket volume reports
+- [x] `specs/030-sla-performance` — CRM-032 SLA / agent performance
+- [x] `specs/031-csat-reports` — CRM-033 CSAT aggregates
+- [x] `specs/032-management-dashboard` — CRM-034 admin KPI dashboard
+- [x] `specs/033-ai-ticket-summaries` — CRM-023 Nest AI + ticket summaries
+- [x] `specs/034-ai-suggested-replies` — CRM-024 suggested replies
+- [x] `specs/035-ai-auto-categorize` — CRM-025 auto-categorize
+- [x] `specs/036-ai-portal-chatbot` — CRM-026 portal AI chatbot
+- [x] `specs/037-external-apis` — CRM-038 gateway external API key surface
+- [x] `specs/038-departments-branches` — CRM-043 departments and branches
+- [x] `specs/039-custom-branding` — CRM-044 custom branding
+- [x] `specs/040-erp-webhook-stub` — CRM-039 ERP outbound webhook stub
+- [x] `specs/041-external-openapi` — CRM-038 OpenAPI for external v1
+- [x] `specs/042-persist-ai-summary` — CRM-023 persist AI summaries on ticket
+- [x] `specs/043-chat-session-memory` — CRM-026 portal chat multi-turn memory
+- [x] `specs/044-erp-webhook-retries` — CRM-039 ERP webhook retries + delivery log
+- [x] `specs/045-external-swagger-ui` — CRM-038 Swagger UI for external v1
+- [x] `specs/046-stream-ai-summary` — CRM-023 streaming AI summaries
+- [x] `specs/047-durable-chat` — CRM-026 durable chat sessions + handoff
+- [x] `specs/048-erp-outbox-auth` — CRM-039 ERP outbox UI + auth headers
 
 ## Next
 
-1. CRM-015 quick replies when ready
-2. CRM-030 customer feedback when ready
-3. SendGrid inbound parse / Meta webhook signatures when ready
+1. SendGrid inbound parse / Meta webhook signatures when ready
+2. Further polish only if needed
 
 ## Constraints
 

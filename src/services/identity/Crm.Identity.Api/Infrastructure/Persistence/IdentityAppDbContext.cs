@@ -18,6 +18,8 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
     public DbSet<AuditLogEntry> AuditLogs => Set<AuditLogEntry>();
     public DbSet<SystemSettings> SystemSettings => Set<SystemSettings>();
     public DbSet<PermissionDefinition> PermissionDefinitions => Set<PermissionDefinition>();
+    public DbSet<Department> Departments => Set<Department>();
+    public DbSet<Branch> Branches => Set<Branch>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -29,6 +31,8 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
         {
             e.Property(x => x.DisplayName).HasMaxLength(200).IsRequired();
             e.Property(x => x.CreatedAt).IsRequired();
+            e.Property(x => x.DepartmentId);
+            e.Property(x => x.BranchId);
         });
 
         builder.Entity<StoredRefreshToken>(e =>
@@ -69,6 +73,11 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
             e.Property(x => x.DefaultCulture).HasMaxLength(10).IsRequired();
             e.Property(x => x.MaxFailedLoginAttempts).IsRequired();
             e.Property(x => x.LockoutMinutes).IsRequired();
+            e.Property(x => x.ProductTitle).HasMaxLength(200).IsRequired();
+            e.Property(x => x.PrimaryColor).HasMaxLength(32).IsRequired();
+            e.Property(x => x.LogoUrl).HasMaxLength(500).IsRequired();
+            e.Property(x => x.ErpWebhookUrl).HasMaxLength(500).IsRequired();
+            e.Property(x => x.ErpWebhookAuthHeader).HasMaxLength(500).IsRequired();
             e.Property(x => x.UpdatedAt).IsRequired();
         });
 
@@ -79,6 +88,24 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
             e.Property(x => x.Name).HasMaxLength(120).IsRequired();
             e.Property(x => x.Description).HasMaxLength(400).IsRequired();
             e.Property(x => x.CreatedAt).IsRequired();
+        });
+
+        builder.Entity<Department>(e =>
+        {
+            e.ToTable("Departments");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.CreatedAt).IsRequired();
+        });
+
+        builder.Entity<Branch>(e =>
+        {
+            e.ToTable("Branches");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.DepartmentId).IsRequired();
+            e.Property(x => x.CreatedAt).IsRequired();
+            e.HasIndex(x => x.DepartmentId);
         });
     }
 }

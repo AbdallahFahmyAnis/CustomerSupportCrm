@@ -1,27 +1,27 @@
 <section class="page">
   <header class="row">
     <div>
-      <h1>Knowledge base</h1>
-      <p class="lede">FAQs, articles, solutions, and guides</p>
+      <h1>{{ lang.t('knowledgeBase') }}</h1>
+      <p class="lede">{{ lang.t('knowledgeListLead') }}</p>
     </div>
     <div class="header-actions">
-      <a routerLink="/knowledge/search" class="btn secondary">Search</a>
-      <a routerLink="/knowledge/new" class="btn">New article</a>
+      <a routerLink="/knowledge/search" class="btn secondary">{{ lang.t('search') }}</a>
+      <a routerLink="/knowledge/new" class="btn">{{ lang.t('newArticle') }}</a>
     </div>
   </header>
 
   <form class="filter" (ngSubmit)="search()">
-    <input name="q" [(ngModel)]="q" placeholder="Filter by title or body" />
-    <button type="submit" class="btn secondary">Search</button>
+    <input name="q" [(ngModel)]="q" [placeholder]="lang.t('filterByTitleOrBody')" />
+    <button type="submit" class="btn secondary">{{ lang.t('search') }}</button>
   </form>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
   @if (store.loading()) {
-    <p>Loading…</p>
+    <p>{{ lang.t('loading') }}</p>
   } @else if (store.items().length === 0) {
-    <p>No articles yet.</p>
+    <p>{{ lang.t('noArticlesYet') }}</p>
   } @else {
     <ul class="list">
       @for (a of store.items(); track a.id) {

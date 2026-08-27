@@ -1,0 +1,83 @@
+<section class="page">
+  <nav class="crumb-nav" aria-label="Breadcrumb">
+    <a routerLink="/admin">Admin</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">Ticket reports</span>
+  </nav>
+
+  <header class="row">
+    <div>
+      <h1>Ticket reports</h1>
+      <p class="lede">Volume by status, category, priority, and agent.</p>
+    </div>
+  </header>
+
+  <form class="filters" (ngSubmit)="reload()">
+    <label>
+      From
+      <input type="date" name="from" [(ngModel)]="from" />
+    </label>
+    <label>
+      To
+      <input type="date" name="to" [(ngModel)]="to" />
+    </label>
+    <button type="submit" class="btn" [disabled]="store.loading()">Apply</button>
+  </form>
+
+  <p class="links">
+    <a routerLink="/admin/reports/sla">SLA performance</a>
+    ·
+    <a routerLink="/admin/reports/csat">CSAT</a>
+  </p>
+
+  @if (store.error(); as err) {
+    <p class="error">{{ err }}</p>
+  }
+
+  @if (store.summary(); as s) {
+    <div class="kpi-row">
+      <div class="kpi"><span>Created</span><strong>{{ s.created }}</strong></div>
+      <div class="kpi"><span>Open</span><strong>{{ s.open }}</strong></div>
+      <div class="kpi"><span>Resolved/closed</span><strong>{{ s.resolvedOrClosed }}</strong></div>
+      <div class="kpi"><span>Escalated</span><strong>{{ s.escalated }}</strong></div>
+    </div>
+    <p class="meta">{{ s.from | date: 'mediumDate' }} – {{ s.to | date: 'mediumDate' }}</p>
+
+    <div class="grid">
+      <section>
+        <h2>By status</h2>
+        <table>
+          @for (b of s.byStatus; track b.key) {
+            <tr><td>{{ b.key }}</td><td>{{ b.count }}</td></tr>
+          }
+        </table>
+      </section>
+      <section>
+        <h2>By category</h2>
+        <table>
+          @for (b of s.byCategory; track b.key) {
+            <tr><td>{{ b.key }}</td><td>{{ b.count }}</td></tr>
+          }
+        </table>
+      </section>
+      <section>
+        <h2>By priority</h2>
+        <table>
+          @for (b of s.byPriority; track b.key) {
+            <tr><td>{{ b.key }}</td><td>{{ b.count }}</td></tr>
+          }
+        </table>
+      </section>
+      <section>
+        <h2>By agent</h2>
+        <table>
+          @for (b of s.byAgent; track b.agentId ?? b.agentName ?? 'none') {
+            <tr><td>{{ b.agentName || 'Unassigned' }}</td><td>{{ b.count }}</td></tr>
+          }
+        </table>
+      </section>
+    </div>
+  } @else if (store.loading()) {
+    <p>Loading…</p>
+  }
+</section>

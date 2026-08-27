@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
+  ChannelMessageDto,
   PortalRequestSummary,
   SubmitRequestBody,
   SubmitRequestResult,
@@ -27,6 +28,13 @@ export class RequestsApi {
     ticketId?: string;
   }): Observable<SubmitRequestResult> {
     return this.http.post<SubmitRequestResult>('/api/channels/intake/chat', body);
+  }
+
+  /** SDD CRM-010 / CRM-012 — poll ticket thread so portal sees agent replies. */
+  listMessages(ticketId: string): Observable<ChannelMessageDto[]> {
+    return this.http.get<ChannelMessageDto[]>(
+      `/api/channels/tickets/${encodeURIComponent(ticketId)}/messages`,
+    );
   }
 
   track(email: string): Observable<PortalRequestSummary[]> {

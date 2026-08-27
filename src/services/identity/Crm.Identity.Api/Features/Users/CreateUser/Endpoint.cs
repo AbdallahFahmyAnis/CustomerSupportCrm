@@ -17,7 +17,13 @@ public sealed class CreateUserEndpoint : IEndpoint
             }
 
             var result = await mediator.Send(new CreateUserCommand(
-                body.Email, body.DisplayName, body.Password, body.Role, AdminHttp.ActorId(http)));
+                body.Email,
+                body.DisplayName,
+                body.Password,
+                body.Role,
+                AdminHttp.ActorId(http),
+                body.DepartmentId,
+                body.BranchId));
             return result.Error is not null
                 ? Results.BadRequest(new { error = result.Error })
                 : Results.Created($"/api/identity/users/{result.User!.Id}", result.User);

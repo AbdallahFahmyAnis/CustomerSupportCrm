@@ -23,7 +23,12 @@ public sealed class UpdateSettingsHandler(IdentityDirectory directory)
             request.DefaultCulture,
             request.MaxFailedLoginAttempts,
             request.LockoutMinutes,
-            cancellationToken);
+            cancellationToken,
+            request.ProductTitle,
+            request.PrimaryColor,
+            request.LogoUrl,
+            request.ErpWebhookUrl,
+            request.ErpWebhookAuthHeader);
 
         string? actorEmail = null;
         if (request.ActorId is { } actorId)

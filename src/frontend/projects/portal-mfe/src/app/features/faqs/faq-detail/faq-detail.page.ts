@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { LanguageStore } from 'shared';
 import { FaqsStore } from '../faqs.store';
 
 /** SDD CRM-029 — portal FAQ detail. */
@@ -12,6 +13,7 @@ import { FaqsStore } from '../faqs.store';
   styleUrls: ['./faq-detail.scss'],
 })
 export class FaqDetailPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(FaqsStore);
   private readonly route = inject(ActivatedRoute);
 

@@ -20,3 +20,14 @@ export interface PortalRequestSummary {
   status: string;
   createdAt: string;
 }
+
+/** SDD CRM-010 / CRM-012 — channel message on ticket thread. */
+export interface ChannelMessageDto {
+  id: string;
+  ticketId: string;
+  channel: string;
+  direction: string;
+  body: string;
+  fromEmail?: string;
+  createdAt: string;
+}

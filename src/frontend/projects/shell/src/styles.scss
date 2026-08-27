@@ -5,9 +5,17 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  font-family: var(--crm-font);
+  font-family: inherit;
   background: var(--crm-bg);
   color: var(--crm-text);
+}
+
+html {
+  font-family: var(--crm-font);
+}
+
+html[dir='rtl'] {
+  font-family: var(--crm-font-ar);
 }
 
 * {
@@ -16,4 +24,8 @@ body {
 
 button {
   font: inherit;
+}
+
+img {
+  max-width: 100%;
 }

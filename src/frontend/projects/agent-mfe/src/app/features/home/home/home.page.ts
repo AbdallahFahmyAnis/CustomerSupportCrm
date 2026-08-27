@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SessionApi } from 'shared';
+import { LanguageStore, SessionApi } from 'shared';
 import { TicketsApi } from '../../tickets/tickets.api';
 import { TicketSummary, TicketTask } from '../../tickets/tickets.models';
 
@@ -16,6 +16,7 @@ import { TicketSummary, TicketTask } from '../../tickets/tickets.models';
 export class AgentHomePage implements OnInit {
   private readonly api = inject(TicketsApi);
   private readonly session = inject(SessionApi);
+  readonly lang = inject(LanguageStore);
 
   readonly mine = signal<TicketSummary[]>([]);
   readonly dueTasks = signal<TicketTask[]>([]);
@@ -25,7 +26,7 @@ export class AgentHomePage implements OnInit {
   ngOnInit(): void {
     const me = this.session.session()?.id;
     if (!me) {
-      this.error.set('Sign in to see your assigned tickets.');
+      this.error.set(this.lang.t('signInForTickets'));
       return;
     }
     this.loading.set(true);
@@ -38,7 +39,7 @@ export class AgentHomePage implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Could not load assigned tickets.');
+        this.error.set(this.lang.t('loadTicketsFailed'));
         this.loading.set(false);
       },
     });

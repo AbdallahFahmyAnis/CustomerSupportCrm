@@ -1,36 +1,35 @@
-<section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/portal">Portal</a>
+<section class="page portal-page">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/portal">{{ lang.t('portal') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">FAQs</span>
+    <span class="current">{{ lang.t('faqs') }}</span>
   </nav>
 
-  <header class="row">
-    <div>
-      <h1>Frequently asked questions</h1>
-      <p class="lede">Browse published answers before opening a request.</p>
+  <div class="settings-card portal-sheet">
+    <div class="settings-hero">
+      <div class="avatar">?</div>
+      <div class="meta">
+        <strong>{{ lang.t('faqsTitle') }}</strong>
+        <p>{{ lang.t('faqsLead') }}</p>
+      </div>
     </div>
-  </header>
 
-  <div class="settings-card filter-card">
-    <form class="settings-form" (ngSubmit)="search()">
-      <div class="settings-form-grid">
-        <label class="full">
-          Search
+    <form class="settings-form search-form" (ngSubmit)="search()">
+      <label class="full">
+        {{ lang.t('search') }}
+        <div class="search-row">
           <input
             name="q"
             type="search"
             [(ngModel)]="q"
-            placeholder="e.g. password"
+            [placeholder]="lang.t('queryPlaceholder')"
             autocomplete="off"
           />
-        </label>
-      </div>
-      <div class="settings-actions">
-        <button type="submit" class="btn" [disabled]="store.loading()">
-          {{ store.loading() ? 'Searching…' : 'Search FAQs' }}
-        </button>
-      </div>
+          <button type="submit" class="btn" [disabled]="store.loading()">
+            {{ store.loading() ? lang.t('searching') : lang.t('searchFaqs') }}
+          </button>
+        </div>
+      </label>
     </form>
   </div>
 
@@ -44,14 +43,20 @@
         @for (row of store.items(); track row.id) {
           <li>
             <a class="faq-card" [routerLink]="['/portal/faqs', row.id]">
-              <strong>{{ row.title }}</strong>
-              <span class="meta">Updated {{ row.updatedAt | date: 'mediumDate' }}</span>
+              <span class="faq-copy">
+                <strong>{{ row.title }}</strong>
+                <span class="meta">{{ lang.t('updatedAt') }} {{ row.updatedAt | date: 'mediumDate' }}</span>
+              </span>
+              <span class="faq-chevron" aria-hidden="true">›</span>
             </a>
           </li>
         }
       </ul>
     } @else {
-      <p class="muted">No published FAQs match that search.</p>
+      <div class="empty-panel">
+        <p class="muted">{{ lang.t('noFaqsMatch') }}</p>
+        <a routerLink="/portal/assistant" class="btn secondary">{{ lang.t('askAssistant') }}</a>
+      </div>
     }
   }
 </section>

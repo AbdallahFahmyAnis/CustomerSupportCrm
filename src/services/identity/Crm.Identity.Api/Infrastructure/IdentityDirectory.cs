@@ -22,6 +22,8 @@ public sealed class IdentityDirectory(
         await EnsureAuditTableAsync(cancellationToken);
         await EnsureSystemSettingsTableAsync(cancellationToken);
         await EnsurePermissionDefinitionsTableAsync(cancellationToken);
+        await EnsureDepartmentsTablesAsync(cancellationToken);
+        await EnsureUserOrgColumnsAsync(cancellationToken);
     }
 
     /// <summary>SDD CRM-036 — EnsureCreated will not add tables to an existing DB.</summary>
@@ -83,8 +85,26 @@ public sealed class IdentityDirectory(
                     "LockoutMinutes" INTEGER NOT NULL,
                     "UpdatedAt" TEXT NOT NULL
                 );
-                """,
-                cancellationToken);
+                """);
+            foreach (var sql in new[]
+                     {
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "ProductTitle" TEXT NOT NULL DEFAULT 'Customer Support CRM';""",
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "PrimaryColor" TEXT NOT NULL DEFAULT '#2563eb';""",
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "LogoUrl" TEXT NOT NULL DEFAULT '/brand/azm-squad.png';""",
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "ErpWebhookUrl" TEXT NOT NULL DEFAULT '';""",
+                         """ALTER TABLE "SystemSettings" ADD COLUMN "ErpWebhookAuthHeader" TEXT NOT NULL DEFAULT '';"""
+                     })
+            {
+                try
+                {
+                    await db.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+                }
+                catch
+                {
+                    // column exists
+                }
+            }
+
             return;
         }
 
@@ -102,6 +122,21 @@ public sealed class IdentityDirectory(
                 [UpdatedAt] datetimeoffset NOT NULL
               );
             END
+            """,
+            cancellationToken);
+
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            IF COL_LENGTH('SystemSettings', 'ProductTitle') IS NULL
+              ALTER TABLE [SystemSettings] ADD [ProductTitle] nvarchar(200) NOT NULL CONSTRAINT DF_SystemSettings_ProductTitle DEFAULT N'Customer Support CRM';
+            IF COL_LENGTH('SystemSettings', 'PrimaryColor') IS NULL
+              ALTER TABLE [SystemSettings] ADD [PrimaryColor] nvarchar(32) NOT NULL CONSTRAINT DF_SystemSettings_PrimaryColor DEFAULT N'#2563eb';
+            IF COL_LENGTH('SystemSettings', 'LogoUrl') IS NULL
+              ALTER TABLE [SystemSettings] ADD [LogoUrl] nvarchar(500) NOT NULL CONSTRAINT DF_SystemSettings_LogoUrl DEFAULT N'/brand/azm-squad.png';
+            IF COL_LENGTH('SystemSettings', 'ErpWebhookUrl') IS NULL
+              ALTER TABLE [SystemSettings] ADD [ErpWebhookUrl] nvarchar(500) NOT NULL CONSTRAINT DF_SystemSettings_ErpWebhookUrl DEFAULT N'';
+            IF COL_LENGTH('SystemSettings', 'ErpWebhookAuthHeader') IS NULL
+              ALTER TABLE [SystemSettings] ADD [ErpWebhookAuthHeader] nvarchar(500) NOT NULL CONSTRAINT DF_SystemSettings_ErpWebhookAuthHeader DEFAULT N'';
             """,
             cancellationToken);
     }
@@ -137,6 +172,231 @@ public sealed class IdentityDirectory(
             cancellationToken);
     }
 
+    /// <summary>SDD CRM-043 — departments / branches tables.</summary>
+    private async Task EnsureDepartmentsTablesAsync(CancellationToken cancellationToken)
+    {
+        if (db.Database.IsSqlite())
+        {
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                CREATE TABLE IF NOT EXISTS "Departments" (
+                    "Id" TEXT NOT NULL CONSTRAINT "PK_Departments" PRIMARY KEY,
+                    "Name" TEXT NOT NULL,
+                    "CreatedAt" TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS "Branches" (
+                    "Id" TEXT NOT NULL CONSTRAINT "PK_Branches" PRIMARY KEY,
+                    "DepartmentId" TEXT NOT NULL,
+                    "Name" TEXT NOT NULL,
+                    "CreatedAt" TEXT NOT NULL
+                );
+                """,
+                cancellationToken);
+            return;
+        }
+
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            IF OBJECT_ID(N'[Departments]', N'U') IS NULL
+            BEGIN
+              CREATE TABLE [Departments] (
+                [Id] uniqueidentifier NOT NULL CONSTRAINT [PK_Departments] PRIMARY KEY,
+                [Name] nvarchar(200) NOT NULL,
+                [CreatedAt] datetimeoffset NOT NULL
+              );
+            END
+            IF OBJECT_ID(N'[Branches]', N'U') IS NULL
+            BEGIN
+              CREATE TABLE [Branches] (
+                [Id] uniqueidentifier NOT NULL CONSTRAINT [PK_Branches] PRIMARY KEY,
+                [DepartmentId] uniqueidentifier NOT NULL,
+                [Name] nvarchar(200) NOT NULL,
+                [CreatedAt] datetimeoffset NOT NULL
+              );
+            END
+            """,
+            cancellationToken);
+    }
+
+    /// <summary>SDD CRM-043 — optional org columns on AspNetUsers.</summary>
+    private async Task EnsureUserOrgColumnsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (db.Database.IsSqlite())
+            {
+                await db.Database.ExecuteSqlRawAsync(
+                    """ALTER TABLE "AspNetUsers" ADD COLUMN "DepartmentId" TEXT NULL;""",
+                    cancellationToken);
+            }
+            else
+            {
+                await db.Database.ExecuteSqlRawAsync(
+                    """
+                    IF COL_LENGTH('AspNetUsers', 'DepartmentId') IS NULL
+                      ALTER TABLE [AspNetUsers] ADD [DepartmentId] uniqueidentifier NULL;
+                    IF COL_LENGTH('AspNetUsers', 'BranchId') IS NULL
+                      ALTER TABLE [AspNetUsers] ADD [BranchId] uniqueidentifier NULL;
+                    """,
+                    cancellationToken);
+            }
+        }
+        catch
+        {
+            // column may already exist
+        }
+
+        if (db.Database.IsSqlite())
+        {
+            try
+            {
+                await db.Database.ExecuteSqlRawAsync(
+                    """ALTER TABLE "AspNetUsers" ADD COLUMN "BranchId" TEXT NULL;""",
+                    cancellationToken);
+            }
+            catch
+            {
+                // already exists
+            }
+        }
+    }
+
+    /// <summary>SDD CRM-043</summary>
+    public async Task<IReadOnlyList<DepartmentDto>> ListDepartmentsAsync(CancellationToken ct = default)
+    {
+        return await db.Departments.AsNoTracking()
+            .OrderBy(d => d.Name)
+            .Select(d => new DepartmentDto(d.Id.ToString(), d.Name))
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<BranchDto>> ListBranchesAsync(Guid? departmentId, CancellationToken ct = default)
+    {
+        var q = db.Branches.AsNoTracking().AsQueryable();
+        if (departmentId is { } id)
+        {
+            q = q.Where(b => b.DepartmentId == id);
+        }
+
+        return await q.OrderBy(b => b.Name)
+            .Select(b => new BranchDto(b.Id.ToString(), b.DepartmentId.ToString(), b.Name))
+            .ToListAsync(ct);
+    }
+
+    public async Task<(DepartmentDto? Dept, string? Error)> CreateDepartmentAsync(string name, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return (null, "Name is required.");
+        }
+
+        var row = new Department
+        {
+            Id = Guid.NewGuid(),
+            Name = name.Trim(),
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.Departments.Add(row);
+        await db.SaveChangesAsync(ct);
+        return (new DepartmentDto(row.Id.ToString(), row.Name), null);
+    }
+
+    public async Task<(BranchDto? Branch, string? Error)> CreateBranchAsync(
+        Guid departmentId,
+        string name,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return (null, "Name is required.");
+        }
+
+        if (!await db.Departments.AnyAsync(d => d.Id == departmentId, ct))
+        {
+            return (null, "Department not found.");
+        }
+
+        var row = new Branch
+        {
+            Id = Guid.NewGuid(),
+            DepartmentId = departmentId,
+            Name = name.Trim(),
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.Branches.Add(row);
+        await db.SaveChangesAsync(ct);
+        return (new BranchDto(row.Id.ToString(), row.DepartmentId.ToString(), row.Name), null);
+    }
+
+    public async Task<string?> AssignUserOrgAsync(
+        Guid userId,
+        Guid? departmentId,
+        Guid? branchId,
+        CancellationToken ct = default)
+    {
+        var entity = await users.FindByIdAsync(userId.ToString());
+        if (entity is null)
+        {
+            return "User not found.";
+        }
+
+        if (departmentId is { } d && !await db.Departments.AnyAsync(x => x.Id == d, ct))
+        {
+            return "Department not found.";
+        }
+
+        if (branchId is { } b)
+        {
+            var branch = await db.Branches.AsNoTracking().FirstOrDefaultAsync(x => x.Id == b, ct);
+            if (branch is null)
+            {
+                return "Branch not found.";
+            }
+
+            if (departmentId is { } dept && branch.DepartmentId != dept)
+            {
+                return "Branch does not belong to department.";
+            }
+
+            departmentId ??= branch.DepartmentId;
+        }
+
+        entity.DepartmentId = departmentId;
+        entity.BranchId = branchId;
+        await users.UpdateAsync(entity);
+        return null;
+    }
+
+    public async Task<IReadOnlyList<UserSummaryDto>> ListUserSummariesAsync(string? q, CancellationToken ct = default)
+    {
+        var query = users.Users.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = q.Trim().ToLowerInvariant();
+            query = query.Where(u =>
+                (u.Email != null && u.Email.Contains(term)) ||
+                u.DisplayName.ToLower().Contains(term));
+        }
+
+        var list = await query.OrderBy(u => u.DisplayName).Take(100).ToListAsync(ct);
+        var result = new List<UserSummaryDto>();
+        foreach (var user in list)
+        {
+            var roleList = await users.GetRolesAsync(user);
+            var role = roleList.FirstOrDefault() ?? RoleNames.Agent;
+            result.Add(new UserSummaryDto(
+                user.Id.ToString(),
+                user.Email ?? "",
+                user.DisplayName,
+                role,
+                user.IsActive,
+                user.DepartmentId?.ToString(),
+                user.BranchId?.ToString()));
+        }
+
+        return result;
+    }
+
     public async Task<Domain.SystemSettings> GetOrCreateSettingsAsync(CancellationToken ct = default)
     {
         var row = await db.SystemSettings.FirstOrDefaultAsync(s => s.Id == Domain.SystemSettings.SingletonId, ct);
@@ -157,7 +417,12 @@ public sealed class IdentityDirectory(
         string defaultCulture,
         int maxFailedLoginAttempts,
         int lockoutMinutes,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        string? productTitle = null,
+        string? primaryColor = null,
+        string? logoUrl = null,
+        string? erpWebhookUrl = null,
+        string? erpWebhookAuthHeader = null)
     {
         var row = await GetOrCreateSettingsAsync(ct);
         row.OrganizationName = organizationName.Trim();
@@ -165,6 +430,31 @@ public sealed class IdentityDirectory(
         row.DefaultCulture = defaultCulture.Trim().ToLowerInvariant();
         row.MaxFailedLoginAttempts = maxFailedLoginAttempts;
         row.LockoutMinutes = lockoutMinutes;
+        if (productTitle is not null)
+        {
+            row.ProductTitle = string.IsNullOrWhiteSpace(productTitle) ? "Customer Support CRM" : productTitle.Trim();
+        }
+
+        if (primaryColor is not null)
+        {
+            row.PrimaryColor = string.IsNullOrWhiteSpace(primaryColor) ? "#2563eb" : primaryColor.Trim();
+        }
+
+        if (logoUrl is not null)
+        {
+            row.LogoUrl = string.IsNullOrWhiteSpace(logoUrl) ? "/brand/azm-squad.png" : logoUrl.Trim();
+        }
+
+        if (erpWebhookUrl is not null)
+        {
+            row.ErpWebhookUrl = erpWebhookUrl.Trim();
+        }
+
+        if (erpWebhookAuthHeader is not null)
+        {
+            row.ErpWebhookAuthHeader = erpWebhookAuthHeader.Trim();
+        }
+
         row.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return row;
@@ -261,7 +551,9 @@ public sealed class IdentityDirectory(
         string displayName,
         string password,
         string role,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        Guid? departmentId = null,
+        Guid? branchId = null)
     {
         try
         {
@@ -286,7 +578,9 @@ public sealed class IdentityDirectory(
             EmailConfirmed = true,
             DisplayName = displayName.Trim(),
             IsActive = true,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            DepartmentId = departmentId,
+            BranchId = branchId
         };
 
         var create = await users.CreateAsync(entity, password);

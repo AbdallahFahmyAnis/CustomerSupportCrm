@@ -1,36 +1,74 @@
 <section class="workspace">
   <header class="row">
     <div>
-      <h1>Administration</h1>
-      <p class="lede">Users, roles, audit, and system configuration.</p>
+      <h1>{{ lang.t('administration') }}</h1>
+      <p class="lede">{{ lang.t('adminHomeLead') }}</p>
     </div>
   </header>
 
+  <section class="dashboard" [attr.aria-label]="lang.t('managementDashboard')">
+    <div class="dash-head">
+      <h2>{{ lang.t('opsSnapshot') }}</h2>
+      <a routerLink="/admin/reports">{{ lang.t('openReports') }}</a>
+    </div>
+    @if (reports.loading() && !reports.summary()) {
+      <p class="muted">{{ lang.t('loadingKpis') }}</p>
+    }
+    <div class="kpi-row">
+      <a class="kpi" routerLink="/admin/reports">
+        <span>{{ lang.t('openTickets') }}</span>
+        <strong>{{ reports.summary()?.open ?? '—' }}</strong>
+      </a>
+      <a class="kpi" routerLink="/admin/reports">
+        <span>{{ lang.t('escalated') }}</span>
+        <strong>{{ reports.summary()?.escalated ?? '—' }}</strong>
+      </a>
+      <a class="kpi" routerLink="/admin/reports/sla">
+        <span>{{ lang.t('slaBreachPct') }}</span>
+        <strong>{{ reports.sla() ? reports.sla()!.breachPercent + '%' : '—' }}</strong>
+      </a>
+      <a class="kpi" routerLink="/admin/reports/csat">
+        <span>{{ lang.t('csatAvg') }}</span>
+        <strong>{{ reports.csat()?.averageRating ?? '—' }}</strong>
+      </a>
+    </div>
+  </section>
+
   <div class="action-grid home-actions">
     <a routerLink="/admin/users" class="action-tile featured">
-      <span class="tile-kicker">Security</span>
-      <strong>Users</strong>
-      <span>Create, assign roles, deactivate</span>
+      <span class="tile-kicker">{{ lang.t('security') }}</span>
+      <strong>{{ lang.t('users') }}</strong>
+      <span>{{ lang.t('usersTileHint') }}</span>
     </a>
     <a routerLink="/admin/roles" class="action-tile featured">
-      <span class="tile-kicker">Access</span>
-      <strong>Roles</strong>
-      <span>Permissions by role</span>
+      <span class="tile-kicker">{{ lang.t('access') }}</span>
+      <strong>{{ lang.t('roles') }}</strong>
+      <span>{{ lang.t('rolesTileHint') }}</span>
     </a>
     <a routerLink="/admin/audit" class="action-tile featured">
-      <span class="tile-kicker">Compliance</span>
-      <strong>Audit</strong>
-      <span>Review security activity</span>
+      <span class="tile-kicker">{{ lang.t('compliance') }}</span>
+      <strong>{{ lang.t('audit') }}</strong>
+      <span>{{ lang.t('auditTileHint') }}</span>
     </a>
     <a routerLink="/admin/settings" class="action-tile featured">
-      <span class="tile-kicker">Tenant</span>
-      <strong>Settings</strong>
-      <span>Organization and lockout policy</span>
+      <span class="tile-kicker">{{ lang.t('tenant') }}</span>
+      <strong>{{ lang.t('settings') }}</strong>
+      <span>{{ lang.t('settingsTileHint') }}</span>
+    </a>
+    <a routerLink="/admin/departments" class="action-tile featured">
+      <span class="tile-kicker">{{ lang.t('org') }}</span>
+      <strong>{{ lang.t('departments') }}</strong>
+      <span>{{ lang.t('departmentsTileHint') }}</span>
     </a>
     <a routerLink="/admin/sla" class="action-tile featured">
-      <span class="tile-kicker">Service</span>
-      <strong>SLA &amp; automation</strong>
-      <span>Targets, auto-assign, and escalation</span>
+      <span class="tile-kicker">{{ lang.t('service') }}</span>
+      <strong>{{ lang.t('slaAutomation') }}</strong>
+      <span>{{ lang.t('slaTileHint') }}</span>
+    </a>
+    <a routerLink="/admin/reports" class="action-tile featured">
+      <span class="tile-kicker">{{ lang.t('insights') }}</span>
+      <strong>{{ lang.t('reports') }}</strong>
+      <span>{{ lang.t('reportsTileHint') }}</span>
     </a>
   </div>
 </section>

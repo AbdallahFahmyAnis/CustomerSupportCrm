@@ -8,4 +8,9 @@ public static class DevUsers
     public const string AgentId = "11111111-1111-1111-1111-111111111111";
     public const string AgentName = "Demo Agent";
     public const string AgentRole = "Agent";
+
+    public const string CustomerEmail = "customer@crm.local";
+    public const string CustomerId = "44444444-4444-4444-4444-444444444444";
+    public const string CustomerName = "Demo Customer";
+    public const string CustomerRole = "Customer";
 }

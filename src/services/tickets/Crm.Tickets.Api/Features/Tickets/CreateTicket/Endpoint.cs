@@ -16,6 +16,17 @@ public sealed class CreateTicketEndpoint : IEndpoint
                 return Results.BadRequest(new { error = "CustomerId must be a GUID." });
             }
 
+            Guid? departmentId = null;
+            if (!string.IsNullOrWhiteSpace(body.DepartmentId))
+            {
+                if (!Guid.TryParse(body.DepartmentId, out var d))
+                {
+                    return Results.BadRequest(new { error = "DepartmentId must be a GUID." });
+                }
+
+                departmentId = d;
+            }
+
             var result = await mediator.Send(new CreateTicketCommand(
                 customerId,
                 body.CustomerName,
@@ -23,7 +34,8 @@ public sealed class CreateTicketEndpoint : IEndpoint
                 body.Description,
                 body.Category,
                 body.Priority,
-                TicketHttp.Actor(http)));
+                TicketHttp.Actor(http),
+                departmentId));
             return result.Error is not null
                 ? Results.BadRequest(new { error = result.Error })
                 : Results.Created($"/api/tickets/{result.Ticket!.Id}", result.Ticket);

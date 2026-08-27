@@ -34,6 +34,8 @@ public static class DependencyInjection
             var baseUrl = config["Services:Notifications"] ?? "http://localhost:5202";
             client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
         });
+        services.AddHttpClient("erp", client => client.Timeout = TimeSpan.FromSeconds(3));
+        services.AddSingleton<ErpWebhookNotifier>();
         return services;
     }
 

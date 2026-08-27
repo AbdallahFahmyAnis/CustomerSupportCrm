@@ -1,25 +1,25 @@
 <section class="page">
   <header class="row">
     <div>
-      <h1>Audit log</h1>
-      <p class="lede">Security-sensitive events</p>
+      <h1>{{ lang.t('auditLog') }}</h1>
+      <p class="lede">{{ lang.t('auditLead') }}</p>
     </div>
   </header>
 
   <crm-data-view
-    title="Events"
-    subtitle="Filter by text and date range"
+    [title]="lang.t('eventsTitle')"
+    [subtitle]="lang.t('eventsSub')"
     [items]="filteredEntries()"
-    [columns]="columns"
+    [columns]="columns()"
     trackKey="id"
     [(viewMode)]="viewMode"
   >
     <ng-template crmDataToolbar>
       <form class="toolbar-form" (ngSubmit)="search()">
-        <input name="q" [(ngModel)]="q" placeholder="Search action, email, detail" />
-        <crm-date-field label="From" name="from" [(value)]="fromDate" [max]="toDate || null" />
-        <crm-date-field label="To" name="to" [(value)]="toDate" [min]="fromDate || null" />
-        <button type="submit" class="btn secondary">Search</button>
+        <input name="q" [(ngModel)]="q" [placeholder]="lang.t('phSearchAudit')" />
+        <crm-date-field [label]="lang.t('from')" name="from" [(value)]="fromDate" [max]="toDate || null" />
+        <crm-date-field [label]="lang.t('to')" name="to" [(value)]="toDate" [min]="fromDate || null" />
+        <button type="submit" class="btn secondary">{{ lang.t('search') }}</button>
       </form>
     </ng-template>
 
@@ -41,7 +41,7 @@
 
     <ng-template crmDataCell="success" let-e>
       <span class="badge-soft" [class.ok]="e.success" [class.bad]="!e.success">
-        {{ e.success ? 'OK' : 'Failed' }}
+        {{ e.success ? lang.t('ok') : lang.t('failed') }}
       </span>
     </ng-template>
 
@@ -52,7 +52,7 @@
         <span>{{ e.actorEmail || '—' }} → {{ e.targetEmail || '—' }}</span>
         <span class="muted">{{ e.detail || '—' }}</span>
         <span class="badge-soft" [class.ok]="e.success" [class.bad]="!e.success">
-          {{ e.success ? 'OK' : 'Failed' }}
+          {{ e.success ? lang.t('ok') : lang.t('failed') }}
         </span>
       </div>
     </ng-template>
@@ -62,6 +62,6 @@
     <p class="error">{{ store.error() }}</p>
   }
   @if (store.loading()) {
-    <p>Loading…</p>
+    <p>{{ lang.t('loading') }}</p>
   }
 </section>

@@ -1,23 +1,32 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, effect, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
+import { FormFeedbackStore, LanguageStore } from 'shared';
 import { SettingsStore } from '../settings.store';
 
 /** SDD CRM-037 — system settings smart page. */
 @Component({
   selector: 'app-settings-edit-page',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DatePipe],
   templateUrl: './settings-edit.html',
   styleUrls: ['./settings-edit.scss'],
 })
 export class SettingsEditPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(SettingsStore);
+  private readonly feedback = inject(FormFeedbackStore);
 
   organizationName = '';
   supportEmail = '';
   defaultCulture = 'en';
   maxFailedLoginAttempts = 5;
   lockoutMinutes = 15;
+  productTitle = 'Customer Support CRM';
+  primaryColor = '#2563eb';
+  logoUrl = '/brand/azm-squad.png';
+  erpWebhookUrl = '';
+  erpWebhookAuthHeader = '';
 
   constructor() {
     effect(() => {
@@ -30,6 +39,11 @@ export class SettingsEditPage implements OnInit {
       this.defaultCulture = row.defaultCulture;
       this.maxFailedLoginAttempts = row.maxFailedLoginAttempts;
       this.lockoutMinutes = row.lockoutMinutes;
+      this.productTitle = row.productTitle || 'Customer Support CRM';
+      this.primaryColor = row.primaryColor || '#2563eb';
+      this.logoUrl = row.logoUrl || '/brand/azm-squad.png';
+      this.erpWebhookUrl = row.erpWebhookUrl || '';
+      this.erpWebhookAuthHeader = row.erpWebhookAuthHeader || '';
     });
   }
 
@@ -37,14 +51,31 @@ export class SettingsEditPage implements OnInit {
     this.store.load();
   }
 
-  submit(): void {
-    this.store.save({
-      organizationName: this.organizationName.trim(),
-      supportEmail: this.supportEmail.trim(),
-      defaultCulture: this.defaultCulture,
-      maxFailedLoginAttempts: Number(this.maxFailedLoginAttempts),
-      lockoutMinutes: Number(this.lockoutMinutes),
-    });
+  refreshDeliveries(): void {
+    this.store.loadErpDeliveries();
+  }
+
+  submit(f: NgForm): void {
+    if (f.invalid) {
+      this.feedback.error('formInvalid');
+      return;
+    }
+    this.store.save(
+      {
+        organizationName: this.organizationName.trim(),
+        supportEmail: this.supportEmail.trim(),
+        defaultCulture: this.defaultCulture,
+        maxFailedLoginAttempts: Number(this.maxFailedLoginAttempts),
+        lockoutMinutes: Number(this.lockoutMinutes),
+        productTitle: this.productTitle.trim(),
+        primaryColor: this.primaryColor.trim(),
+        logoUrl: this.logoUrl.trim(),
+        erpWebhookUrl: this.erpWebhookUrl.trim(),
+        erpWebhookAuthHeader: this.erpWebhookAuthHeader.trim(),
+      },
+      () => this.feedback.success('settingsSaveSuccess'),
+      (msg) => this.feedback.errorText(msg),
+    );
   }
 
   reset(): void {
@@ -57,5 +88,10 @@ export class SettingsEditPage implements OnInit {
     this.defaultCulture = row.defaultCulture;
     this.maxFailedLoginAttempts = row.maxFailedLoginAttempts;
     this.lockoutMinutes = row.lockoutMinutes;
+    this.productTitle = row.productTitle || 'Customer Support CRM';
+    this.primaryColor = row.primaryColor || '#2563eb';
+    this.logoUrl = row.logoUrl || '/brand/azm-squad.png';
+    this.erpWebhookUrl = row.erpWebhookUrl || '';
+    this.erpWebhookAuthHeader = row.erpWebhookAuthHeader || '';
   }
 }

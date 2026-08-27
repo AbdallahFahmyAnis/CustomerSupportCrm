@@ -45,11 +45,67 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
                 );
                 CREATE INDEX IF NOT EXISTS "IX_TicketTasks_TicketId" ON "TicketTasks" ("TicketId");
                 CREATE INDEX IF NOT EXISTS "IX_TicketTasks_AssigneeUserId" ON "TicketTasks" ("AssigneeUserId");
+                CREATE TABLE IF NOT EXISTS "TicketFeedback" (
+                    "Id" TEXT NOT NULL CONSTRAINT "PK_TicketFeedback" PRIMARY KEY,
+                    "TicketId" TEXT NOT NULL,
+                    "Rating" INTEGER NOT NULL,
+                    "Comment" TEXT NULL,
+                    "CreatedAt" TEXT NOT NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_TicketFeedback_TicketId" ON "TicketFeedback" ("TicketId");
                 """);
+            try
+            {
+                db.Database.ExecuteSqlRaw("""ALTER TABLE "Tickets" ADD COLUMN "DepartmentId" TEXT NULL;""");
+            }
+            catch
+            {
+                // column may exist
+            }
+
+            foreach (var sql in new[]
+                     {
+                         """ALTER TABLE "Tickets" ADD COLUMN "AiSummary" TEXT NULL;""",
+                         """ALTER TABLE "Tickets" ADD COLUMN "AiSummaryHighlightsJson" TEXT NULL;""",
+                         """ALTER TABLE "Tickets" ADD COLUMN "AiSummaryAt" TEXT NULL;""",
+                     })
+            {
+                try
+                {
+                    db.Database.ExecuteSqlRaw(sql);
+                }
+                catch
+                {
+                    // column may exist
+                }
+            }
         }
         catch
         {
             // SQL Server / already migrated — EF model covers new DBs
+        }
+
+        try
+        {
+            using var dbSql = factory.CreateDbContext();
+            if (!dbSql.Database.IsSqlite())
+            {
+                dbSql.Database.ExecuteSqlRaw(
+                    """
+                    IF COL_LENGTH('Tickets', 'DepartmentId') IS NULL
+                      ALTER TABLE [Tickets] ADD [DepartmentId] uniqueidentifier NULL;
+                    IF COL_LENGTH('Tickets', 'AiSummary') IS NULL
+                      ALTER TABLE [Tickets] ADD [AiSummary] nvarchar(max) NULL;
+                    IF COL_LENGTH('Tickets', 'AiSummaryHighlightsJson') IS NULL
+                      ALTER TABLE [Tickets] ADD [AiSummaryHighlightsJson] nvarchar(max) NULL;
+                    IF COL_LENGTH('Tickets', 'AiSummaryAt') IS NULL
+                      ALTER TABLE [Tickets] ADD [AiSummaryAt] datetimeoffset NULL;
+                    """);
+            }
+        }
+        catch
+        {
+            // ignore
         }
     }
 
@@ -142,6 +198,10 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         row.AssignedAgentId = ticket.AssignedAgentId;
         row.AssignedAgentName = ticket.AssignedAgentName;
         row.IsEscalated = ticket.IsEscalated;
+        row.DepartmentId = ticket.DepartmentId;
+        row.AiSummary = ticket.AiSummary;
+        row.AiSummaryHighlightsJson = ticket.AiSummaryHighlightsJson;
+        row.AiSummaryAt = ticket.AiSummaryAt;
         row.UpdatedAt = ticket.UpdatedAt;
 
         var existingIds = db.TicketHistory.Where(h => h.TicketId == ticket.Id).Select(h => h.Id).ToHashSet();
@@ -158,7 +218,7 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         db.SaveChanges();
     }
 
-    public IReadOnlyList<Ticket> Search(string? q, string? assignedAgentId)
+    public IReadOnlyList<Ticket> Search(string? q, string? assignedAgentId, Guid? departmentId = null)
     {
         using var db = factory.CreateDbContext();
         IQueryable<TicketRow> query = db.Tickets.AsNoTracking();
@@ -176,6 +236,11 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         {
             var aid = assignedAgentId.Trim();
             query = query.Where(t => t.AssignedAgentId == aid);
+        }
+
+        if (departmentId is { } dept)
+        {
+            query = query.Where(t => t.DepartmentId == dept);
         }
 
         return query
@@ -218,7 +283,26 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             row.IsEscalated,
             row.CreatedAt,
             row.UpdatedAt,
-            history);
+            history,
+            row.DepartmentId,
+            row.AiSummary,
+            row.AiSummaryHighlightsJson,
+            row.AiSummaryAt);
+    }
+
+    /// <summary>SDD CRM-030 — lookup by ticket number (portal feedback).</summary>
+    public Ticket? GetByTicketNumber(string ticketNumber)
+    {
+        if (string.IsNullOrWhiteSpace(ticketNumber))
+        {
+            return null;
+        }
+
+        using var db = factory.CreateDbContext();
+        var num = ticketNumber.Trim().ToLower();
+        var row = db.Tickets.AsNoTracking()
+            .FirstOrDefault(t => t.TicketNumber.ToLower() == num);
+        return row is null ? null : Get(row.Id);
     }
 
     /// <summary>SDD CRM-016 — list internal notes for a ticket (newest first).</summary>
@@ -306,6 +390,72 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         db.SaveChanges();
     }
 
+    /// <summary>SDD CRM-030</summary>
+    public TicketFeedback? GetFeedback(Guid ticketId)
+    {
+        using var db = factory.CreateDbContext();
+        var row = db.TicketFeedback.AsNoTracking().FirstOrDefault(f => f.TicketId == ticketId);
+        return row is null ? null : FromFeedbackRow(row);
+    }
+
+    /// <summary>SDD CRM-030</summary>
+    public void InsertFeedback(TicketFeedback feedback)
+    {
+        using var db = factory.CreateDbContext();
+        if (db.TicketFeedback.Any(f => f.TicketId == feedback.TicketId))
+        {
+            throw new InvalidOperationException("Feedback already exists for this ticket.");
+        }
+
+        db.TicketFeedback.Add(ToFeedbackRow(feedback));
+        db.SaveChanges();
+    }
+
+    /// <summary>SDD CRM-031 / 032 — tickets created in inclusive range (report snapshot).</summary>
+    public IReadOnlyList<TicketReportSnapshot> ListTicketsCreatedBetween(DateTimeOffset from, DateTimeOffset to)
+    {
+        using var db = factory.CreateDbContext();
+        return db.Tickets.AsNoTracking()
+            .ToList()
+            .Where(t => t.CreatedAt >= from && t.CreatedAt <= to)
+            .Select(t => new TicketReportSnapshot(
+                t.Id,
+                t.Status,
+                t.Category,
+                t.Priority,
+                t.AssignedAgentId,
+                t.AssignedAgentName,
+                t.IsEscalated,
+                t.CreatedAt,
+                t.UpdatedAt))
+            .ToList();
+    }
+
+    /// <summary>SDD CRM-033 — feedback created in range with ticket assignee.</summary>
+    public IReadOnlyList<FeedbackReportSnapshot> ListFeedbackForReport(DateTimeOffset from, DateTimeOffset to)
+    {
+        using var db = factory.CreateDbContext();
+        var feedback = db.TicketFeedback.AsNoTracking()
+            .ToList()
+            .Where(f => f.CreatedAt >= from && f.CreatedAt <= to)
+            .ToList();
+        var ticketIds = feedback.Select(f => f.TicketId).Distinct().ToHashSet();
+        var tickets = db.Tickets.AsNoTracking()
+            .ToList()
+            .Where(t => ticketIds.Contains(t.Id))
+            .ToDictionary(t => t.Id);
+        return feedback
+            .Select(f =>
+            {
+                tickets.TryGetValue(f.TicketId, out var t);
+                return new FeedbackReportSnapshot(
+                    f.Rating,
+                    t?.AssignedAgentId,
+                    t?.AssignedAgentName);
+            })
+            .ToList();
+    }
+
     private static Ticket FromRow(TicketRow row)
         => Ticket.Rehydrate(
             row.Id,
@@ -321,7 +471,11 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             row.AssignedAgentName,
             row.IsEscalated,
             row.CreatedAt,
-            row.UpdatedAt);
+            row.UpdatedAt,
+            departmentId: row.DepartmentId,
+            aiSummary: row.AiSummary,
+            aiSummaryHighlightsJson: row.AiSummaryHighlightsJson,
+            aiSummaryAt: row.AiSummaryAt);
 
     private static TicketRow ToRow(Ticket t) => new()
     {
@@ -337,6 +491,10 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
         AssignedAgentId = t.AssignedAgentId,
         AssignedAgentName = t.AssignedAgentName,
         IsEscalated = t.IsEscalated,
+        DepartmentId = t.DepartmentId,
+        AiSummary = t.AiSummary,
+        AiSummaryHighlightsJson = t.AiSummaryHighlightsJson,
+        AiSummaryAt = t.AiSummaryAt,
         CreatedAt = t.CreatedAt,
         UpdatedAt = t.UpdatedAt
     };
@@ -409,4 +567,34 @@ public sealed class TicketsDb(IDbContextFactory<TicketsDbContext> factory)
             row.Status,
             row.CreatedAt,
             row.UpdatedAt);
+
+    private static TicketFeedbackRow ToFeedbackRow(TicketFeedback f) => new()
+    {
+        Id = f.Id,
+        TicketId = f.TicketId,
+        Rating = f.Rating,
+        Comment = f.Comment,
+        CreatedAt = f.CreatedAt
+    };
+
+    private static TicketFeedback FromFeedbackRow(TicketFeedbackRow row) =>
+        TicketFeedback.Rehydrate(row.Id, row.TicketId, row.Rating, row.Comment, row.CreatedAt);
 }
+
+/// <summary>SDD CRM-031 / CRM-032 — lightweight ticket row for reports.</summary>
+public sealed record TicketReportSnapshot(
+    Guid Id,
+    string Status,
+    string Category,
+    string Priority,
+    string? AssignedAgentId,
+    string? AssignedAgentName,
+    bool IsEscalated,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+/// <summary>SDD CRM-033 — feedback + assignee for CSAT reports.</summary>
+public sealed record FeedbackReportSnapshot(
+    int Rating,
+    string? AssignedAgentId,
+    string? AssignedAgentName);

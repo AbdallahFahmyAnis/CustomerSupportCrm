@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -10,6 +10,7 @@ import {
   CrmDataViewComponent,
   CrmDataViewMode,
   CrmModalComponent,
+  LanguageStore,
 } from 'shared';
 import { UserSummary } from '../users.models';
 import { UsersStore } from '../users.store';
@@ -32,6 +33,7 @@ import { UsersStore } from '../users.store';
   styleUrls: ['./user-list.scss'],
 })
 export class UserListPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(UsersStore);
   q = '';
   viewMode: CrmDataViewMode = 'list';
@@ -40,13 +42,13 @@ export class UserListPage implements OnInit {
   editRole = '';
   pendingUser: UserSummary | null = null;
 
-  readonly columns: CrmDataViewColumn[] = [
-    { key: 'displayName', header: 'User' },
-    { key: 'email', header: 'Email' },
-    { key: 'role', header: 'Role' },
-    { key: 'isActive', header: 'Status' },
-    { key: 'actions', header: 'Actions' },
-  ];
+  readonly columns = computed<CrmDataViewColumn[]>(() => [
+    { key: 'displayName', header: this.lang.t('userCol') },
+    { key: 'email', header: this.lang.t('email') },
+    { key: 'role', header: this.lang.t('role') },
+    { key: 'isActive', header: this.lang.t('status') },
+    { key: 'actions', header: this.lang.t('actions') },
+  ]);
 
   ngOnInit(): void {
     this.store.loadRoles();

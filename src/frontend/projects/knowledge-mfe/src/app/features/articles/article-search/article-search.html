@@ -1,30 +1,30 @@
 <section class="page">
   <header class="row">
     <div>
-      <h1>Search knowledge</h1>
-      <p class="lede">Ranked results across FAQs, articles, solutions, and guides</p>
+      <h1>{{ lang.t('searchKnowledge') }}</h1>
+      <p class="lede">{{ lang.t('searchKnowledgeLead') }}</p>
     </div>
-    <a routerLink="/knowledge" class="btn secondary">All articles</a>
+    <a routerLink="/knowledge" class="btn secondary">{{ lang.t('allArticles') }}</a>
   </header>
 
   <form class="filters" (ngSubmit)="run()">
     <label>
-      Query
-      <input name="q" [(ngModel)]="q" required placeholder="e.g. password" />
+      {{ lang.t('query') }}
+      <input name="q" [(ngModel)]="q" required [placeholder]="lang.t('queryPlaceholder')" />
     </label>
     <label>
-      Kind
+      {{ lang.t('kind') }}
       <select name="kind" [(ngModel)]="kind">
-        <option value="">Any</option>
+        <option value="">{{ lang.t('any') }}</option>
         @for (k of kinds; track k) {
           <option [value]="k">{{ k }}</option>
         }
       </select>
     </label>
     <label>
-      Status
+      {{ lang.t('status') }}
       <select name="status" [(ngModel)]="status" [disabled]="publishedOnly">
-        <option value="">Any</option>
+        <option value="">{{ lang.t('any') }}</option>
         @for (s of statuses; track s) {
           <option [value]="s">{{ s }}</option>
         }
@@ -32,18 +32,18 @@
     </label>
     <label class="check">
       <input type="checkbox" name="pub" [(ngModel)]="publishedOnly" />
-      Published only
+      {{ lang.t('publishedOnly') }}
     </label>
-    <button type="submit" class="btn" [disabled]="store.loading()">Search</button>
+    <button type="submit" class="btn" [disabled]="store.loading()">{{ lang.t('search') }}</button>
   </form>
 
   @if (store.error()) {
     <p class="error">{{ store.error() }}</p>
   }
   @if (store.loading()) {
-    <p>Searching…</p>
+    <p>{{ lang.t('searching') }}</p>
   } @else if (store.searchHits().length === 0) {
-    <p class="muted">No hits yet — run a search.</p>
+    <p class="muted">{{ lang.t('noSearchHits') }}</p>
   } @else {
     <ul class="hits">
       @for (h of store.searchHits(); track h.id) {
@@ -51,7 +51,7 @@
           <a [routerLink]="['/knowledge', h.id]">
             <div class="hit-top">
               <strong>{{ h.title }}</strong>
-              <span class="score">score {{ h.score }}</span>
+              <span class="score">{{ lang.t('score') }} {{ h.score }}</span>
             </div>
             <p class="snippet">{{ h.snippet }}</p>
             <span class="meta">{{ h.kind }} · {{ h.status }}</span>

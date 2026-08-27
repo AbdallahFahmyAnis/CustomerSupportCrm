@@ -1,7 +1,6 @@
 .page {
   display: grid;
   gap: 1rem;
-  padding: 1.25rem;
 }
 
 .row {
@@ -9,6 +8,7 @@
   justify-content: space-between;
   gap: 1rem;
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .header-actions {
@@ -19,18 +19,19 @@
 
 .lede {
   margin: 0.25rem 0 0;
-  opacity: 0.8;
+  color: var(--crm-text-muted);
 }
 
 .filter {
   display: flex;
   gap: 0.5rem;
   max-width: 36rem;
+  width: 100%;
 }
 
 .filter input {
   flex: 1;
-  min-height: unset;
+  min-width: 0;
   padding: 0.45rem 0.6rem;
 }
 
@@ -46,22 +47,24 @@
   display: grid;
   gap: 0.2rem;
   padding: 0.75rem 0.85rem;
-  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
-  border-radius: 0.5rem;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
   text-decoration: none;
   color: inherit;
+  background: var(--crm-paper);
+  box-shadow: var(--crm-shadow);
+  transition: border-color 0.15s ease;
+}
+
+.list a:hover {
+  border-color: var(--crm-primary);
 }
 
 .list span {
   font-size: 0.85rem;
-  opacity: 0.7;
+  color: var(--crm-text-muted);
 }
 
 .error {
-  color: #b42318;
-}
-
-.btn.secondary {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  color: var(--crm-danger);
 }

@@ -19,5 +19,24 @@
   --crm-radius: 0.625rem;
   --crm-radius-sm: 0.5rem;
   --crm-font: "Public Sans", "Segoe UI", Tahoma, sans-serif;
+  --crm-font-ar: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Noto Sans Arabic", Arial, sans-serif;
   --crm-sidebar-width: 16.25rem;
+  --crm-content-pad: 1.5rem;
+  --crm-page-max: 72rem;
+}
+
+html {
+  font-family: var(--crm-font);
+}
+
+html[dir='rtl'] {
+  font-family: var(--crm-font-ar);
+}
+
+html[dir='rtl'] .nav-label,
+html[dir='rtl'] .tile-kicker,
+html[dir='rtl'] th,
+html[dir='rtl'] .badge-soft {
+  letter-spacing: 0;
+  text-transform: none;
 }

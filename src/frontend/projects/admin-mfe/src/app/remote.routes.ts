@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { AdminHomePage } from './features/home/home/home.page';
 
-/** SDD CRM-035 / CRM-036 / CRM-037 — admin Feature-Based routes. */
+/** SDD CRM-035 / CRM-036 / CRM-037 / CRM-031…034 — admin Feature-Based routes. */
 export const ADMIN_ROUTES: Routes = [
   { path: '', component: AdminHomePage },
   {
@@ -21,7 +21,16 @@ export const ADMIN_ROUTES: Routes = [
     loadChildren: () => import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES),
   },
   {
+    path: 'departments',
+    loadChildren: () =>
+      import('./features/departments/departments.routes').then((m) => m.DEPARTMENTS_ROUTES),
+  },
+  {
     path: 'sla',
     loadChildren: () => import('./features/sla/sla.routes').then((m) => m.SLA_ROUTES),
+  },
+  {
+    path: 'reports',
+    loadChildren: () => import('./features/reports/reports.routes').then((m) => m.REPORTS_ROUTES),
   },
 ];

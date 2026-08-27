@@ -45,12 +45,33 @@ export interface TicketTask {
   updatedAt: string;
 }
 
+/** SDD CRM-015 — canned reply. */
+export interface QuickReply {
+  id: string;
+  title: string;
+  body: string;
+}
+
+/** SDD CRM-030 — customer CSAT. */
+export interface TicketFeedback {
+  id: string;
+  ticketId: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+}
+
 export interface TicketDetail extends TicketSummary {
   description?: string | null;
   createdAt: string;
   updatedAt: string;
   history: TicketHistory[];
   notes?: TicketNote[];
+  feedback?: TicketFeedback | null;
+  /** SDD CRM-023 polish / 042 */
+  aiSummary?: string | null;
+  aiHighlights?: string[] | null;
+  aiSummaryAt?: string | null;
 }
 
 export interface TicketOptions {

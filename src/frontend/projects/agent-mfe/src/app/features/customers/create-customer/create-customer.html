@@ -1,68 +1,71 @@
 <section class="page">
-  <nav class="crumb-nav" aria-label="Breadcrumb">
-    <a routerLink="/agent/customers">Customers</a>
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/agent/customers">{{ lang.t('customers') }}</a>
     <span class="sep" aria-hidden="true">/</span>
-    <span class="current">Create</span>
+    <span class="current">{{ lang.t('create') }}</span>
   </nav>
 
   <header class="row">
     <div>
-      <h1>Create customer</h1>
-      <p class="lede">Profile details, then a quick review before saving</p>
+      <h1>{{ lang.t('createCustomer') }}</h1>
+      <p class="lede">{{ lang.t('createCustomerLead') }}</p>
     </div>
   </header>
 
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
-
   <crm-wizard
-    [steps]="steps"
+    [steps]="steps()"
     [(step)]="step"
     [canNext]="canAdvance()"
-    finishLabel="Create customer"
+    [finishLabel]="lang.t('createCustomer')"
+    (advanceBlocked)="onAdvanceBlocked()"
     (finish)="save()"
   >
     <ng-template crmWizardStep>
       <div class="step-intro">
-        <h3>Customer details</h3>
-        <p class="muted">Name and unique identifier are required. Organization is optional.</p>
+        <h3>{{ lang.t('customerDetails') }}</h3>
+        <p class="muted">{{ lang.t('customerDetailsHint') }}</p>
       </div>
       <div class="field-stack">
         <label>
-          Name
+          {{ lang.t('name') }}
           <input
             name="displayName"
             [(ngModel)]="displayName"
             required
-            placeholder="Display name"
+            [placeholder]="lang.t('phDisplayName')"
             autocomplete="organization"
           />
+          @if (attempted && !displayName.trim()) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
         </label>
         <label>
-          Unique identifier
+          {{ lang.t('uniqueIdentifier') }}
           <input
             name="uniqueIdentifier"
             [(ngModel)]="uniqueIdentifier"
             required
-            placeholder="Email, phone, or account id"
+            [placeholder]="lang.t('phUniqueId')"
             autocomplete="off"
           />
+          @if (attempted && !uniqueIdentifier.trim()) {
+            <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+          }
         </label>
         <div class="field-row">
           <label>
-            Organization
+            {{ lang.t('organization') }}
             <input
               name="organization"
               [(ngModel)]="organization"
-              placeholder="Company or team (optional)"
+              [placeholder]="lang.t('phCompanyOptional')"
             />
           </label>
           <label>
-            Status
+            {{ lang.t('status') }}
             <select name="status" [(ngModel)]="status">
-              <option>Active</option>
-              <option>Inactive</option>
+              <option value="Active">{{ lang.t('active') }}</option>
+              <option value="Inactive">{{ lang.t('inactive') }}</option>
             </select>
           </label>
         </div>
@@ -74,25 +77,25 @@
         <div class="review-hero">
           <div class="avatar">{{ avatarLetter }}</div>
           <div>
-            <strong>Almost done</strong>
-            <p class="muted">Confirm the customer details, then create.</p>
+            <strong>{{ lang.t('almostDone') }}</strong>
+            <p class="muted">{{ lang.t('confirmCreateCustomer') }}</p>
           </div>
         </div>
         <table class="review-table">
           <tr>
-            <th>Name</th>
+            <th>{{ lang.t('name') }}</th>
             <td>{{ displayName.trim() || '—' }}</td>
           </tr>
           <tr>
-            <th>Unique identifier</th>
+            <th>{{ lang.t('uniqueIdentifier') }}</th>
             <td>{{ uniqueIdentifier.trim() || '—' }}</td>
           </tr>
           <tr>
-            <th>Organization</th>
+            <th>{{ lang.t('organization') }}</th>
             <td>{{ organization.trim() || '—' }}</td>
           </tr>
           <tr>
-            <th>Status</th>
+            <th>{{ lang.t('status') }}</th>
             <td>
               <span class="badge-soft" [class.is-inactive]="status !== 'Active'">{{ status }}</span>
             </td>
@@ -102,12 +105,12 @@
     </ng-template>
   </crm-wizard>
 
-  <crm-modal [(open)]="dupOpen" title="Possible duplicate">
+  <crm-modal [(open)]="dupOpen" [title]="lang.t('possibleDuplicate')">
     <p>{{ warning()?.message }}</p>
     <div crmModalActions>
-      <button type="button" class="btn secondary" (click)="dupOpen = false">Close</button>
+      <button type="button" class="btn secondary" (click)="dupOpen = false">{{ lang.t('close') }}</button>
       @if (warning()?.existingCustomerId; as id) {
-        <a class="btn" [routerLink]="['/agent/customers', id]" (click)="dupOpen = false">Open existing</a>
+        <a class="btn" [routerLink]="['/agent/customers', id]" (click)="dupOpen = false">{{ lang.t('openExisting') }}</a>
       }
     </div>
   </crm-modal>

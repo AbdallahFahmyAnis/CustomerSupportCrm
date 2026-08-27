@@ -9,6 +9,7 @@ import {
   CrmDataViewComponent,
   CrmDataViewMode,
   CrmDateFieldComponent,
+  LanguageStore,
 } from 'shared';
 import { AuditStore } from '../audit.store';
 
@@ -29,6 +30,7 @@ import { AuditStore } from '../audit.store';
   styleUrls: ['./audit-list.scss'],
 })
 export class AuditListPage implements OnInit {
+  readonly lang = inject(LanguageStore);
   readonly store = inject(AuditStore);
   q = '';
   fromDate = '';
@@ -53,14 +55,14 @@ export class AuditListPage implements OnInit {
     });
   });
 
-  readonly columns: CrmDataViewColumn[] = [
-    { key: 'occurredAt', header: 'When (UTC)' },
-    { key: 'action', header: 'Action' },
-    { key: 'actorEmail', header: 'Actor' },
-    { key: 'targetEmail', header: 'Target' },
-    { key: 'detail', header: 'Detail' },
-    { key: 'success', header: 'Result' },
-  ];
+  readonly columns = computed<CrmDataViewColumn[]>(() => [
+    { key: 'occurredAt', header: this.lang.t('whenUtc') },
+    { key: 'action', header: this.lang.t('actionCol') },
+    { key: 'actorEmail', header: this.lang.t('actor') },
+    { key: 'targetEmail', header: this.lang.t('target') },
+    { key: 'detail', header: this.lang.t('detail') },
+    { key: 'success', header: this.lang.t('result') },
+  ]);
 
   ngOnInit(): void {
     this.search();

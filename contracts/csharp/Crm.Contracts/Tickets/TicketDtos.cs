@@ -11,7 +11,8 @@ public sealed record TicketSummaryDto(
     string Status,
     string? AssignedAgentId,
     string? AssignedAgentName,
-    bool IsEscalated);
+    bool IsEscalated,
+    string? DepartmentId = null);
 
 public sealed record TicketDetailDto(
     string Id,
@@ -29,7 +30,14 @@ public sealed record TicketDetailDto(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     IReadOnlyList<TicketHistoryDto> History,
-    IReadOnlyList<TicketNoteDto> Notes);
+    IReadOnlyList<TicketNoteDto> Notes,
+    TicketFeedbackDto? Feedback = null,
+    string? DepartmentId = null,
+    string? AiSummary = null,
+    IReadOnlyList<string>? AiHighlights = null,
+    DateTimeOffset? AiSummaryAt = null);
+
+public sealed record UpdateAiSummaryRequest(string Summary, IReadOnlyList<string>? Highlights = null);
 
 /// <summary>SDD CRM-016 — internal agent note on a ticket.</summary>
 public sealed record TicketNoteDto(
@@ -41,6 +49,20 @@ public sealed record TicketNoteDto(
     DateTimeOffset CreatedAt);
 
 public sealed record AddTicketNoteRequest(string Body);
+
+/// <summary>SDD CRM-030 — customer CSAT on a ticket.</summary>
+public sealed record TicketFeedbackDto(
+    string Id,
+    string TicketId,
+    int Rating,
+    string? Comment,
+    DateTimeOffset CreatedAt);
+
+public sealed record SubmitTicketFeedbackRequest(
+    string? TicketId,
+    string? TicketNumber,
+    int Rating,
+    string? Comment);
 
 public sealed record TicketHistoryDto(
     string Id,
@@ -56,7 +78,8 @@ public sealed record CreateTicketRequest(
     string Subject,
     string? Description,
     string Category,
-    string Priority);
+    string Priority,
+    string? DepartmentId = null);
 
 public sealed record UpdateClassificationRequest(string Category, string Priority);
 
@@ -98,3 +121,55 @@ public sealed record CreateTicketTaskRequest(
     DateTimeOffset? DueAt,
     string? AssigneeUserId,
     string? AssigneeName);
+
+/// <summary>SDD CRM-015 — shared canned reply.</summary>
+public sealed record QuickReplyDto(string Id, string Title, string Body);
+
+/// <summary>SDD CRM-031 — ticket volume report.</summary>
+public sealed record TicketReportSummaryDto(
+    DateTimeOffset From,
+    DateTimeOffset To,
+    int Created,
+    int Open,
+    int ResolvedOrClosed,
+    int Escalated,
+    IReadOnlyList<ReportBucketDto> ByStatus,
+    IReadOnlyList<ReportBucketDto> ByCategory,
+    IReadOnlyList<ReportBucketDto> ByPriority,
+    IReadOnlyList<ReportAgentBucketDto> ByAgent);
+
+public sealed record ReportBucketDto(string Key, int Count);
+
+public sealed record ReportAgentBucketDto(string? AgentId, string? AgentName, int Count);
+
+/// <summary>SDD CRM-032 — SLA / agent performance.</summary>
+public sealed record SlaPerformanceReportDto(
+    DateTimeOffset From,
+    DateTimeOffset To,
+    int TicketCount,
+    int ResolutionBreached,
+    double BreachPercent,
+    IReadOnlyList<SlaAgentPerformanceDto> ByAgent);
+
+public sealed record SlaAgentPerformanceDto(
+    string? AgentId,
+    string? AgentName,
+    int TicketCount,
+    int ResolutionBreached);
+
+/// <summary>SDD CRM-033 — CSAT aggregate report.</summary>
+public sealed record CsatReportDto(
+    DateTimeOffset From,
+    DateTimeOffset To,
+    int Count,
+    double AverageRating,
+    IReadOnlyList<CsatDistributionBucketDto> Distribution,
+    IReadOnlyList<CsatAgentBucketDto> ByAgent);
+
+public sealed record CsatDistributionBucketDto(int Rating, int Count);
+
+public sealed record CsatAgentBucketDto(
+    string? AgentId,
+    string? AgentName,
+    int Count,
+    double AverageRating);

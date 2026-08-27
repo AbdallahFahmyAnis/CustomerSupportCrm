@@ -11,6 +11,21 @@ public static class TicketCatalog
         ("22222222-2222-2222-2222-222222222222", "Lead Agent")
     ];
 
+    /// <summary>SDD CRM-015 — shared quick reply library.</summary>
+    public static readonly (string Id, string Title, string Body)[] QuickReplies =
+    [
+        ("qr-billing-apology", "Billing apology",
+            "I'm sorry for the confusion on your invoice. I'll review the line items and get back to you shortly."),
+        ("qr-password-reset", "Password reset steps",
+            "Please use the Forgot password link on the sign-in page, then check your inbox (and spam) for the reset email."),
+        ("qr-escalate", "Escalation notice",
+            "I've escalated your request to a senior agent. Someone will follow up within one business day."),
+        ("qr-waiting-info", "Waiting on customer",
+            "Thanks — to continue, could you reply with the account number and a screenshot of the error?"),
+        ("qr-resolved", "Resolution confirmation",
+            "I've applied the fix on our side. Please confirm everything looks good so we can close this ticket.")
+    ];
+
     public static void EnsureCategory(string category)
     {
         if (string.IsNullOrWhiteSpace(category) ||
