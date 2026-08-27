@@ -2,9 +2,11 @@ import { Component, input, model, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CrmChatMessage } from './chat.models';
 
+export type CrmChatVariant = 'default' | 'whatsapp' | 'sms';
+
 /**
  * Materio-inspired chat panel (app-chat shape).
- * Original styles only — not ThemeSelection assets.
+ * Variants: default | whatsapp | sms — WhatsApp mimics the familiar WA thread chrome.
  */
 @Component({
   selector: 'crm-chat',
@@ -24,6 +26,8 @@ export class CrmChatComponent {
   readonly sending = input(false);
   readonly emptyText = input('No messages yet. Say hello.');
   readonly composeDisabled = input(false);
+  /** Visual skin: WhatsApp / SMS look closer to real messaging apps. */
+  readonly variant = input<CrmChatVariant>('default');
   readonly send = output<string>();
 
   onSubmit(): void {

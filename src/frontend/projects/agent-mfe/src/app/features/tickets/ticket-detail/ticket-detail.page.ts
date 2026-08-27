@@ -50,7 +50,9 @@ export class TicketDetailPage implements OnInit {
   agentId = '';
   status = '';
   escalateTo = '';
-  replyChannel: 'whatsapp' | 'chat' | 'sms' = 'chat';
+  replyChannel = signal<'whatsapp' | 'chat' | 'sms'>('chat');
+  /** Recipient for SMS / WhatsApp (E.164). */
+  replyToPhone = '';
   chatDraft = '';
   emailDraft = '';
   emailQuickId = '';
@@ -122,18 +124,42 @@ export class TicketDetailPage implements OnInit {
       }),
   );
 
-  readonly chatMessages = computed<CrmChatMessage[]>(() =>
-    this.store
+  readonly chatMessages = computed<CrmChatMessage[]>(() => {
+    const selected = this.replyChannel();
+    const channel =
+      selected === 'whatsapp' ? 'WhatsApp' : selected === 'sms' ? 'Sms' : 'LiveChat';
+    return this.store
       .channelMessages()
-      .filter((m) => m.channel !== 'Email' && m.channel !== 'WebForm')
+      .filter((m) => {
+        if (selected === 'chat') {
+          return m.channel === 'LiveChat' || m.channel === 'WebForm';
+        }
+        return m.channel === channel;
+      })
       .map((m) => ({
         id: m.id,
         body: m.body,
         mine: m.direction === 'Outbound',
-        meta: `${m.channel}${m.fromEmail ? ' · ' + m.fromEmail : ''}`,
+        meta: m.fromEmail ? m.fromEmail : undefined,
         timeLabel: this.datePipe.transform(m.createdAt, 'short') ?? '',
-      })),
-  );
+      }));
+  });
+
+  readonly chatVariant = computed(() => {
+    const c = this.replyChannel();
+    if (c === 'whatsapp') return 'whatsapp' as const;
+    if (c === 'sms') return 'sms' as const;
+    return 'default' as const;
+  });
+
+  readonly messagingSubtitle = computed(() => {
+    const t = this.store.selected();
+    const num = t?.ticketNumber ?? '';
+    const c = this.replyChannel();
+    if (c === 'whatsapp') return `${num} · WhatsApp`;
+    if (c === 'sms') return `${num} · SMS`;
+    return `${num} · ${this.lang.t('channelThread')}`;
+  });
 
   readonly historyItems = computed<CrmTimelineItem[]>(() => {
     const t = this.store.selected();
@@ -182,12 +208,36 @@ export class TicketDetailPage implements OnInit {
   private loadCustomer(customerId: string): void {
     this.customerError.set('');
     this.customersApi.get(customerId).subscribe({
-      next: (row) => this.customer.set(row),
+      next: (row) => {
+        this.customer.set(row);
+        if (!this.replyToPhone.trim()) {
+          const phone =
+            row.contacts?.find(
+              (c) => c.isActive && c.type.toLowerCase() === 'whatsapp' && c.value,
+            )?.value ||
+            row.contacts?.find(
+              (c) => c.isActive && c.type.toLowerCase() === 'phone' && c.value,
+            )?.value ||
+            '';
+          this.replyToPhone = this.toE164Hint(phone);
+        }
+      },
       error: () => {
         this.customer.set(null);
         this.customerError.set(this.lang.t('couldNotLoadCustomerProfile'));
       },
     });
+  }
+
+  /** Light client hint: Egyptian 01… → +201… for the To field. */
+  private toE164Hint(raw: string): string {
+    const t = raw.trim().replace(/^whatsapp:/i, '');
+    if (!t) return '';
+    const digits = t.replace(/\D/g, '');
+    if (t.startsWith('+')) return `+${digits}`;
+    if (digits.startsWith('0') && digits.length === 11) return `+20${digits.slice(1)}`;
+    if (digits.length >= 11) return `+${digits}`;
+    return t;
   }
 
   private refreshSla(priority: string, createdAt: string): void {
@@ -247,12 +297,20 @@ export class TicketDetailPage implements OnInit {
     const clear = () => {
       this.chatDraft = '';
     };
-    if (this.replyChannel === 'whatsapp') {
-      this.store.replyWhatsApp(this.id, text, clear);
+    const to = this.replyToPhone.trim() || undefined;
+    if (
+      (this.replyChannel() === 'whatsapp' || this.replyChannel() === 'sms') &&
+      !to
+    ) {
+      this.store.error.set(this.lang.t('recipientPhoneRequired'));
       return;
     }
-    if (this.replyChannel === 'sms') {
-      this.store.replySms(this.id, text, clear);
+    if (this.replyChannel() === 'whatsapp') {
+      this.store.replyWhatsApp(this.id, text, clear, to);
+      return;
+    }
+    if (this.replyChannel() === 'sms') {
+      this.store.replySms(this.id, text, clear, to);
       return;
     }
     this.store.replyChat(this.id, text, clear);

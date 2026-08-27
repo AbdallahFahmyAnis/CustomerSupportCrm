@@ -1,4 +1,6 @@
 /** Channels service configuration — SDD CRM-012 / CRM-037 / CRM-040. */
+import './load-env';
+
 export const channelsConfig = {
   port: Number(process.env.PORT ?? 5201),
   dataPath: process.env.CHANNELS_DATA_PATH,
