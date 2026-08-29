@@ -62,6 +62,21 @@ public sealed record AuditLogPageDto(
     int Skip,
     int Take);
 
+/// <summary>SDD CRM-036 / specs/051 — full audit event for admin detail view.</summary>
+public sealed record AuditLogDetailDto(
+    string Id,
+    DateTimeOffset OccurredAt,
+    string Action,
+    string Service,
+    bool Success,
+    string? Detail,
+    string? ActorUserId,
+    string? ActorDisplayName,
+    string? ActorEmail,
+    string? TargetUserId,
+    string? TargetDisplayName,
+    string? TargetEmail);
+
 /// <summary>SDD CRM-036 / specs/051 — service ingest body.</summary>
 public sealed record AppendAuditRequest(
     string Action,

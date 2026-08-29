@@ -1,6 +1,6 @@
 ---
 name: speckit-plan
-description: Write the technical plan for the active CRM spec (specs/<hub>/NNN-slug/plan.md). Use when the user says plan, after specify, or before implement.
+description: Write the technical plan for the active CRM spec (specs/NNN-hub/MMM-slug/plan.md). Use when the user says plan, after specify, or before implement.
 ---
 
 # Plan

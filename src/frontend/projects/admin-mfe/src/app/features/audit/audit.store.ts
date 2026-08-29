@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { AuditApi } from './audit.api';
-import { AuditLogEntry } from './audit.models';
+import { AuditLogDetail, AuditLogEntry } from './audit.models';
 
 /** SDD CRM-036 / specs/051 — Feature-Based + Signals store. */
 @Injectable({ providedIn: 'root' })
@@ -49,4 +49,23 @@ export class AuditStore {
     const take = this.take() || 25;
     return Math.max(1, Math.ceil(this.total() / take));
   }
+
+  loadDetail(id: string, onError?: (msg: string) => void): void {
+    this.loading.set(true);
+    this.error.set('');
+    this.api.get(id).subscribe({
+      next: (row) => {
+        this.selected.set(row);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('auditDetailLoadFailed');
+        this.selected.set(null);
+        this.loading.set(false);
+        onError?.('auditDetailLoadFailed');
+      },
+    });
+  }
+
+  readonly selected = signal<AuditLogDetail | null>(null);
 }

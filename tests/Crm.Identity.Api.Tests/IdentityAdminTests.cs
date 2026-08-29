@@ -181,6 +181,16 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
         ingest.StatusCode.Should().Be(HttpStatusCode.Accepted);
         var tickets = await _client.GetFromJsonAsync<AuditLogPageDto>("/api/identity/audit?service=Tickets&q=TicketCreated");
         tickets!.Items.Should().Contain(e => e.Service == "Tickets" && e.Action == "TicketCreated");
+
+        var createdEvent = audit.Items.First(e => e.Action == "UserCreated" && e.TargetEmail == email);
+        var detail = await _client.GetFromJsonAsync<AuditLogDetailDto>($"/api/identity/audit/{createdEvent.Id}");
+        detail.Should().NotBeNull();
+        detail!.Action.Should().Be("UserCreated");
+        detail.TargetEmail.Should().Be(email);
+        detail.ActorDisplayName.Should().NotBeNullOrWhiteSpace();
+
+        var missing = await _client.GetAsync($"/api/identity/audit/{Guid.NewGuid()}");
+        missing.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]

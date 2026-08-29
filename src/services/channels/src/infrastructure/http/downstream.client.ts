@@ -121,13 +121,27 @@ export class DownstreamClient {
   }
 
   async getTicketStatus(ticketId: string): Promise<string | null> {
+    const meta = await this.getTicketPortalMeta(ticketId);
+    return meta?.status ?? null;
+  }
+
+  async getTicketPortalMeta(ticketId: string): Promise<{
+    status: string | null;
+    hasFeedback: boolean;
+  } | null> {
     try {
       const res = await fetch(`${this.ticketsBase}/api/tickets/${ticketId}`);
       if (!res.ok) {
         return null;
       }
-      const ticket = (await res.json()) as { status?: string };
-      return ticket.status ?? null;
+      const ticket = (await res.json()) as {
+        status?: string;
+        feedback?: { id: string } | null;
+      };
+      return {
+        status: ticket.status ?? null,
+        hasFeedback: ticket.feedback != null,
+      };
     } catch {
       return null;
     }

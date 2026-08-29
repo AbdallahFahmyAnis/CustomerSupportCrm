@@ -58,8 +58,12 @@
       </span>
     </ng-template>
 
+    <ng-template crmDataCell="view" let-e>
+      <a class="btn ghost view-link" [routerLink]="['/admin/audit', e.id]">{{ lang.t('viewDetails') }}</a>
+    </ng-template>
+
     <ng-template crmDataCard let-e>
-      <div class="audit-card">
+      <a class="audit-card" [routerLink]="['/admin/audit', e.id]">
         <strong>{{ e.action }}</strong>
         <span class="svc">{{ e.service || 'Identity' }}</span>
         <span class="muted">{{ e.occurredAt | date: 'medium' : 'UTC' }}</span>
@@ -68,7 +72,7 @@
         <span class="badge-soft" [class.ok]="e.success" [class.bad]="!e.success">
           {{ e.success ? lang.t('ok') : lang.t('failed') }}
         </span>
-      </div>
+      </a>
     </ng-template>
   </crm-data-view>
 

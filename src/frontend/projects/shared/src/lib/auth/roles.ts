@@ -24,7 +24,7 @@ export function isCustomerRole(role: string | null | undefined): boolean {
   return roleEquals(role, CrmRoles.Customer);
 }
 
-/** Agent workspace (customers/tickets) — Admin, Lead, and Agent. */
+/** Agent workspace (003-customers/tickets) — Admin, Lead, and Agent. */
 export function canAccessAgentWorkspace(role: string | null | undefined): boolean {
   const r = normalizeRole(role);
   return (

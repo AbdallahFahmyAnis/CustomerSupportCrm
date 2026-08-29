@@ -19,6 +19,7 @@ export interface PortalRequestSummary {
   subject: string;
   status: string;
   createdAt: string;
+  hasFeedback: boolean;
 }
 
 /** SDD CRM-010 / CRM-012 — channel message on ticket thread. */

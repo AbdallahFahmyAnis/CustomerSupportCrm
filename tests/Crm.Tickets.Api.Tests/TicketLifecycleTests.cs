@@ -175,6 +175,15 @@ public sealed class TicketLifecycleTests : IClassFixture<TicketsApiFactory>
             new SubmitTicketFeedbackRequest(created.Id, null, 3, "again"));
         dup.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
+        var getByNumber = await _client.GetAsync($"/api/tickets/feedback?ticketNumber={created.TicketNumber}");
+        getByNumber.StatusCode.Should().Be(HttpStatusCode.OK);
+        var existing = await getByNumber.Content.ReadFromJsonAsync<TicketFeedbackDto>();
+        existing!.Rating.Should().Be(4);
+        existing.Comment.Should().Be("Helpful agent");
+
+        var missing = await _client.GetAsync("/api/tickets/feedback?ticketNumber=TKT-NOPE");
+        missing.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
         var detail = await _client.GetFromJsonAsync<TicketDetailDto>($"/api/tickets/{created.Id}");
         detail!.Feedback.Should().NotBeNull();
         detail.Feedback!.Comment.Should().Be("Helpful agent");

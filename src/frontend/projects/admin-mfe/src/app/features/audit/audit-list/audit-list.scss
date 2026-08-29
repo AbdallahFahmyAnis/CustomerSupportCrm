@@ -20,6 +20,16 @@
   display: grid;
   gap: 0.35rem;
   justify-items: start;
+  text-decoration: none;
+  color: inherit;
+}
+
+.audit-card:hover strong {
+  color: var(--crm-primary, #6941c6);
+}
+
+.view-link {
+  white-space: nowrap;
 }
 
 .audit-card .muted {

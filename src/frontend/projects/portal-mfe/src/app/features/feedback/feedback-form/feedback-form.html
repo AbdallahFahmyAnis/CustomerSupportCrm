@@ -9,18 +9,24 @@
     <div class="settings-hero">
       <div class="avatar">★</div>
       <div class="meta">
-        <strong>{{ lang.t('rateSupport') }}</strong>
+        <strong>{{ existingFeedback ? lang.t('viewFeedback') : lang.t('rateSupport') }}</strong>
         <p>
-          {{ fromAssistant ? lang.t('rateSupportFromAssistant') : lang.t('rateSupportLead') }}
+          @if (existingFeedback) {
+            {{ lang.t('feedbackAlreadySubmitted') }}
+          } @else if (fromAssistant) {
+            {{ lang.t('rateSupportFromAssistant') }}
+          } @else {
+            {{ lang.t('rateSupportLead') }}
+          }
         </p>
       </div>
     </div>
 
-    @if (loadingTickets) {
+    @if (loadingTickets || loadingExisting) {
       <p class="muted loading-line">{{ lang.t('loading') }}</p>
     }
 
-    @if (!loadingTickets && !ticketNumber && eligibleTickets.length === 0) {
+    @if (!loadingTickets && !loadingExisting && !ticketNumber && eligibleTickets.length === 0) {
       <div class="empty-panel">
         <p class="muted">{{ lang.t('feedbackNoEligibleTicket') }}</p>
         <div class="empty-actions">
@@ -28,7 +34,37 @@
           <a routerLink="/portal/submit" class="btn">{{ lang.t('submitRequest') }}</a>
         </div>
       </div>
-    } @else {
+    } @else if (!loadingExisting && existingFeedback) {
+      <div class="feedback-readonly">
+        <dl class="feedback-summary">
+          <div>
+            <dt>{{ lang.t('ticketNumber') }}</dt>
+            <dd>{{ ticketNumber }}</dd>
+          </div>
+          <div>
+            <dt>{{ lang.t('rating') }}</dt>
+            <dd class="rating-display">
+              <strong>{{ existingFeedback.rating }}</strong>
+              <span>{{ lang.t(ratingLabelKey(existingFeedback.rating)) }}</span>
+            </dd>
+          </div>
+          @if (existingFeedback.comment?.trim()) {
+            <div class="full">
+              <dt>{{ lang.t('commentOptional') }}</dt>
+              <dd class="comment-body">{{ existingFeedback.comment }}</dd>
+            </div>
+          }
+          <div>
+            <dt>{{ lang.t('submittedOn') }}</dt>
+            <dd>{{ existingFeedback.createdAt | date: 'medium' }}</dd>
+          </div>
+        </dl>
+        <div class="settings-actions">
+          <a routerLink="/portal/track" class="btn secondary">{{ lang.t('trackRequests') }}</a>
+          <a routerLink="/portal" class="btn">{{ lang.t('backToPortal') }}</a>
+        </div>
+      </div>
+    } @else if (!loadingTickets && !loadingExisting) {
       <form class="settings-form" #f="ngForm" (ngSubmit)="submit(f)">
         <div class="settings-form-grid">
           <label class="full">
@@ -37,6 +73,7 @@
               <select
                 name="ticketNumber"
                 [(ngModel)]="ticketNumber"
+                (ngModelChange)="onTicketChange()"
                 required
                 #ticketSelect="ngModel"
               >
@@ -53,6 +90,7 @@
               <input
                 name="ticketNumber"
                 [(ngModel)]="ticketNumber"
+                (blur)="onTicketChange()"
                 placeholder="TKT-1001"
                 autocomplete="off"
                 required

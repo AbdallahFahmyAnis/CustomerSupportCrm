@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuditLogPage } from './audit.models';
+import { AuditLogDetail, AuditLogPage } from './audit.models';
 
 /** SDD CRM-036 / specs/051 — identity audit API via gateway. */
 @Injectable({ providedIn: 'root' })
@@ -19,5 +19,9 @@ export class AuditApi {
     params.set('skip', String(Math.max(0, skip)));
     params.set('take', String(take));
     return this.http.get<AuditLogPage>(`/api/identity/audit?${params.toString()}`);
+  }
+
+  get(id: string): Observable<AuditLogDetail> {
+    return this.http.get<AuditLogDetail>(`/api/identity/audit/${encodeURIComponent(id)}`);
   }
 }
