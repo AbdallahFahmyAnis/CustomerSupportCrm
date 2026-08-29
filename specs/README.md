@@ -28,3 +28,7 @@ Each hub is `NNN-slug/` with `feature.md` (map) and numbered story slices `MMM-s
 `.specify/feature.json` → `feature_directory` = `specs/NNN-hub/MMM-slug`, optional `feature_family` = `specs/NNN-hub`.
 
 New slices: next global `MMM` under the owning hub, e.g. `specs/001-identity/052-slug/spec.md`.
+
+## Legacy slice paths
+
+Pre-hub bookmarks like `specs/016-channel-providers/README.md` redirect to the Channels hub (`specs/005-channels/...`).
