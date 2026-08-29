@@ -17,6 +17,11 @@
 | CRM-040 | [016-channel-providers](016-channel-providers/spec.md) | Implemented | SendGrid + Twilio adapters |
 | CRM-040 | [024-inbound-webhooks](024-inbound-webhooks/spec.md) | Implemented | Twilio inbound signature verify |
 
+## Ops docs
+
+- [016-channel-providers/README.md](016-channel-providers/README.md) — SendGrid / Twilio env matrix
+- [024-inbound-webhooks/README.md](024-inbound-webhooks/README.md) — inbound webhook paths + smoke
+
 ## Related
 
 - Portal FAQs: `008-knowledge/022-portal-faqs`
