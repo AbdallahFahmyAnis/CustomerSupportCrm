@@ -2,17 +2,19 @@
 
 Default: **Dev** providers (log only). Set env to enable real outbound HTTP adapters.
 
-## Email selection
+## Email selection (Twilio SendGrid)
 
-1. `SENDGRID_API_KEY` → SendGrid  
+1. `SENDGRID_API_KEY` (or `TWILIO_SENDGRID_API_KEY`) → **Twilio SendGrid**  
 2. else `EMAIL_SMTP_HOST` → SMTP (existing)  
 3. else DevEmailProvider  
 
 ```bash
-# SendGrid
+# Twilio SendGrid — https://app.sendgrid.com → API Keys + verified sender
 set SENDGRID_API_KEY=SG....
 set SENDGRID_FROM=support@example.com
 ```
+
+SMS/WhatsApp use `TWILIO_ACCOUNT_*`; email does **not** — it needs a SendGrid API key.
 
 ## SMS selection
 

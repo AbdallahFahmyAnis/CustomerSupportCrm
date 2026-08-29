@@ -68,8 +68,9 @@ Give support agents a single place to know the customer, work tickets, and reply
 
 ## Next
 
-1. SendGrid inbound parse / Meta webhook signatures when ready
-2. Further polish only if needed
+1. `specs/049-customer-register` — CRM-045 customer self-registration (Draft)
+2. SendGrid inbound parse / Meta webhook signatures when ready
+3. Further polish only if needed
 
 ## Constraints
 

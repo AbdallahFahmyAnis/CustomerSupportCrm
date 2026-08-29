@@ -100,6 +100,7 @@ Epic WI: 31.
 | CRM-028 | 38 | Track requests and view history | Must | Tickets + portal-mfe |
 | CRM-029 | 39 | Access FAQs from the customer portal | Should | Knowledge + portal-mfe |
 | CRM-030 | 40 | Submit customer feedback | Should | Tickets + portal-mfe |
+| CRM-045 | — | Register a customer portal account | Must | Identity + shell + portal-mfe (+ Customers link) |
 
 Epic WI: 36.
 
