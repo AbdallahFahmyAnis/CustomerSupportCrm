@@ -68,7 +68,7 @@ Give support agents a single place to know the customer, work tickets, and reply
 
 ## Next
 
-1. `specs/049-customer-register` — CRM-045 customer self-registration (Draft)
+1. Identity feature map: `specs/identity` — CRM-045 register (`049`) + CRM-046 password reset (`050`) Draft
 2. SendGrid inbound parse / Meta webhook signatures when ready
 3. Further polish only if needed
 
