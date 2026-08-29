@@ -5,7 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { channelsConfig } from '../../../app/config';
+import {
+  channelsConfig,
+  resolveOutboundEmailFrom,
+} from '../../../app/config';
 import { ChannelsStore } from '../../../infrastructure/database/channels.store';
 import {
   EMAIL_PROVIDER,
@@ -60,12 +63,19 @@ export class ReplyEmailService {
       ? ticket.subject
       : `Re: ${ticket.subject}`;
 
-    await this.emailProvider.sendOutbound({
-      to,
-      subject,
-      body,
-      ticketId,
-    });
+    const fromEmail = resolveOutboundEmailFrom(channelsConfig);
+
+    try {
+      await this.emailProvider.sendOutbound({
+        to,
+        subject,
+        body,
+        ticketId,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Email send failed.';
+      throw new BadRequestException(msg);
+    }
 
     const messageId = randomUUID();
     await this.store.addMessage({
@@ -74,7 +84,7 @@ export class ReplyEmailService {
       channel: 'Email',
       direction: 'Outbound',
       body,
-      fromEmail: channelsConfig.smtpFrom,
+      fromEmail,
       createdAt: new Date().toISOString(),
     });
 

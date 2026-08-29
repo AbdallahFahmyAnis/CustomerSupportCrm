@@ -8,8 +8,8 @@ import {
 import { DevEmailProvider } from './dev-email.provider';
 
 /**
- * SDD CRM-040 — SendGrid v3 mail send when SENDGRID_API_KEY is set.
- * Inbound parsing delegates to DevEmailProvider.
+ * SDD CRM-040 — Twilio SendGrid v3 mail send when SENDGRID_API_KEY
+ * (or TWILIO_SENDGRID_API_KEY) is set. Inbound parsing delegates to DevEmailProvider.
  */
 @Injectable()
 export class SendGridEmailProvider implements EmailProvider {
@@ -23,7 +23,16 @@ export class SendGridEmailProvider implements EmailProvider {
   async sendOutbound(payload: OutboundEmailPayload): Promise<void> {
     const apiKey = channelsConfig.sendgridApiKey?.trim();
     if (!apiKey) {
-      throw new Error('SENDGRID_API_KEY is not configured.');
+      throw new Error(
+        'Twilio SendGrid is not configured. Set SENDGRID_API_KEY (or TWILIO_SENDGRID_API_KEY) and SENDGRID_FROM.',
+      );
+    }
+
+    const from = channelsConfig.sendgridFrom?.trim();
+    if (!from || from === 'crm@localhost' || !from.includes('@')) {
+      throw new Error(
+        'SENDGRID_FROM must be a verified sender in Twilio SendGrid (e.g. support@yourdomain.com).',
+      );
     }
 
     const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -34,7 +43,7 @@ export class SendGridEmailProvider implements EmailProvider {
       },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: payload.to }] }],
-        from: { email: channelsConfig.sendgridFrom },
+        from: { email: from },
         subject: payload.subject,
         content: [{ type: 'text/plain', value: payload.body }],
       }),
@@ -42,9 +51,11 @@ export class SendGridEmailProvider implements EmailProvider {
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`SendGrid send failed (${res.status}): ${text}`);
+      throw new Error(`Twilio SendGrid send failed (${res.status}): ${text}`);
     }
 
-    this.logger.log(`[sendgrid] sent to=${payload.to} ticket=${payload.ticketId}`);
+    this.logger.log(
+      `[twilio-sendgrid] sent to=${payload.to} ticket=${payload.ticketId}`,
+    );
   }
 }

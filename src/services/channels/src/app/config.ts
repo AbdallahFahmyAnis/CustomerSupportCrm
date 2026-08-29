@@ -19,8 +19,17 @@ export const channelsConfig = {
   smtpUser: process.env.EMAIL_SMTP_USER,
   smtpPass: process.env.EMAIL_SMTP_PASS,
   smtpFrom: process.env.EMAIL_SMTP_FROM ?? 'crm@localhost',
-  sendgridApiKey: process.env.SENDGRID_API_KEY,
-  sendgridFrom: process.env.SENDGRID_FROM ?? process.env.EMAIL_SMTP_FROM ?? 'crm@localhost',
+  /**
+   * Twilio SendGrid (email). Prefer SENDGRID_API_KEY; TWILIO_SENDGRID_API_KEY is an alias.
+   * Create at https://app.sendgrid.com → Settings → API Keys (Twilio SendGrid).
+   */
+  sendgridApiKey:
+    process.env.SENDGRID_API_KEY ?? process.env.TWILIO_SENDGRID_API_KEY,
+  sendgridFrom:
+    process.env.SENDGRID_FROM ??
+    process.env.TWILIO_SENDGRID_FROM ??
+    process.env.EMAIL_SMTP_FROM ??
+    'crm@localhost',
   twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
   twilioSmsFrom: process.env.TWILIO_SMS_FROM,
@@ -41,6 +50,15 @@ export function resolveEmailProviderKind(cfg = channelsConfig): 'sendgrid' | 'sm
     return 'smtp';
   }
   return 'dev';
+}
+
+/** Resolved From address for outbound email replies. */
+export function resolveOutboundEmailFrom(cfg = channelsConfig): string {
+  const kind = resolveEmailProviderKind(cfg);
+  if (kind === 'sendgrid') {
+    return cfg.sendgridFrom;
+  }
+  return cfg.smtpFrom;
 }
 
 /** SDD CRM-040 — SMS adapter selection. */
