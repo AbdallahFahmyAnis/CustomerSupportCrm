@@ -74,7 +74,7 @@
               <div class="meta">{{ row.createdAt | date: 'medium' }}</div>
               @if (row.status === 'Resolved' || row.status === 'Closed') {
                 <a class="btn ghost rate-link" [routerLink]="['/portal/feedback']" [queryParams]="{ ticket: row.ticketNumber }">
-                  {{ lang.t('rateSupport') }}
+                  {{ row.hasFeedback ? lang.t('viewFeedback') : lang.t('rateSupport') }}
                 </a>
               }
             </div>

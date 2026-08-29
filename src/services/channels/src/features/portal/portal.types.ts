@@ -10,4 +10,5 @@ export interface PortalRequestDto {
   subject: string;
   status: string;
   createdAt: string;
+  hasFeedback: boolean;
 }

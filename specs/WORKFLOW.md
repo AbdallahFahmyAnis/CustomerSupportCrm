@@ -20,7 +20,7 @@ Azure DevOps holds the backlog (`CRM-nnn`). Specs under `specs/<hub>/NNN-slug` a
 ## Code pattern
 
 ```csharp
-/// <summary>SDD CRM-001 / specs/customers/002-customer-profiles.</summary>
+/// <summary>SDD CRM-001 / specs/003-customers/002-customer-profiles.</summary>
 ```
 
 Angular files use the same ids in a file header comment. Tests use `[Trait("Story", "CRM-001")]`. NestJS handlers use a `/** SDD CRM-nnn */` block comment.

@@ -1,0 +1,100 @@
+<section class="page audit-detail">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/admin/audit">{{ lang.t('auditLog') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">{{ lang.t('auditEventDetails') }}</span>
+  </nav>
+
+  @if (store.loading()) {
+    <p class="muted">{{ lang.t('loading') }}</p>
+  }
+
+  @if (store.error()) {
+    <p class="error">{{ errorText() }}</p>
+    <a routerLink="/admin/audit" class="btn secondary">{{ lang.t('backToAudit') }}</a>
+  }
+
+  @if (!store.loading() && store.selected(); as e) {
+    <div class="settings-card audit-sheet">
+      <div class="settings-hero">
+        <div class="avatar">{{ (e.action || 'A').charAt(0) }}</div>
+        <div class="meta">
+          <strong>{{ e.action }}</strong>
+          <p class="meta-line">
+            <span class="svc">{{ e.service || 'Identity' }}</span>
+            <span class="badge-soft" [class.ok]="e.success" [class.bad]="!e.success">
+              {{ e.success ? lang.t('ok') : lang.t('failed') }}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <dl class="detail-grid">
+        <div>
+          <dt>{{ lang.t('eventId') }}</dt>
+          <dd class="mono">{{ e.id }}</dd>
+        </div>
+        <div>
+          <dt>{{ lang.t('whenUtc') }}</dt>
+          <dd>{{ e.occurredAt | date: 'yyyy-MM-dd HH:mm:ss' : 'UTC' }} UTC</dd>
+        </div>
+        <div>
+          <dt>{{ lang.t('auditService') }}</dt>
+          <dd>{{ e.service || 'Identity' }}</dd>
+        </div>
+        <div>
+          <dt>{{ lang.t('actionCol') }}</dt>
+          <dd>{{ e.action }}</dd>
+        </div>
+        <div>
+          <dt>{{ lang.t('result') }}</dt>
+          <dd>
+            <span class="badge-soft" [class.ok]="e.success" [class.bad]="!e.success">
+              {{ e.success ? lang.t('ok') : lang.t('failed') }}
+            </span>
+          </dd>
+        </div>
+        <div class="full">
+          <dt>{{ lang.t('detail') }}</dt>
+          <dd class="detail-body">{{ e.detail || '—' }}</dd>
+        </div>
+      </dl>
+
+      <h2 class="section-title">{{ lang.t('actor') }}</h2>
+      <dl class="detail-grid">
+        <div>
+          <dt>{{ lang.t('displayName') }}</dt>
+          <dd>{{ e.actorDisplayName || '—' }}</dd>
+        </div>
+        <div>
+          <dt>{{ lang.t('email') }}</dt>
+          <dd>{{ e.actorEmail || '—' }}</dd>
+        </div>
+        <div class="full">
+          <dt>{{ lang.t('userId') }}</dt>
+          <dd class="mono">{{ e.actorUserId || '—' }}</dd>
+        </div>
+      </dl>
+
+      <h2 class="section-title">{{ lang.t('target') }}</h2>
+      <dl class="detail-grid">
+        <div>
+          <dt>{{ lang.t('displayName') }}</dt>
+          <dd>{{ e.targetDisplayName || '—' }}</dd>
+        </div>
+        <div>
+          <dt>{{ lang.t('email') }}</dt>
+          <dd>{{ e.targetEmail || '—' }}</dd>
+        </div>
+        <div class="full">
+          <dt>{{ lang.t('userId') }}</dt>
+          <dd class="mono">{{ e.targetUserId || '—' }}</dd>
+        </div>
+      </dl>
+
+      <div class="settings-actions">
+        <a routerLink="/admin/audit" class="btn secondary">{{ lang.t('backToAudit') }}</a>
+      </div>
+    </div>
+  }
+</section>

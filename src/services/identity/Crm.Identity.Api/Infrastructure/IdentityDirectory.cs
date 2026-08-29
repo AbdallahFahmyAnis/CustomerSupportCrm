@@ -554,6 +554,9 @@ public sealed class IdentityDirectory(
     public async Task<int> CountAuditAsync(CancellationToken ct = default)
         => await db.AuditLogs.CountAsync(ct);
 
+    public async Task<AuditLogEntry?> GetAuditByIdAsync(Guid id, CancellationToken ct = default)
+        => await db.AuditLogs.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
+
     public async Task<UserAccount?> FindByEmailAsync(string email, CancellationToken ct = default)
     {
         var entity = await users.FindByEmailAsync(email.Trim().ToLowerInvariant());

@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import {
   CrmDataCardDirective,
   CrmDataCellDirective,
@@ -20,6 +21,7 @@ import { AuditStore } from '../audit.store';
   standalone: true,
   imports: [
     FormsModule,
+    RouterLink,
     DatePipe,
     CrmDataViewComponent,
     CrmDataToolbarDirective,
@@ -65,6 +67,7 @@ export class AuditListPage implements OnInit {
     { key: 'targetEmail', header: this.lang.t('target') },
     { key: 'detail', header: this.lang.t('detail') },
     { key: 'success', header: this.lang.t('result') },
+    { key: 'view', header: '' },
   ]);
 
   readonly pageLabel = computed(() => {

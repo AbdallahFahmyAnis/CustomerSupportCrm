@@ -11,4 +11,10 @@ export class FeedbackApi {
   submit(body: SubmitFeedbackBody): Observable<TicketFeedback> {
     return this.http.post<TicketFeedback>('/api/tickets/feedback', body);
   }
+
+  getByTicketNumber(ticketNumber: string): Observable<TicketFeedback> {
+    return this.http.get<TicketFeedback>(
+      `/api/tickets/feedback?ticketNumber=${encodeURIComponent(ticketNumber.trim())}`,
+    );
+  }
 }

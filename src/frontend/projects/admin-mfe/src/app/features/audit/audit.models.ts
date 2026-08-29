@@ -9,6 +9,13 @@ export interface AuditLogEntry {
   service?: string;
 }
 
+export interface AuditLogDetail extends AuditLogEntry {
+  actorUserId: string | null;
+  actorDisplayName: string | null;
+  targetUserId: string | null;
+  targetDisplayName: string | null;
+}
+
 /** SDD CRM-036 / specs/051 */
 export interface AuditLogPage {
   items: AuditLogEntry[];

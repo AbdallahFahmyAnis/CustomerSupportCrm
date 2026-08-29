@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Crm.Identity.Api.Features.Auth.RegisterCustomer;
 
-/// <summary>SDD CRM-045 / specs/identity/049-customer-register — force Customer role + issue tokens.</summary>
+/// <summary>SDD CRM-045 / specs/001-identity/049-customer-register — force Customer role + issue tokens.</summary>
 public sealed class RegisterCustomerHandler(IdentityDirectory directory)
     : IRequestHandler<RegisterCustomerCommand, RegisterCustomerResponse>
 {

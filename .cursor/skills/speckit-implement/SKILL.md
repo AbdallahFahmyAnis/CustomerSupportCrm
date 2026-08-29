@@ -7,7 +7,7 @@ description: Implement the active CRM spec in dependency order. Use when the use
 
 ## Steps
 
-1. Require active `spec.md` at `.specify/feature.json` → `feature_directory` (`specs/<hub>/NNN-slug`). If missing, run specify first.
+1. Require active `spec.md` at `.specify/feature.json` → `feature_directory` (`specs/NNN-hub/MMM-slug`). If missing, run specify first.
 2. Follow `plan.md` / `tasks.md` if present; otherwise implement P1 stories only.
 3. Match existing patterns:
    - .NET: nested vertical slices `Features/{Area}/{UseCase}/` with `Endpoint.cs` + `Command|Query.cs` + `Handler.cs` (+ optional Validator/Response); thin `Program.cs` + `DependencyInjection.cs`; MediatR

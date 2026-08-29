@@ -1,0 +1,110 @@
+.audit-detail {
+  max-width: 52rem;
+}
+
+.crumb-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--crm-text-muted);
+}
+
+.crumb-nav a {
+  font-weight: 600;
+}
+
+.crumb-nav .sep {
+  opacity: 0.55;
+}
+
+.crumb-nav .current {
+  color: var(--crm-text);
+  font-weight: 600;
+}
+
+.audit-sheet {
+  max-width: none;
+}
+
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0 0;
+}
+
+.svc {
+  display: inline-flex;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--crm-primary-soft, #f4ebff);
+  color: var(--crm-primary, #6941c6);
+}
+
+.section-title {
+  margin: 1.25rem 1.35rem 0.65rem;
+  font-size: 0.95rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+  margin: 0;
+  padding: 0 1.35rem 1rem;
+}
+
+.detail-grid div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.detail-grid .full {
+  grid-column: 1 / -1;
+}
+
+.detail-grid dt {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--crm-text-muted);
+}
+
+.detail-grid dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--crm-text);
+}
+
+.detail-body {
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.muted {
+  color: var(--crm-text-muted);
+}
+
+.error {
+  color: var(--crm-danger, #b42318);
+}
+
+@media (max-width: 640px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

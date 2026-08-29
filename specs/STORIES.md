@@ -4,7 +4,7 @@ Source: Azure DevOps project [Customer Support CRM](https://dev.azure.com/abdall
 
 Story ids `CRM-nnn` are stable. Azure DevOps work item ids are listed for traceability.
 
-Recommended SDD order after platform foundation: **002 Customers (CRM-001…003)** → **003 Tickets (CRM-004…007)** → **004 Identity (CRM-035)** → channels / portal.
+Recommended SDD order: **001 Identity** → **002 Platform** → **003 Customers** → **004 Tickets** → **005 Channels** → remaining hubs (see [`specs/README.md`](README.md)).
 
 ## Platform
 
@@ -124,7 +124,7 @@ Epic WI: 41.
 | CRM-037 | 49 | Configure the system | Must | Identity + admin-mfe |
 | CRM-046 | — | Reset a forgotten password | Must | Identity + shell (+ email outbound) |
 
-Feature map: [`specs/identity/feature.md`](identity/feature.md) (CRM-035…037, 043–046).  
+Feature map: [`specs/001-identity/feature.md`](001-identity/feature.md) (CRM-035…037, 043–046).  
 All hubs: [`specs/README.md`](README.md).
 
 Epic WI: 46.

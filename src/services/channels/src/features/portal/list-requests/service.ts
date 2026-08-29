@@ -15,14 +15,15 @@ export class ListPortalRequestsService {
     const rows = await this.store.listRequestsByEmail(email);
     const result: PortalRequestDto[] = [];
     for (const row of rows) {
-      const live = await this.downstream.getTicketStatus(row.ticketId);
+      const live = await this.downstream.getTicketPortalMeta(row.ticketId);
       result.push({
         requestId: row.id,
         ticketId: row.ticketId,
         ticketNumber: row.ticketNumber,
         subject: row.subject,
-        status: live ?? row.status,
+        status: live?.status ?? row.status,
         createdAt: row.createdAt,
+        hasFeedback: live?.hasFeedback ?? false,
       });
     }
     return result;
