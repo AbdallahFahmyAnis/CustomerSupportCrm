@@ -32,7 +32,7 @@ Access control becomes explicit and auditable instead of a single hardcoded demo
 - CRM-037 system configuration
 - Full OIDC / Entra ID
 - Fine-grained per-endpoint enforcement on Customers/Tickets (headers already carry role; deny paths later)
-- Password reset / MFA
+- Password reset / MFA → password reset is **CRM-046** (`specs/050-password-reset`); MFA still out of scope
 
 ## Preconditions
 

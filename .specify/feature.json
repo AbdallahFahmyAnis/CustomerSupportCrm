@@ -1,3 +1,4 @@
 {
-  "feature_directory": "specs/049-customer-register"
+  "feature_directory": "specs/050-password-reset",
+  "feature_family": "specs/identity"
 }
