@@ -17,6 +17,15 @@
     <ng-template crmDataToolbar>
       <form class="toolbar-form" (ngSubmit)="search()">
         <input name="q" [(ngModel)]="q" [placeholder]="lang.t('phSearchAudit')" />
+        <select name="service" [(ngModel)]="serviceFilter">
+          <option value="">{{ lang.t('auditAllServices') }}</option>
+          <option value="Identity">Identity</option>
+          <option value="Customers">Customers</option>
+          <option value="Tickets">Tickets</option>
+          <option value="Knowledge">Knowledge</option>
+          <option value="Sla">Sla</option>
+          <option value="Channels">Channels</option>
+        </select>
         <crm-date-field [label]="lang.t('from')" name="from" [(value)]="fromDate" [max]="toDate || null" />
         <crm-date-field [label]="lang.t('to')" name="to" [(value)]="toDate" [min]="fromDate || null" />
         <button type="submit" class="btn secondary">{{ lang.t('search') }}</button>
@@ -25,6 +34,10 @@
 
     <ng-template crmDataCell="occurredAt" let-e>
       {{ e.occurredAt | date: 'yyyy-MM-dd HH:mm:ss' : 'UTC' }}
+    </ng-template>
+
+    <ng-template crmDataCell="service" let-e>
+      <span class="svc">{{ e.service || 'Identity' }}</span>
     </ng-template>
 
     <ng-template crmDataCell="actorEmail" let-e>
@@ -48,6 +61,7 @@
     <ng-template crmDataCard let-e>
       <div class="audit-card">
         <strong>{{ e.action }}</strong>
+        <span class="svc">{{ e.service || 'Identity' }}</span>
         <span class="muted">{{ e.occurredAt | date: 'medium' : 'UTC' }}</span>
         <span>{{ e.actorEmail || '—' }} → {{ e.targetEmail || '—' }}</span>
         <span class="muted">{{ e.detail || '—' }}</span>
@@ -58,8 +72,30 @@
     </ng-template>
   </crm-data-view>
 
+  <div class="pager">
+    <span class="muted">{{ pageLabel() }}</span>
+    <div class="pager-actions">
+      <button
+        type="button"
+        class="btn secondary"
+        (click)="prevPage()"
+        [disabled]="store.loading() || store.pageIndex() <= 0"
+      >
+        {{ lang.t('prevPage') }}
+      </button>
+      <button
+        type="button"
+        class="btn secondary"
+        (click)="nextPage()"
+        [disabled]="store.loading() || store.pageIndex() + 1 >= store.pageCount()"
+      >
+        {{ lang.t('nextPage') }}
+      </button>
+    </div>
+  </div>
+
   @if (store.error()) {
-    <p class="error">{{ store.error() }}</p>
+    <p class="error">{{ errorText() }}</p>
   }
   @if (store.loading()) {
     <p>{{ lang.t('loading') }}</p>

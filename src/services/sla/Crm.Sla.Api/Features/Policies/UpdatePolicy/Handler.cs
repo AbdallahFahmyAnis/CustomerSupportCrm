@@ -1,18 +1,24 @@
+using Crm.BuildingBlocks.Audit;
 using Crm.Sla.Api.Domain;
 using Crm.Sla.Api.Features.Shared;
 using Crm.Sla.Api.Infrastructure;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Crm.Sla.Api.Features.Policies.UpdatePolicy;
 
-public sealed class UpdatePolicyHandler(SlaDb db)
+/// <summary>SDD CRM-017 / CRM-036 / specs/051.</summary>
+public sealed class UpdatePolicyHandler(
+    SlaDb db,
+    IdentityAuditClient audit,
+    IHttpContextAccessor http)
     : IRequestHandler<UpdatePolicyCommand, UpdatePolicyResponse>
 {
-    public Task<UpdatePolicyResponse> Handle(UpdatePolicyCommand request, CancellationToken cancellationToken)
+    public async Task<UpdatePolicyResponse> Handle(UpdatePolicyCommand request, CancellationToken cancellationToken)
     {
         if (!SlaCatalog.IsKnownPriority(request.Priority))
         {
-            return Task.FromResult(new UpdatePolicyResponse(null, "Unknown priority."));
+            return new UpdatePolicyResponse(null, "Unknown priority.");
         }
 
         try
@@ -25,11 +31,19 @@ public sealed class UpdatePolicyHandler(SlaDb db)
             }
 
             db.Upsert(policy);
-            return Task.FromResult(new UpdatePolicyResponse(SlaMap.Policy(policy), null));
+            await audit.WriteAsync(
+                AuditServices.Sla,
+                "SlaPolicyUpdated",
+                true,
+                AuditActor.Email(http),
+                request.Priority,
+                $"FR={request.FirstResponseMinutes}m RES={request.ResolutionMinutes}m",
+                cancellationToken);
+            return new UpdatePolicyResponse(SlaMap.Policy(policy), null);
         }
         catch (ArgumentException ex)
         {
-            return Task.FromResult(new UpdatePolicyResponse(null, ex.Message));
+            return new UpdatePolicyResponse(null, ex.Message);
         }
     }
 }

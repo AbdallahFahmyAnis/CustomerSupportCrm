@@ -215,7 +215,8 @@ public sealed class IdentityDataSeeder(
                 TargetUserId = adminId,
                 TargetEmail = "admin@crm.local",
                 Detail = "Seeded demo login",
-                Success = true
+                Success = true,
+                Service = AuditServices.Identity
             },
             new AuditLogEntry
             {
@@ -226,7 +227,8 @@ public sealed class IdentityDataSeeder(
                 ActorEmail = "admin@crm.local",
                 TargetEmail = "agent@crm.local",
                 Detail = "Role=Agent (seed)",
-                Success = true
+                Success = true,
+                Service = AuditServices.Identity
             });
         await db.SaveChangesAsync(cancellationToken);
     }

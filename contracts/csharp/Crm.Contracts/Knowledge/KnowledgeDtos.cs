@@ -6,7 +6,8 @@ public sealed record KnowledgeArticleSummaryDto(
     string Title,
     string Kind,
     string Status,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string Locale = "en");
 
 /// <summary>SDD CRM-021 — knowledge article detail.</summary>
 public sealed record KnowledgeArticleDetailDto(
@@ -17,19 +18,22 @@ public sealed record KnowledgeArticleDetailDto(
     string Status,
     string CreatedBy,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string Locale = "en");
 
 public sealed record CreateKnowledgeArticleRequest(
     string Title,
     string Body,
     string Kind,
-    string Status);
+    string Status,
+    string? Locale = null);
 
 public sealed record UpdateKnowledgeArticleRequest(
     string Title,
     string Body,
     string Kind,
-    string Status);
+    string Status,
+    string? Locale = null);
 
 /// <summary>SDD CRM-022 — ranked knowledge search hit.</summary>
 public sealed record KnowledgeSearchHitDto(
@@ -39,4 +43,5 @@ public sealed record KnowledgeSearchHitDto(
     string Status,
     int Score,
     string Snippet,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string Locale = "en");

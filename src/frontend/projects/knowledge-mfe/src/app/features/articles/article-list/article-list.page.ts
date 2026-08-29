@@ -1,12 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LanguageStore } from 'shared';
 import { ARTICLE_KINDS, ARTICLE_STATUSES } from '../articles.models';
 import { ArticlesStore } from '../articles.store';
 
-/** SDD CRM-021 — article list. */
+/** SDD CRM-021 — article list (locale from shell language). */
 @Component({
   selector: 'app-article-list-page',
   standalone: true,
@@ -44,12 +44,19 @@ export class ArticleListPage implements OnInit {
     };
   });
 
+  constructor() {
+    effect(() => {
+      const locale = this.lang.lang();
+      this.store.load(this.q, locale);
+    });
+  }
+
   ngOnInit(): void {
-    this.store.load();
+    this.store.load(this.q, this.lang.lang());
   }
 
   search(): void {
-    this.store.load(this.q);
+    this.store.load(this.q, this.lang.lang());
   }
 
   setKind(kind: string): void {

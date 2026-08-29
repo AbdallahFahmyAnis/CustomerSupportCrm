@@ -8,6 +8,7 @@ public sealed class Article
     public string Body { get; private set; } = "";
     public string Kind { get; private set; } = "";
     public string Status { get; private set; } = "";
+    public string Locale { get; private set; } = "en";
     public string CreatedBy { get; private set; } = "";
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -16,7 +17,13 @@ public sealed class Article
     {
     }
 
-    public static Article Create(string title, string body, string kind, string status, string createdBy)
+    public static Article Create(
+        string title,
+        string body,
+        string kind,
+        string status,
+        string createdBy,
+        string? locale = null)
     {
         Validate(title, body);
         var now = DateTimeOffset.UtcNow;
@@ -27,6 +34,7 @@ public sealed class Article
             Body = body.Trim(),
             Kind = KnowledgeCatalog.NormalizeKind(kind),
             Status = KnowledgeCatalog.NormalizeStatus(status),
+            Locale = KnowledgeCatalog.NormalizeLocale(locale),
             CreatedBy = string.IsNullOrWhiteSpace(createdBy) ? "System" : createdBy.Trim(),
             CreatedAt = now,
             UpdatedAt = now
@@ -41,25 +49,28 @@ public sealed class Article
         string status,
         string createdBy,
         DateTimeOffset createdAt,
-        DateTimeOffset updatedAt) => new()
+        DateTimeOffset updatedAt,
+        string? locale = null) => new()
     {
         Id = id,
         Title = title,
         Body = body,
         Kind = kind,
         Status = status,
+        Locale = KnowledgeCatalog.NormalizeLocale(locale),
         CreatedBy = createdBy,
         CreatedAt = createdAt,
         UpdatedAt = updatedAt
     };
 
-    public void Update(string title, string body, string kind, string status)
+    public void Update(string title, string body, string kind, string status, string? locale = null)
     {
         Validate(title, body);
         Title = title.Trim();
         Body = body.Trim();
         Kind = KnowledgeCatalog.NormalizeKind(kind);
         Status = KnowledgeCatalog.NormalizeStatus(status);
+        Locale = KnowledgeCatalog.NormalizeLocale(locale ?? Locale);
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

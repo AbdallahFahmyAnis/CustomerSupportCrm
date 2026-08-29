@@ -54,6 +54,15 @@
             </select>
           </label>
 
+          <label>
+            {{ lang.t('locale') }}
+            <select name="locale" [(ngModel)]="locale">
+              @for (l of locales; track l) {
+                <option [value]="l">{{ l === 'ar' ? lang.t('localeAr') : lang.t('localeEn') }}</option>
+              }
+            </select>
+          </label>
+
           <label class="full body">
             {{ lang.t('body') }}
             <textarea name="body" rows="14" [(ngModel)]="body" required #bodyCtrl="ngModel"></textarea>

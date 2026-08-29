@@ -7,31 +7,30 @@
 
 ## Purpose
 
-One place for everything that authenticates users, authorizes roles/permissions, and manages portal/staff accounts. Child slices stay as numbered `specs/NNN-slug` folders (SDD workflow); this file is the **feature map**.
+Authenticates users, authorizes roles/permissions, and manages portal/staff accounts. Story slices live under this folder.
 
 ## Stories in this feature
 
 | Story | Slice | Status | Summary |
 |---|---|---|---|
-| CRM-035 | [004-identity-admin](../004-identity-admin/spec.md) | Implemented | Users, roles, permissions, sign-in tokens |
-| CRM-035 / CRM-037 | [007-identity-ef-core](../007-identity-ef-core/spec.md) | Implemented | OpenIddict + ASP.NET Identity + EF Core |
-| CRM-036 | [011-audit-logs](../011-audit-logs/spec.md) | Implemented | Admin audit log list |
-| CRM-037 | [012-system-config](../012-system-config/spec.md) | Implemented | System settings + lockout policy |
-| CRM-043 | [038-departments-branches](../038-departments-branches/spec.md) | Implemented | Departments and branches |
-| CRM-044 | [039-custom-branding](../039-custom-branding/spec.md) | Implemented | Branding (Identity settings + shell) |
-| CRM-045 | [049-customer-register](../049-customer-register/spec.md) | Draft | Customer self-registration |
-| CRM-046 | [050-password-reset](../050-password-reset/spec.md) | Draft | Forgot password / password reset |
+| CRM-035 | [004-identity-admin](004-identity-admin/spec.md) | Implemented | Users, roles, permissions, sign-in tokens |
+| CRM-035 / CRM-037 | [007-identity-ef-core](007-identity-ef-core/spec.md) | Implemented | OpenIddict + ASP.NET Identity + EF Core |
+| CRM-036 | [011-audit-logs](011-audit-logs/spec.md) + [051-audit-cross-service](051-audit-cross-service/spec.md) | Implemented | Admin audit log; cross-service ingest + pagination |
+| CRM-037 | [012-system-config](012-system-config/spec.md) | Implemented | System settings + lockout policy |
+| CRM-043 | [038-departments-branches](038-departments-branches/spec.md) | Implemented | Departments and branches |
+| CRM-044 | [039-custom-branding](039-custom-branding/spec.md) | Implemented | Branding (Identity settings + shell) |
+| CRM-045 | [049-customer-register](049-customer-register/spec.md) | Implemented | Customer self-registration |
+| CRM-046 | [050-password-reset](050-password-reset/spec.md) | Implemented | Forgot password / password reset |
 
 ## Related but not owned here
 
-- `006-data-platform` — SQL Server/Postgres engines Identity uses  
-- Portal submit/track (`005`, `027`–`030`) — consume Customer sessions after Identity login  
-- Channels SendGrid (`016` / `009`) — delivery for reset emails when configured  
+- `platform/006-data-platform` — SQL engines Identity uses  
+- Portal submit/track (`channels/005`) — consume Customer sessions after Identity login  
+- Channels SendGrid (`channels/016` / `009`) — delivery for reset emails when configured  
 
 ## Active draft order
 
-1. **CRM-045** — register (`049`)  
-2. **CRM-046** — password reset (`050`)  
+_(none — CRM-045 / CRM-046 shipped)_
 
 ## Conventions
 

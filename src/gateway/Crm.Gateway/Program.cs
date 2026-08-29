@@ -168,6 +168,62 @@ app.MapPost("/login", async (DevLoginRequest request, HttpContext http, IHttpCli
     return Results.Ok(tokens.User);
 });
 
+app.MapPost("/register", async (RegisterCustomerRequest request, HttpContext http, IHttpClientFactory httpFactory, IConfiguration config) =>
+{
+    var client = httpFactory.CreateClient("downstream");
+    var identity = config["Services:Identity"] ?? "http://localhost:5101";
+    using var response = await client.PostAsJsonAsync($"{identity.TrimEnd('/')}/api/identity/register", request);
+    if (!response.IsSuccessStatusCode)
+    {
+        var err = await response.Content.ReadAsStringAsync();
+        return Results.Json(
+            string.IsNullOrWhiteSpace(err) ? new { error = "Registration failed." } : JsonSerializer.Deserialize<object>(err),
+            statusCode: (int)response.StatusCode);
+    }
+
+    var tokens = await response.Content.ReadFromJsonAsync<TokenResponseDto>(jsonOpts);
+    if (tokens?.User is null)
+    {
+        return Results.BadRequest(new { error = "Registration failed." });
+    }
+
+    var claims = new List<Claim>
+    {
+        new(ClaimTypes.NameIdentifier, tokens.User.Id),
+        new(ClaimTypes.Name, tokens.User.Name),
+        new(ClaimTypes.Email, tokens.User.Email),
+        new(ClaimTypes.Role, tokens.User.Role)
+    };
+    await http.SignInAsync(
+        CookieAuthenticationDefaults.AuthenticationScheme,
+        new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
+
+    http.Response.Cookies.Append(AccessCookie, tokens.AccessToken, TokenCookieOptions(tokens.AccessTokenExpiresAt));
+    http.Response.Cookies.Append(RefreshCookie, tokens.RefreshToken, TokenCookieOptions(tokens.RefreshTokenExpiresAt));
+
+    // Best-effort Customers profile (UniqueIdentifier = email). Ignore conflicts.
+    try
+    {
+        var customers = config["Services:Customers"] ?? "http://localhost:5102";
+        using var createCustomer = await client.PostAsJsonAsync(
+            $"{customers.TrimEnd('/')}/api/customers",
+            new
+            {
+                displayName = request.DisplayName,
+                uniqueIdentifier = request.Email.Trim().ToLowerInvariant(),
+                organization = (string?)null,
+                status = "Active"
+            });
+        _ = createCustomer;
+    }
+    catch
+    {
+        // never brick register if Customers is down
+    }
+
+    return Results.Ok(tokens.User);
+});
+
 app.MapPost("/api/auth/refresh", async (HttpContext http, IHttpClientFactory httpFactory, IConfiguration config) =>
 {
     if (!http.Request.Cookies.TryGetValue(RefreshCookie, out var refresh) || string.IsNullOrWhiteSpace(refresh))

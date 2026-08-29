@@ -91,6 +91,7 @@
           <div class="article-card__badges">
             <span class="badge badge-kind" [attr.data-kind]="a.kind.toLowerCase()">{{ a.kind }}</span>
             <span class="badge badge-status" [attr.data-status]="a.status.toLowerCase()">{{ a.status }}</span>
+            <span class="badge">{{ (a.locale || 'en') === 'ar' ? lang.t('localeAr') : lang.t('localeEn') }}</span>
           </div>
           <h2>{{ excerpt(a.title) }}</h2>
           <p class="article-card__meta">

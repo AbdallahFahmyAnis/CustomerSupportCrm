@@ -22,6 +22,13 @@ public static class DependencyInjection
         }, ServiceLifetime.Singleton);
 
         services.AddSingleton<TicketsDb>();
+        services.AddHttpContextAccessor();
+        services.AddHttpClient<Crm.BuildingBlocks.Audit.IdentityAuditClient>((sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var baseUrl = config["Services:Identity"] ?? "http://localhost:5101";
+            client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+        });
         services.AddHttpClient<SlaAutomationClient>((sp, client) =>
         {
             var config = sp.GetRequiredService<IConfiguration>();

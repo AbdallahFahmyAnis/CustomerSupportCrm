@@ -1,12 +1,19 @@
+using Crm.BuildingBlocks.Audit;
 using Crm.Tickets.Api.Domain;
 using Crm.Tickets.Api.Features.Shared;
 using Crm.Tickets.Api.Infrastructure;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Crm.Tickets.Api.Features.Tickets.CreateTicket;
 
-/// <summary>SDD CRM-004 / CRM-018 / CRM-039 — create ticket and auto-assign when SLA suggests.</summary>
-public sealed class CreateTicketHandler(TicketsDb db, SlaAutomationClient sla, ErpWebhookNotifier erp)
+/// <summary>SDD CRM-004 / CRM-018 / CRM-039 / CRM-036 / specs/051.</summary>
+public sealed class CreateTicketHandler(
+    TicketsDb db,
+    SlaAutomationClient sla,
+    ErpWebhookNotifier erp,
+    IdentityAuditClient audit,
+    IHttpContextAccessor http)
     : IRequestHandler<CreateTicketCommand, CreateTicketResponse>
 {
     public async Task<CreateTicketResponse> Handle(CreateTicketCommand request, CancellationToken cancellationToken)
@@ -37,6 +44,14 @@ public sealed class CreateTicketHandler(TicketsDb db, SlaAutomationClient sla, E
             }
 
             await erp.NotifyTicketCreatedAsync(ticket, cancellationToken);
+            await audit.WriteAsync(
+                AuditServices.Tickets,
+                "TicketCreated",
+                true,
+                AuditActor.Email(http) ?? request.Actor,
+                ticket.TicketNumber,
+                ticket.Subject,
+                cancellationToken);
 
             return new CreateTicketResponse(TicketMap.Summary(ticket), null);
         }

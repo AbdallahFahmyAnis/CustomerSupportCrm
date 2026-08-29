@@ -3,7 +3,7 @@ import { Component, OnInit, effect, inject } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormFeedbackStore, LanguageStore } from 'shared';
-import { ARTICLE_KINDS, ARTICLE_STATUSES } from '../articles.models';
+import { ARTICLE_KINDS, ARTICLE_LOCALES, ARTICLE_STATUSES } from '../articles.models';
 import { ArticlesStore } from '../articles.store';
 
 /** SDD CRM-021 — create / edit article. */
@@ -23,12 +23,14 @@ export class ArticleEditPage implements OnInit {
 
   readonly kinds = ARTICLE_KINDS;
   readonly statuses = ARTICLE_STATUSES;
+  readonly locales = ARTICLE_LOCALES;
 
   id = '';
   title = '';
   body = '';
   kind = 'Faq';
   status = 'Draft';
+  locale: 'en' | 'ar' = 'en';
   isNew = true;
 
   constructor() {
@@ -41,13 +43,16 @@ export class ArticleEditPage implements OnInit {
       this.body = row.body;
       this.kind = row.kind;
       this.status = row.status;
+      this.locale = row.locale === 'ar' ? 'ar' : 'en';
     });
   }
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id') ?? '';
     this.isNew = !this.id || this.route.snapshot.routeConfig?.path === 'new';
-    if (!this.isNew) {
+    if (this.isNew) {
+      this.locale = this.lang.lang() === 'ar' ? 'ar' : 'en';
+    } else {
       this.store.loadDetail(this.id);
     }
   }
@@ -62,6 +67,7 @@ export class ArticleEditPage implements OnInit {
       body: this.body.trim(),
       kind: this.kind,
       status: this.status,
+      locale: this.locale,
     };
     if (this.isNew) {
       this.store.create(

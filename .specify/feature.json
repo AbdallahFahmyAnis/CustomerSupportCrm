@@ -1,4 +1,4 @@
 {
-  "feature_directory": "specs/050-password-reset",
+  "feature_directory": "specs/identity/050-password-reset",
   "feature_family": "specs/identity"
 }

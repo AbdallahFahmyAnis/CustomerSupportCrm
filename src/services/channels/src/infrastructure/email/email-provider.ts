@@ -10,7 +10,7 @@ export interface OutboundEmailPayload {
   to: string;
   subject: string;
   body: string;
-  ticketId: string;
+  ticketId?: string;
 }
 
 export interface EmailProvider {

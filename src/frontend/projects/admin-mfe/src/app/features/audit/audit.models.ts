@@ -6,4 +6,13 @@ export interface AuditLogEntry {
   targetEmail: string | null;
   detail: string | null;
   success: boolean;
+  service?: string;
+}
+
+/** SDD CRM-036 / specs/051 */
+export interface AuditLogPage {
+  items: AuditLogEntry[];
+  total: number;
+  skip: number;
+  take: number;
 }

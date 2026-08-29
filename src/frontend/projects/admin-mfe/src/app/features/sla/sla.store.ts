@@ -32,7 +32,7 @@ export class SlaStore {
         done();
       },
       error: () => {
-        this.error.set('Could not load SLA policies.');
+        this.error.set('slaLoadFailed');
         done();
       },
     });
@@ -42,7 +42,7 @@ export class SlaStore {
         done();
       },
       error: () => {
-        this.error.set('Could not load assign rules.');
+        this.error.set('slaLoadFailed');
         done();
       },
     });
@@ -52,7 +52,7 @@ export class SlaStore {
         done();
       },
       error: () => {
-        this.error.set('Could not load escalation settings.');
+        this.error.set('slaLoadFailed');
         done();
       },
     });
@@ -69,7 +69,7 @@ export class SlaStore {
         this.saved.set(true);
       },
       error: (err) => {
-        this.error.set(err?.error?.error ?? 'Save failed.');
+        this.error.set(err?.error?.error ?? 'saveFailed');
         this.saving.set(false);
       },
     });
@@ -86,7 +86,7 @@ export class SlaStore {
         this.saved.set(true);
       },
       error: (err) => {
-        this.error.set(err?.error?.error ?? 'Assign rules save failed.');
+        this.error.set(err?.error?.error ?? 'slaRulesSaveFailed');
         this.saving.set(false);
       },
     });
@@ -103,7 +103,7 @@ export class SlaStore {
         this.saved.set(true);
       },
       error: (err) => {
-        this.error.set(err?.error?.error ?? 'Escalation save failed.');
+        this.error.set(err?.error?.error ?? 'slaEscalationSaveFailed');
         this.saving.set(false);
       },
     });

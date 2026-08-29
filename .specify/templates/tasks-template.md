@@ -1,6 +1,6 @@
 # Tasks: [FEATURE NAME]
 
-**Input**: `specs/[###-feature-name]/`
+**Input**: `specs/<hub>/[###-feature-name]/`
 
 ## Format
 

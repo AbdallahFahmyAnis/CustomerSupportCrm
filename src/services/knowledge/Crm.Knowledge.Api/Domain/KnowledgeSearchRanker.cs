@@ -41,7 +41,8 @@ public static class KnowledgeSearchRanker
             article.Status,
             score,
             BuildSnippet(article, term, titleHit, bodyHit),
-            article.UpdatedAt);
+            article.UpdatedAt,
+            article.Locale);
     }
 
     private static string BuildSnippet(Article article, string term, bool titleHit, bool bodyHit)
@@ -85,4 +86,5 @@ public sealed record KnowledgeSearchHit(
     string Status,
     int Score,
     string Snippet,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string Locale = "en");

@@ -1,13 +1,19 @@
+using Crm.BuildingBlocks.Audit;
 using Crm.Sla.Api.Features.Shared;
 using Crm.Sla.Api.Infrastructure;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Crm.Sla.Api.Features.Escalate.UpdateEscalationSettings;
 
-public sealed class UpdateEscalationSettingsHandler(SlaDb db)
+/// <summary>SDD CRM-019 / CRM-036 / specs/051.</summary>
+public sealed class UpdateEscalationSettingsHandler(
+    SlaDb db,
+    IdentityAuditClient audit,
+    IHttpContextAccessor http)
     : IRequestHandler<UpdateEscalationSettingsCommand, UpdateEscalationSettingsResponse>
 {
-    public Task<UpdateEscalationSettingsResponse> Handle(
+    public async Task<UpdateEscalationSettingsResponse> Handle(
         UpdateEscalationSettingsCommand request,
         CancellationToken cancellationToken)
     {
@@ -21,11 +27,19 @@ public sealed class UpdateEscalationSettingsHandler(SlaDb db)
                 request.AssignToAgentId,
                 request.AssignToAgentName);
             db.SaveEscalationSettings(settings);
-            return Task.FromResult(new UpdateEscalationSettingsResponse(SlaMap.Escalation(settings), null));
+            await audit.WriteAsync(
+                AuditServices.Sla,
+                "SlaEscalationUpdated",
+                true,
+                AuditActor.Email(http),
+                request.AssignToAgentName,
+                "Escalation settings saved",
+                cancellationToken);
+            return new UpdateEscalationSettingsResponse(SlaMap.Escalation(settings), null);
         }
         catch (ArgumentException ex)
         {
-            return Task.FromResult(new UpdateEscalationSettingsResponse(null, ex.Message));
+            return new UpdateEscalationSettingsResponse(null, ex.Message);
         }
     }
 }

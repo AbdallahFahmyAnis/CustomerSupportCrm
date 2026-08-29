@@ -14,7 +14,7 @@ public sealed class ListPortalFaqsHandler(KnowledgeDb db)
         CancellationToken cancellationToken)
     {
         IReadOnlyList<KnowledgeArticleSummaryDto> items =
-            db.ListPortalFaqs(request.Q).Select(KnowledgeMap.Summary).ToList();
+            db.ListPortalFaqs(request.Q, request.Locale).Select(KnowledgeMap.Summary).ToList();
         return Task.FromResult(items);
     }
 }

@@ -38,6 +38,12 @@
         <button type="submit" class="btn">{{ lang.t('signIn') }}</button>
       </form>
 
+      <p class="auth-links">
+        <a routerLink="/register">{{ lang.t('createAccount') }}</a>
+        ·
+        <a routerLink="/forgot-password">{{ lang.t('forgotPassword') }}</a>
+      </p>
+
       <div class="demo-accounts">
         <p class="demo-label">{{ lang.t('demoAccounts') }}</p>
         <button type="button" class="demo-chip" (click)="useDemo('customer')">

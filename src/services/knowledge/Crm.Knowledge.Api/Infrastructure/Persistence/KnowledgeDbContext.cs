@@ -17,6 +17,7 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             e.Property(x => x.Body).IsRequired();
             e.Property(x => x.Kind).HasMaxLength(50).IsRequired();
             e.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            e.Property(x => x.Locale).HasMaxLength(8).IsRequired();
             e.Property(x => x.CreatedBy).HasMaxLength(200).IsRequired();
         });
     }
@@ -29,6 +30,7 @@ public sealed class ArticleRow
     public string Body { get; set; } = "";
     public string Kind { get; set; } = "";
     public string Status { get; set; } = "";
+    public string Locale { get; set; } = "en";
     public string CreatedBy { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

@@ -26,7 +26,7 @@ public sealed class IdentityDirectory(
         await EnsureUserOrgColumnsAsync(cancellationToken);
     }
 
-    /// <summary>SDD CRM-036 — EnsureCreated will not add tables to an existing DB.</summary>
+    /// <summary>SDD CRM-036 / specs/051 — EnsureCreated will not add tables to an existing DB.</summary>
     private async Task EnsureAuditTableAsync(CancellationToken cancellationToken)
     {
         if (db.Database.IsSqlite())
@@ -42,10 +42,22 @@ public sealed class IdentityDirectory(
                     "TargetUserId" TEXT NULL,
                     "TargetEmail" TEXT NULL,
                     "Detail" TEXT NULL,
-                    "Success" INTEGER NOT NULL
+                    "Success" INTEGER NOT NULL,
+                    "Service" TEXT NOT NULL DEFAULT 'Identity'
                 );
                 """,
                 cancellationToken);
+            try
+            {
+                await db.Database.ExecuteSqlRawAsync(
+                    """ALTER TABLE "AuditLogs" ADD COLUMN "Service" TEXT NOT NULL DEFAULT 'Identity';""",
+                    cancellationToken);
+            }
+            catch
+            {
+                // column exists
+            }
+
             return;
         }
 
@@ -62,9 +74,17 @@ public sealed class IdentityDirectory(
                 [TargetUserId] uniqueidentifier NULL,
                 [TargetEmail] nvarchar(256) NULL,
                 [Detail] nvarchar(1000) NULL,
-                [Success] bit NOT NULL
+                [Success] bit NOT NULL,
+                [Service] nvarchar(64) NOT NULL CONSTRAINT [DF_AuditLogs_Service] DEFAULT N'Identity'
               );
             END
+            """,
+            cancellationToken);
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            IF COL_LENGTH(N'AuditLogs', N'Service') IS NULL
+              ALTER TABLE [AuditLogs] ADD [Service] nvarchar(64) NOT NULL
+                CONSTRAINT [DF_AuditLogs_Service] DEFAULT N'Identity';
             """,
             cancellationToken);
     }
@@ -468,7 +488,8 @@ public sealed class IdentityDirectory(
         Guid? targetUserId,
         string? targetEmail,
         string? detail,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        string? service = null)
     {
         db.AuditLogs.Add(new AuditLogEntry
         {
@@ -480,9 +501,45 @@ public sealed class IdentityDirectory(
             TargetUserId = targetUserId,
             TargetEmail = targetEmail,
             Detail = detail,
-            Success = success
+            Success = success,
+            Service = string.IsNullOrWhiteSpace(service) ? AuditServices.Identity : service.Trim()
         });
         await db.SaveChangesAsync(ct);
+    }
+
+    public async Task<(IReadOnlyList<AuditLogEntry> Items, int Total)> SearchAuditPageAsync(
+        string? q,
+        string? service,
+        int skip,
+        int take,
+        CancellationToken ct = default)
+    {
+        take = Math.Clamp(take, 1, 100);
+        skip = Math.Max(0, skip);
+        var query = db.AuditLogs.AsNoTracking().AsQueryable();
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = q.Trim().ToLowerInvariant();
+            query = query.Where(e =>
+                e.Action.ToLower().Contains(term) ||
+                e.Service.ToLower().Contains(term) ||
+                (e.ActorEmail != null && e.ActorEmail.ToLower().Contains(term)) ||
+                (e.TargetEmail != null && e.TargetEmail.ToLower().Contains(term)) ||
+                (e.Detail != null && e.Detail.ToLower().Contains(term)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(service))
+        {
+            var svc = service.Trim().ToLowerInvariant();
+            query = query.Where(e => e.Service.ToLower() == svc);
+        }
+
+        // Sqlite cannot ORDER BY DateTimeOffset reliably — materialize then page in memory (demo scale).
+        var rows = await query.ToListAsync(ct);
+        var ordered = rows.OrderByDescending(e => e.OccurredAt).ToList();
+        var total = ordered.Count;
+        var page = ordered.Skip(skip).Take(take).ToList();
+        return (page, total);
     }
 
     public async Task<IReadOnlyList<AuditLogEntry>> SearchAuditAsync(
@@ -490,24 +547,8 @@ public sealed class IdentityDirectory(
         int take,
         CancellationToken ct = default)
     {
-        take = Math.Clamp(take, 1, 500);
-        var query = db.AuditLogs.AsNoTracking().AsQueryable();
-        if (!string.IsNullOrWhiteSpace(q))
-        {
-            var term = q.Trim().ToLowerInvariant();
-            query = query.Where(e =>
-                e.Action.ToLower().Contains(term) ||
-                (e.ActorEmail != null && e.ActorEmail.ToLower().Contains(term)) ||
-                (e.TargetEmail != null && e.TargetEmail.ToLower().Contains(term)) ||
-                (e.Detail != null && e.Detail.ToLower().Contains(term)));
-        }
-
-        // Sqlite cannot ORDER BY DateTimeOffset — sort in memory after materialize.
-        var rows = await query.Take(take * 4).ToListAsync(ct);
-        return rows
-            .OrderByDescending(e => e.OccurredAt)
-            .Take(take)
-            .ToList();
+        var (items, _) = await SearchAuditPageAsync(q, null, 0, take, ct);
+        return items;
     }
 
     public async Task<int> CountAuditAsync(CancellationToken ct = default)
@@ -964,6 +1005,52 @@ public sealed class IdentityDirectory(
             accessExp,
             refresh.ExpiresAt,
             new DevUserDto(user.Id.ToString(), user.Email, user.DisplayName, user.Role));
+    }
+
+    /// <summary>SDD CRM-046 — ASP.NET Identity password-reset token (null if no active user).</summary>
+    public async Task<string?> CreatePasswordResetTokenAsync(string email, CancellationToken ct = default)
+    {
+        email = email.Trim().ToLowerInvariant();
+        var entity = await users.FindByEmailAsync(email);
+        if (entity is null || !entity.IsActive)
+        {
+            return null;
+        }
+
+        return await users.GeneratePasswordResetTokenAsync(entity);
+    }
+
+    /// <summary>SDD CRM-046 — consume reset token; returns error message or null on success.</summary>
+    public async Task<string?> ResetPasswordWithTokenAsync(
+        string email,
+        string token,
+        string newPassword,
+        CancellationToken ct = default)
+    {
+        email = email.Trim().ToLowerInvariant();
+        var entity = await users.FindByEmailAsync(email);
+        if (entity is null || !entity.IsActive)
+        {
+            return "Invalid or expired reset token.";
+        }
+
+        var result = await users.ResetPasswordAsync(entity, token, newPassword);
+        if (!result.Succeeded)
+        {
+            var desc = string.Join("; ", result.Errors.Select(e => e.Description));
+            if (desc.Contains("Invalid token", StringComparison.OrdinalIgnoreCase) ||
+                desc.Contains("InvalidToken", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Invalid or expired reset token.";
+            }
+
+            return string.IsNullOrWhiteSpace(desc) ? "Password reset failed." : desc;
+        }
+
+        entity.LockoutEnd = null;
+        await users.ResetAccessFailedCountAsync(entity);
+        await users.UpdateAsync(entity);
+        return null;
     }
 
     private async Task<UserAccount> ToAccountAsync(ApplicationUser entity)

@@ -9,6 +9,7 @@ public sealed record CreateArticleCommand(
     string Body,
     string Kind,
     string Status,
-    string Actor) : IRequest<CreateArticleResponse>;
+    string Actor,
+    string? Locale = null) : IRequest<CreateArticleResponse>;
 
 public sealed record CreateArticleResponse(KnowledgeArticleDetailDto? Article, string? Error);

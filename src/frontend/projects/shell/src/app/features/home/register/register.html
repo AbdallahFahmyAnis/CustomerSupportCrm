@@ -1,0 +1,75 @@
+<div class="auth-basic">
+  <section class="auth-panel">
+    <img class="logo" src="/brand/azm-squad.png" alt="AZM Squad" width="160" height="160" />
+    <h1>{{ lang.t('createAccount') }}</h1>
+    <p class="lead">{{ lang.t('registerLead') }}</p>
+
+    <form class="auth-form" #f="ngForm" (ngSubmit)="submit(f)">
+      <label>
+        {{ lang.t('displayName') }}
+        <input
+          name="displayName"
+          [(ngModel)]="displayName"
+          required
+          autocomplete="name"
+          #nameCtrl="ngModel"
+        />
+        @if (f.submitted && nameCtrl.invalid) {
+          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+        }
+      </label>
+      <label>
+        {{ lang.t('email') }}
+        <input
+          name="email"
+          type="email"
+          [(ngModel)]="email"
+          required
+          autocomplete="username"
+          #emailCtrl="ngModel"
+        />
+        @if (f.submitted && emailCtrl.invalid) {
+          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+        }
+      </label>
+      <label>
+        {{ lang.t('password') }}
+        <input
+          name="password"
+          type="password"
+          [(ngModel)]="password"
+          required
+          minlength="6"
+          autocomplete="new-password"
+          #passwordCtrl="ngModel"
+        />
+        @if (f.submitted && passwordCtrl.invalid) {
+          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+        }
+      </label>
+      <label>
+        {{ lang.t('confirmPassword') }}
+        <input
+          name="confirmPassword"
+          type="password"
+          [(ngModel)]="confirmPassword"
+          required
+          autocomplete="new-password"
+          #confirmCtrl="ngModel"
+        />
+        @if (f.submitted && confirmCtrl.invalid) {
+          <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+        }
+      </label>
+      <button type="submit" class="btn" [disabled]="saving">
+        {{ saving ? lang.t('saving') : lang.t('createAccount') }}
+      </button>
+    </form>
+
+    <p class="auth-links">
+      <a routerLink="/login">{{ lang.t('alreadyHaveAccount') }}</a>
+      ·
+      <a routerLink="/forgot-password">{{ lang.t('forgotPassword') }}</a>
+    </p>
+  </section>
+</div>

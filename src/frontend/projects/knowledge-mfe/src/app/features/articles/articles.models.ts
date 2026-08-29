@@ -5,6 +5,7 @@ export interface ArticleSummary {
   kind: string;
   status: string;
   updatedAt: string;
+  locale?: string;
 }
 
 export interface ArticleDetail extends ArticleSummary {
@@ -15,6 +16,7 @@ export interface ArticleDetail extends ArticleSummary {
 
 export const ARTICLE_KINDS = ['Faq', 'Article', 'Solution', 'Guide'] as const;
 export const ARTICLE_STATUSES = ['Draft', 'Published'] as const;
+export const ARTICLE_LOCALES = ['en', 'ar'] as const;
 
 /** SDD CRM-022 — ranked search hit. */
 export interface KnowledgeSearchHit {
@@ -25,4 +27,5 @@ export interface KnowledgeSearchHit {
   score: number;
   snippet: string;
   updatedAt: string;
+  locale?: string;
 }

@@ -5,6 +5,7 @@ public static class KnowledgeCatalog
 {
     public static readonly string[] Kinds = ["Faq", "Article", "Solution", "Guide"];
     public static readonly string[] Statuses = ["Draft", "Published"];
+    public static readonly string[] Locales = ["en", "ar"];
 
     public static string NormalizeKind(string kind)
     {
@@ -26,5 +27,16 @@ public static class KnowledgeCatalog
         }
 
         return match;
+    }
+
+    public static string NormalizeLocale(string? locale)
+    {
+        if (string.IsNullOrWhiteSpace(locale))
+        {
+            return "en";
+        }
+
+        var match = Locales.FirstOrDefault(l => l.Equals(locale.Trim(), StringComparison.OrdinalIgnoreCase));
+        return match ?? "en";
     }
 }

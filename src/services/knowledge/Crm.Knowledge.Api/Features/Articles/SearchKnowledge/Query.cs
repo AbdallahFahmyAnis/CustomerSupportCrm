@@ -8,6 +8,7 @@ public sealed record SearchKnowledgeQuery(
     string Q,
     string? Kind,
     string? Status,
-    bool PublishedOnly) : IRequest<SearchKnowledgeResponse>;
+    bool PublishedOnly,
+    string? Locale = null) : IRequest<SearchKnowledgeResponse>;
 
 public sealed record SearchKnowledgeResponse(IReadOnlyList<KnowledgeSearchHitDto>? Hits, string? Error);

@@ -7,6 +7,21 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', component: HomePage },
   { path: 'login', component: HomePage },
   {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/home/register/register.page').then((m) => m.RegisterPage),
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/home/forgot-password/forgot-password.page').then((m) => m.ForgotPasswordPage),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/home/reset-password/reset-password.page').then((m) => m.ResetPasswordPage),
+  },
+  {
     path: 'agent',
     canActivate: [authGuard, agentRoleGuard],
     loadChildren: () =>

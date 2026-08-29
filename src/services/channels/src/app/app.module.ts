@@ -37,6 +37,7 @@ import { ReplyChatService } from '../features/messages/reply-chat/service';
 import { ReplySmsRoute } from '../features/messages/reply-sms/route';
 import { ReplySmsHandler } from '../features/messages/reply-sms/handler';
 import { ReplySmsService } from '../features/messages/reply-sms/service';
+import { SendMailRoute } from '../features/mail/send-mail/route';
 import { ChannelsStore } from '../infrastructure/database/channels.store';
 import { DownstreamClient } from '../infrastructure/http/downstream.client';
 import { DevEmailProvider } from '../infrastructure/email/dev-email.provider';
@@ -75,6 +76,7 @@ import {
     ReplyWhatsAppRoute,
     ReplyChatRoute,
     ReplySmsRoute,
+    SendMailRoute,
   ],
   providers: [
     GetHealthHandler,
