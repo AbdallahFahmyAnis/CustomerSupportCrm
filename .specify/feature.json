@@ -1,4 +1,5 @@
 {
-  "feature_directory": "specs/001-identity/050-password-reset",
-  "feature_family": "specs/001-identity"
+  "feature_directory": "specs/010-portal/053-feedback-read-only",
+  "feature_family": "specs/010-portal"
 }
+

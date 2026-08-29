@@ -15,7 +15,7 @@ Authenticates users, authorizes roles/permissions, and manages portal/staff acco
 |---|---|---|---|
 | CRM-035 | [004-identity-admin](004-identity-admin/spec.md) | Implemented | Users, roles, permissions, sign-in tokens |
 | CRM-035 / CRM-037 | [007-identity-ef-core](007-identity-ef-core/spec.md) | Implemented | OpenIddict + ASP.NET Identity + EF Core |
-| CRM-036 | [011-audit-logs](011-audit-logs/spec.md) + [051-audit-cross-service](051-audit-cross-service/spec.md) | Implemented | Admin audit log; cross-service ingest + pagination |
+| CRM-036 | [011-audit-logs](011-audit-logs/spec.md) + [051-audit-cross-service](051-audit-cross-service/spec.md) + [052-audit-detail](052-audit-detail/spec.md) | Implemented | Admin audit log; cross-service ingest; detail page |
 | CRM-037 | [012-system-config](012-system-config/spec.md) | Implemented | System settings + lockout policy |
 | CRM-043 | [038-departments-branches](038-departments-branches/spec.md) | Implemented | Departments and branches |
 | CRM-044 | [039-custom-branding](039-custom-branding/spec.md) | Implemented | Branding (Identity settings + shell) |

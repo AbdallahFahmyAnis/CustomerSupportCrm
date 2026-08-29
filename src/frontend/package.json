@@ -10,7 +10,11 @@
     "start:knowledge": "ng serve knowledge-mfe --port 4204",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:shared": "ng test shared --watch=false --browsers=ChromeHeadless",
+    "test:shell": "ng test shell --watch=false --browsers=ChromeHeadless",
+    "test:portal": "ng test portal-mfe --watch=false --browsers=ChromeHeadless",
+    "test:ci": "npm run test:shared && npm run test:shell && npm run test:portal"
   },
   "private": true,
   "dependencies": {

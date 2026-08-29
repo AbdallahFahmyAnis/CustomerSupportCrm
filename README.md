@@ -164,7 +164,16 @@ Angular / Nest use the same ids in a file header or `/** SDD CRM-nnn */` comment
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1
 ```
 
-Wait ~1–2 minutes, then open [http://localhost:5000](http://localhost:5000).
+Wait ~1–2 minutes, then open [http://localhost:5000](http://localhost:5000) (always use the **gateway**, not shell `:4200` alone — MFE remotes load via the gateway).
+
+Verify remotes: `powershell -File scripts/preflight.ps1`
+
+### Frontend unit tests
+
+```bash
+cd src/frontend
+npm run test:ci    # shared + shell + portal (headless)
+```
 
 | Role | Email | Password |
 |---|---|---|
@@ -187,6 +196,7 @@ src/
 specs/                     ← SDD contracts
 docs/                      ← architecture + HLD + UAT
 scripts/dev.ps1            ← start everything
+scripts/preflight.ps1      ← verify gateway + MFE remotes
 ```
 
 ---

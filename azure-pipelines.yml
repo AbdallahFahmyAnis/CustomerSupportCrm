@@ -99,3 +99,18 @@ stages:
             env:
               ConnectionStrings__Identity: $(ConnectionStrings__Identity)
               CRM_IDENTITY_PROVIDER: $(CRM_IDENTITY_PROVIDER)
+
+      - job: Frontend
+        displayName: Angular unit tests (shared, shell, portal)
+        steps:
+          - task: NodeTool@0
+            displayName: Use Node 20
+            inputs:
+              versionSpec: "20.x"
+
+          - bash: |
+              set -e
+              cd src/frontend
+              npm ci
+              npm run test:ci
+            displayName: npm test:ci
