@@ -478,6 +478,7 @@ export const EN = {
   requestThanks: 'Thanks — your support ticket was created.',
   newSupportRequest: 'New support request',
   newSupportRequestHint: 'Tell us how we can help — name, email, and message.',
+  newSupportRequestSignedInHint: 'Tell us how we can help — we use your signed-in account.',
   trackRequestsLead: 'Enter the email you used when submitting.',
   trackRequestsSignedInLead: 'Showing support requests for your signed-in account.',
   rateAfterChat: 'Done chatting? Rate this support experience.',

@@ -40,41 +40,54 @@
         <div class="avatar">S</div>
         <div class="meta">
           <strong>{{ lang.t('newSupportRequest') }}</strong>
-          <p>{{ lang.t('newSupportRequestHint') }}</p>
+          <p>
+            {{
+              signedInCustomer
+                ? lang.t('newSupportRequestSignedInHint')
+                : lang.t('newSupportRequestHint')
+            }}
+          </p>
         </div>
       </div>
 
       <form class="settings-form" #f="ngForm" (ngSubmit)="onSubmit(f)">
+        @if (signedInCustomer) {
+          <div class="signed-in-bar">
+            <span class="muted">{{ lang.t('signedInAs') }} <strong>{{ email }}</strong></span>
+          </div>
+        }
         <div class="settings-form-grid">
-          <label>
-            {{ lang.t('name') }}
-            <input
-              name="name"
-              [(ngModel)]="name"
-              required
-              autocomplete="name"
-              [placeholder]="lang.t('phYourName')"
-              #nameCtrl="ngModel"
-            />
-            @if (f.submitted && nameCtrl.invalid) {
-              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
-            }
-          </label>
-          <label>
-            {{ lang.t('email') }}
-            <input
-              name="email"
-              type="email"
-              [(ngModel)]="email"
-              required
-              autocomplete="email"
-              [placeholder]="lang.t('phYouEmail')"
-              #emailCtrl="ngModel"
-            />
-            @if (f.submitted && emailCtrl.invalid) {
-              <span class="field-error">{{ lang.t('fieldRequired') }}</span>
-            }
-          </label>
+          @if (!signedInCustomer) {
+            <label>
+              {{ lang.t('name') }}
+              <input
+                name="name"
+                [(ngModel)]="name"
+                required
+                autocomplete="name"
+                [placeholder]="lang.t('phYourName')"
+                #nameCtrl="ngModel"
+              />
+              @if (f.submitted && nameCtrl.invalid) {
+                <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+              }
+            </label>
+            <label>
+              {{ lang.t('email') }}
+              <input
+                name="email"
+                type="email"
+                [(ngModel)]="email"
+                required
+                autocomplete="email"
+                [placeholder]="lang.t('phYouEmail')"
+                #emailCtrl="ngModel"
+              />
+              @if (f.submitted && emailCtrl.invalid) {
+                <span class="field-error">{{ lang.t('fieldRequired') }}</span>
+              }
+            </label>
+          }
           <label class="full">
             {{ lang.t('subject') }}
             <input

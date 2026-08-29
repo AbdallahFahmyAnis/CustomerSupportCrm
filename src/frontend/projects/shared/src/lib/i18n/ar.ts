@@ -471,6 +471,7 @@ export const AR: Record<MessageKey, string> = {
   requestThanks: 'شكرًا لك — تم إنشاء طلب الدعم.',
   newSupportRequest: 'طلب دعم جديد',
   newSupportRequestHint: 'أخبرنا كيف نساعدك — الاسم والبريد والرسالة.',
+  newSupportRequestSignedInHint: 'أخبرنا كيف نساعدك — نستخدم حسابك المسجّل.',
   trackRequestsLead: 'أدخل البريد الذي استخدمته عند التقديم.',
   trackRequestsSignedInLead: 'عرض طلبات الدعم لحسابك المسجّل.',
   rateAfterChat: 'انتهت المحادثة؟ قيّم تجربة الدعم.',
