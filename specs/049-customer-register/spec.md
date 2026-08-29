@@ -1,7 +1,7 @@
 # Feature Specification: Customer self-registration
 
 **Story**: CRM-045  
-**Epic**: Customer Portal  
+**Epic**: Identity & Access (`specs/identity`)  
 **Priority**: Must  
 **Status**: Draft  
 **Created**: 2026-08-29
@@ -31,7 +31,7 @@ Opens the portal to real customers instead of staff-created or demo-only account
 
 **Out of scope**
 - Email verification / magic-link confirmation (follow-up; account is usable immediately after register)
-- Password reset / forgot-password
+- Password reset / forgot-password → **CRM-046** / `specs/050-password-reset`
 - Social login / SSO / MFA
 - Admin “invite customer” flow (admin can still create Customer users via CRM-035)
 - Changing portal track to *require* login (anonymous email track from CRM-028 stays)

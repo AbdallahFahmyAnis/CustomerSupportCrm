@@ -122,6 +122,9 @@ Epic WI: 41.
 | CRM-035 | 47 | Manage users, roles, and permissions | Must | Identity + admin-mfe |
 | CRM-036 | 48 | Review audit logs | Must | Identity + admin-mfe |
 | CRM-037 | 49 | Configure the system | Must | Identity + admin-mfe |
+| CRM-046 | — | Reset a forgotten password | Must | Identity + shell (+ email outbound) |
+
+Feature map: `specs/identity/feature.md` (CRM-035…037, 043–046).
 
 Epic WI: 46.
 
