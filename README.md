@@ -198,5 +198,5 @@ scripts/dev.ps1            ← start everything
 - [docs/uat-scenario.md](docs/uat-scenario.md) — end-to-end UAT checklist
 - [specs/WORKFLOW.md](specs/WORKFLOW.md) — SDD stages
 - [specs/000-product/spec.md](specs/000-product/spec.md) — product north star & shipped slices
-- Channel providers (Twilio/SendGrid): [specs/005-channels/016-channel-providers/README.md](specs/005-channels/016-channel-providers/README.md)
-- Inbound webhooks: [specs/005-channels/024-inbound-webhooks/README.md](specs/005-channels/024-inbound-webhooks/README.md)
+- Channel providers (Twilio/SendGrid): [specs/016-channel-providers/README.md](specs/016-channel-providers/README.md) (also [005-channels/016-channel-providers](specs/005-channels/016-channel-providers/README.md))
+- Inbound webhooks: [specs/024-inbound-webhooks/README.md](specs/024-inbound-webhooks/README.md) (also [005-channels/024-inbound-webhooks](specs/005-channels/024-inbound-webhooks/README.md))
