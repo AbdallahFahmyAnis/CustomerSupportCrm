@@ -67,6 +67,8 @@ Give support agents a single place to know the customer, work tickets, and reply
 - [x] `specs/013-integrations/048-erp-outbox-auth` — CRM-039 ERP outbox UI + auth headers
 - [x] `specs/001-identity/049-customer-register` — CRM-045 customer self-registration
 - [x] `specs/001-identity/050-password-reset` — CRM-046 forgot / reset password
+- [x] `specs/001-identity/052-audit-detail` — CRM-036 admin audit event detail page + API
+- [x] `specs/010-portal/053-feedback-read-only` — CRM-030 portal CSAT read-only when already submitted
 
 ## Next
 

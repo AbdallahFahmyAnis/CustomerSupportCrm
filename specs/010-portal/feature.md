@@ -8,7 +8,7 @@
 
 | Story | Slice | Status | Summary |
 |---|---|---|---|
-| CRM-030 | [028-customer-feedback](028-customer-feedback/spec.md) | Implemented | CSAT / feedback after close |
+| CRM-030 | [028-customer-feedback](028-customer-feedback/spec.md) + [053-feedback-read-only](053-feedback-read-only/spec.md) | Implemented | CSAT submit + read-only revisit |
 
 ## Related (owned elsewhere)
 

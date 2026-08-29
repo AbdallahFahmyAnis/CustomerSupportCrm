@@ -32,7 +32,8 @@ Start-LoggedProcess "Gateway :5000" "dotnet" "run --project src\gateway\Crm.Gate
 
 Write-Host ""
 Write-Host "Customer Support CRM is starting (full stack for UAT)."
-Write-Host "Open http://localhost:5000"
+Write-Host "Open http://localhost:5000  (not http://localhost:4200 — MFE remotes proxy via gateway)"
+Write-Host "After ~30s run: .\scripts\preflight.ps1"
 Write-Host "Agent:  agent@crm.local / Crm!123"
 Write-Host "Admin:  admin@crm.local / Crm!123"
 Write-Host "Health: http://localhost:5000/health"
