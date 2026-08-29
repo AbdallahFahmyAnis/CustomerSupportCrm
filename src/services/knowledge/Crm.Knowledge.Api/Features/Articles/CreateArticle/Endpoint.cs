@@ -17,7 +17,8 @@ public sealed class CreateArticleEndpoint : IEndpoint
                     body.Body,
                     body.Kind,
                     body.Status,
-                    KnowledgeHttp.Actor(http)));
+                    KnowledgeHttp.Actor(http),
+                    body.Locale));
                 return result.Error is null
                     ? Results.Ok(result.Article)
                     : Results.BadRequest(new { error = result.Error });

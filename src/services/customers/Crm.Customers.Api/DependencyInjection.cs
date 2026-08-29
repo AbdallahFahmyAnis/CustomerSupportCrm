@@ -1,3 +1,4 @@
+using Crm.BuildingBlocks.Audit;
 using Crm.BuildingBlocks.Diagnostics;
 using Crm.BuildingBlocks.Endpoints;
 using Crm.Customers.Api.Infrastructure;
@@ -13,6 +14,13 @@ public static class DependencyInjection
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
         services.AddEndpoints(typeof(DependencyInjection).Assembly);
+        services.AddHttpContextAccessor();
+        services.AddHttpClient<IdentityAuditClient>((sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var baseUrl = config["Services:Identity"] ?? "http://localhost:5101";
+            client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+        });
 
         services.AddDbContextFactory<CustomersDbContext>((sp, options) =>
         {

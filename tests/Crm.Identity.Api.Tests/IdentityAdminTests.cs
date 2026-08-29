@@ -159,16 +159,28 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
             new DevLoginRequest(email, "Crm!123"));
         login.EnsureSuccessStatusCode();
 
-        var audit = await _client.GetFromJsonAsync<List<AuditLogDto>>("/api/identity/audit");
+        var audit = await _client.GetFromJsonAsync<AuditLogPageDto>("/api/identity/audit");
         audit.Should().NotBeNull();
-        audit!.Should().Contain(e => e.Action == "UserCreated" && e.TargetEmail == email && e.Success);
-        audit.Should().Contain(e => e.Action == "Login" && e.ActorEmail == email && e.Success);
+        audit!.Items.Should().Contain(e => e.Action == "UserCreated" && e.TargetEmail == email && e.Success);
+        audit.Items.Should().Contain(e => e.Action == "Login" && e.ActorEmail == email && e.Success);
+        audit.Total.Should().BeGreaterThan(0);
 
-        var filtered = await _client.GetFromJsonAsync<List<AuditLogDto>>($"/api/identity/audit?q={Uri.EscapeDataString(email)}");
-        filtered!.Should().OnlyContain(e =>
+        var filtered = await _client.GetFromJsonAsync<AuditLogPageDto>($"/api/identity/audit?q={Uri.EscapeDataString(email)}");
+        filtered!.Items.Should().OnlyContain(e =>
             (e.ActorEmail != null && e.ActorEmail.Contains(email, StringComparison.OrdinalIgnoreCase)) ||
             (e.TargetEmail != null && e.TargetEmail.Contains(email, StringComparison.OrdinalIgnoreCase)) ||
             (e.Detail != null && e.Detail.Contains(email, StringComparison.OrdinalIgnoreCase)));
+
+        var page = await _client.GetFromJsonAsync<AuditLogPageDto>("/api/identity/audit?take=1&skip=0");
+        page!.Items.Should().HaveCount(1);
+        page.Take.Should().Be(1);
+
+        var ingest = await _client.PostAsJsonAsync(
+            "/api/identity/audit",
+            new AppendAuditRequest("TicketCreated", true, "agent@crm.local", "T-1001", "demo", "Tickets"));
+        ingest.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        var tickets = await _client.GetFromJsonAsync<AuditLogPageDto>("/api/identity/audit?service=Tickets&q=TicketCreated");
+        tickets!.Items.Should().Contain(e => e.Service == "Tickets" && e.Action == "TicketCreated");
     }
 
     [Fact]
@@ -205,8 +217,8 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
         saved.SupportEmail.Should().Be("help@crm.local");
         saved.DefaultCulture.Should().Be("ar");
 
-        var audit = await _client.GetFromJsonAsync<List<AuditLogDto>>("/api/identity/audit?q=SettingsUpdated");
-        audit!.Should().Contain(e => e.Action == "SettingsUpdated" && e.Success);
+        var audit = await _client.GetFromJsonAsync<AuditLogPageDto>("/api/identity/audit?q=SettingsUpdated");
+        audit!.Items.Should().Contain(e => e.Action == "SettingsUpdated" && e.Success);
 
         // restore defaults for sibling tests sharing the fixture DB
         await _client.PutAsJsonAsync("/api/identity/settings",
@@ -318,6 +330,78 @@ public sealed class IdentityAdminTests : IClassFixture<IdentityApiFactory>
     }
 
     private static int UserAccountMaxAttempts() => 5;
+    [Fact]
+    [Trait("Story", "CRM-045")]
+    public async Task Register_creates_customer_only_and_issues_tokens()
+    {
+        var email = $"reg-{Guid.NewGuid():N}@crm.local";
+        var response = await _client.PostAsJsonAsync("/api/identity/register",
+            new RegisterCustomerRequest(email, "New Customer", "Crm!123"));
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var tokens = await response.Content.ReadFromJsonAsync<TokenResponseDto>();
+        tokens!.User.Role.Should().Be("Customer");
+        tokens.User.Email.Should().Be(email);
+        tokens.AccessToken.Should().NotBeNullOrWhiteSpace();
+
+        var again = await _client.PostAsJsonAsync("/api/identity/register",
+            new RegisterCustomerRequest(email, "Dup", "Crm!123"));
+        again.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-045")]
+    public async Task Register_rejects_empty_fields()
+    {
+        var response = await _client.PostAsJsonAsync("/api/identity/register",
+            new RegisterCustomerRequest("", "", ""));
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    [Trait("Story", "CRM-046")]
+    public async Task Forgot_and_reset_password_round_trip_without_enumeration()
+    {
+        var email = $"reset-{Guid.NewGuid():N}@crm.local";
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Role");
+        _client.DefaultRequestHeaders.Add("X-Crm-User-Role", "Admin");
+        (await _client.PostAsJsonAsync("/api/identity/users",
+            new CreateUserRequest(email, "Reset Me", "OldPass1", "Customer")))
+            .EnsureSuccessStatusCode();
+        _client.DefaultRequestHeaders.Remove("X-Crm-User-Role");
+
+        var unknown = await _client.PostAsJsonAsync("/api/identity/forgot-password",
+            new ForgotPasswordRequest("nobody-exists@crm.local"));
+        unknown.StatusCode.Should().Be(HttpStatusCode.OK);
+        var unknownBody = await unknown.Content.ReadFromJsonAsync<ForgotPasswordResponse>();
+        unknownBody!.Message.Should().Contain("If an account exists");
+        unknownBody.DevResetToken.Should().BeNull();
+
+        var forgot = await _client.PostAsJsonAsync("/api/identity/forgot-password",
+            new ForgotPasswordRequest(email));
+        forgot.StatusCode.Should().Be(HttpStatusCode.OK);
+        var forgotBody = await forgot.Content.ReadFromJsonAsync<ForgotPasswordResponse>();
+        forgotBody!.DevResetToken.Should().NotBeNullOrWhiteSpace();
+
+        var badToken = await _client.PostAsJsonAsync("/api/identity/reset-password",
+            new ResetPasswordRequest("forged-token", email, "NewPass1"));
+        badToken.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var reset = await _client.PostAsJsonAsync("/api/identity/reset-password",
+            new ResetPasswordRequest(forgotBody.DevResetToken!, email, "NewPass1"));
+        reset.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var oldLogin = await _client.PostAsJsonAsync("/api/identity/token",
+            new DevLoginRequest(email, "OldPass1"));
+        oldLogin.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+        var newLogin = await _client.PostAsJsonAsync("/api/identity/token",
+            new DevLoginRequest(email, "NewPass1"));
+        newLogin.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var reuse = await _client.PostAsJsonAsync("/api/identity/reset-password",
+            new ResetPasswordRequest(forgotBody.DevResetToken!, email, "Another1"));
+        reuse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }
 
 public sealed class IdentityApiFactory : WebApplicationFactory<Program>
@@ -336,7 +420,8 @@ public sealed class IdentityApiFactory : WebApplicationFactory<Program>
 
             var settings = new Dictionary<string, string?>
             {
-                ["Identity:Jwt:SigningKey"] = "CrmTestSigningKey-AtLeast-32-Characters-Long!"
+                ["Identity:Jwt:SigningKey"] = "CrmTestSigningKey-AtLeast-32-Characters-Long!",
+                ["Identity:ExposeResetToken"] = "true"
             };
 
             if (useSqlServer)

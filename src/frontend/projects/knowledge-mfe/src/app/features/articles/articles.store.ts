@@ -14,10 +14,10 @@ export class ArticlesStore {
   readonly saving = signal(false);
   readonly error = signal('');
 
-  load(q = ''): void {
+  load(q = '', locale?: string): void {
     this.loading.set(true);
     this.error.set('');
-    this.api.search(q).subscribe({
+    this.api.search(q, locale).subscribe({
       next: (rows) => {
         this.items.set(rows);
         this.loading.set(false);
@@ -34,6 +34,7 @@ export class ArticlesStore {
     kind?: string;
     status?: string;
     publishedOnly?: boolean;
+    locale?: string;
   }): void {
     this.loading.set(true);
     this.error.set('');
@@ -66,7 +67,7 @@ export class ArticlesStore {
   }
 
   create(
-    body: { title: string; body: string; kind: string; status: string },
+    body: { title: string; body: string; kind: string; status: string; locale?: string },
     onDone: (id: string) => void,
     onError?: (msg: string) => void,
   ): void {
@@ -88,7 +89,7 @@ export class ArticlesStore {
 
   update(
     id: string,
-    body: { title: string; body: string; kind: string; status: string },
+    body: { title: string; body: string; kind: string; status: string; locale?: string },
     onDone: () => void,
     onError?: (msg: string) => void,
   ): void {

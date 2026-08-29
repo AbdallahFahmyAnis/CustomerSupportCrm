@@ -1,14 +1,20 @@
+using Crm.BuildingBlocks.Audit;
 using Crm.Knowledge.Api.Domain;
 using Crm.Knowledge.Api.Features.Shared;
 using Crm.Knowledge.Api.Infrastructure;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Crm.Knowledge.Api.Features.Articles.CreateArticle;
 
-public sealed class CreateArticleHandler(KnowledgeDb db)
+/// <summary>SDD CRM-021 / CRM-036 / specs/051.</summary>
+public sealed class CreateArticleHandler(
+    KnowledgeDb db,
+    IdentityAuditClient audit,
+    IHttpContextAccessor http)
     : IRequestHandler<CreateArticleCommand, CreateArticleResponse>
 {
-    public Task<CreateArticleResponse> Handle(CreateArticleCommand request, CancellationToken cancellationToken)
+    public async Task<CreateArticleResponse> Handle(CreateArticleCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -17,13 +23,22 @@ public sealed class CreateArticleHandler(KnowledgeDb db)
                 request.Body,
                 request.Kind,
                 request.Status,
-                request.Actor);
+                request.Actor,
+                request.Locale);
             db.Insert(article);
-            return Task.FromResult(new CreateArticleResponse(KnowledgeMap.Detail(article), null));
+            await audit.WriteAsync(
+                AuditServices.Knowledge,
+                "ArticleSaved",
+                true,
+                AuditActor.Email(http) ?? request.Actor,
+                article.Id.ToString(),
+                $"{article.Kind}:{article.Title}",
+                cancellationToken);
+            return new CreateArticleResponse(KnowledgeMap.Detail(article), null);
         }
         catch (ArgumentException ex)
         {
-            return Task.FromResult(new CreateArticleResponse(null, ex.Message));
+            return new CreateArticleResponse(null, ex.Message);
         }
     }
 }

@@ -22,7 +22,7 @@ export class DevEmailProvider implements EmailProvider {
 
   async sendOutbound(payload: OutboundEmailPayload): Promise<void> {
     this.logger.log(
-      `[dev-email] to=${payload.to} ticket=${payload.ticketId} subject=${payload.subject}`,
+      `[dev-email] to=${payload.to} ticket=${payload.ticketId ?? '-'} subject=${payload.subject}`,
     );
   }
 }

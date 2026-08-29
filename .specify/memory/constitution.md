@@ -6,7 +6,7 @@ Non-negotiable rules for every spec, plan, and implementation. If a slice confli
 
 ### Spec before code
 
-New product slices start with `specs/NNN-slug/spec.md`. Do not implement a slice from a chat prompt alone. "Proceed to next" means: pick or write the next spec, then plan and implement that spec.
+New product slices start with `specs/<hub>/NNN-slug/spec.md` (hub map in `specs/README.md`). Do not implement a slice from a chat prompt alone. "Proceed to next" means: pick or write the next spec, then plan and implement that spec.
 
 ### Story traceability
 

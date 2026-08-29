@@ -16,7 +16,8 @@ public sealed class UpdateArticleEndpoint : IEndpoint
                     body.Title,
                     body.Body,
                     body.Kind,
-                    body.Status));
+                    body.Status,
+                    body.Locale));
                 if (result.Error is null)
                 {
                     return Results.Ok(result.Article);

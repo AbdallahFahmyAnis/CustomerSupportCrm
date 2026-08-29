@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddSingleton<TokenService>();
         services.AddScoped<IdentityDirectory>();
         services.AddScoped<IdentityDataSeeder>();
+        services.AddHttpClient("downstream", client => client.Timeout = TimeSpan.FromSeconds(5));
 
         services.AddDbContext<IdentityAppDbContext>((sp, options) =>
         {

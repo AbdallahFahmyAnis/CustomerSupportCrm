@@ -15,12 +15,12 @@ Every Customer Support CRM story moves through the same stages. Specs, plans, co
 
 Do not skip **Specify**. Do not mark **Done** without **Test** and a **Mock** path.
 
-Azure DevOps holds the backlog (`CRM-nnn`). Specs under `specs/NNN-slug` are the executable contract.
+Azure DevOps holds the backlog (`CRM-nnn`). Specs under `specs/<hub>/NNN-slug` are the executable contract (see `specs/README.md`).
 
 ## Code pattern
 
 ```csharp
-/// <summary>SDD CRM-001 / specs/002-customer-profiles.</summary>
+/// <summary>SDD CRM-001 / specs/customers/002-customer-profiles.</summary>
 ```
 
 Angular files use the same ids in a file header comment. Tests use `[Trait("Story", "CRM-001")]`. NestJS handlers use a `/** SDD CRM-nnn */` block comment.

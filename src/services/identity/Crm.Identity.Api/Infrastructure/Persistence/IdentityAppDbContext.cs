@@ -62,6 +62,7 @@ public sealed class IdentityAppDbContext : IdentityDbContext<ApplicationUser, Id
             e.Property(x => x.Detail).HasMaxLength(1000);
             e.Property(x => x.OccurredAt).IsRequired();
             e.Property(x => x.Success).IsRequired();
+            e.Property(x => x.Service).HasMaxLength(64).IsRequired();
         });
 
         builder.Entity<SystemSettings>(e =>

@@ -26,11 +26,11 @@ export class FaqsStore {
   readonly detailError = this._detailError.asReadonly();
   readonly detail = this._detail.asReadonly();
 
-  load(q = ''): void {
+  load(q = '', locale?: string): void {
     this._query.set(q);
     this._loading.set(true);
     this._error.set(null);
-    this.api.list(q).subscribe({
+    this.api.list(q, locale).subscribe({
       next: (rows) => {
         this._items.set(rows);
         this._loading.set(false);

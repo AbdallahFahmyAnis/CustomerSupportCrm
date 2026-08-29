@@ -4,13 +4,39 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Crm.Knowledge.Api.Infrastructure;
 
-/// <summary>SDD CRM-021 — EF Core facade for articles.</summary>
+/// <summary>SDD CRM-021 — EF Core facade for articles (locale-aware).</summary>
 public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
 {
     public void EnsureSchema()
     {
         using var db = factory.CreateDbContext();
         db.Database.EnsureCreated();
+        EnsureLocaleColumn(db);
+    }
+
+    private static void EnsureLocaleColumn(KnowledgeDbContext db)
+    {
+        try
+        {
+            if (db.Database.IsSqlite())
+            {
+                db.Database.ExecuteSqlRaw(
+                    """ALTER TABLE "Articles" ADD COLUMN "Locale" TEXT NOT NULL DEFAULT 'en';""");
+            }
+            else
+            {
+                db.Database.ExecuteSqlRaw(
+                    """
+                    IF COL_LENGTH(N'Articles', N'Locale') IS NULL
+                      ALTER TABLE [Articles] ADD [Locale] nvarchar(8) NOT NULL
+                        CONSTRAINT [DF_Articles_Locale] DEFAULT N'en';
+                    """);
+            }
+        }
+        catch
+        {
+            // column exists
+        }
     }
 
     public void SeedIfEmpty()
@@ -18,24 +44,18 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
         try
         {
             using var db = factory.CreateDbContext();
+            EnsureLocaleColumn(db);
             if (!db.Articles.Any())
             {
-                db.Articles.Add(ToRow(Article.Create(
-                    "How do I reset my portal password?",
-                    "Open the portal sign-in page, choose Forgot password, and follow the email link within 30 minutes.",
-                    "Faq",
-                    "Published",
-                    "System")));
-                db.Articles.Add(ToRow(Article.Create(
-                    "Invoice mismatch troubleshooting",
-                    "1. Confirm the PO number on the ticket.\n2. Compare line items with the latest invoice PDF.\n3. If tax differs, escalate Billing with screenshots.",
-                    "Solution",
-                    "Published",
-                    "System")));
+                foreach (var (title, body, kind, locale) in BootstrapArticles)
+                {
+                    db.Articles.Add(ToRow(Article.Create(title, body, kind, "Published", "System", locale)));
+                }
+
                 db.SaveChanges();
             }
 
-            EnsurePortalFaqs(db);
+            EnsureLocaleSeeds(db);
         }
         catch
         {
@@ -43,52 +63,116 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
         }
     }
 
-    /// <summary>Idempotent portal FAQ catalog (adds missing titles only).</summary>
-    private static void EnsurePortalFaqs(KnowledgeDbContext db)
+    /// <summary>Idempotent EN/AR catalog (adds missing title+locale only).</summary>
+    private static void EnsureLocaleSeeds(KnowledgeDbContext db)
     {
         var existing = db.Articles
-            .Where(a => a.Kind == "Faq")
-            .Select(a => a.Title)
+            .AsEnumerable()
+            .Select(a => Key(a.Locale, a.Title))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var (title, body) in PortalFaqSeeds)
+        foreach (var (title, body, kind, locale) in BootstrapArticles)
         {
-            if (existing.Contains(title))
+            var key = Key(locale, title);
+            if (existing.Contains(key))
             {
                 continue;
             }
 
-            db.Articles.Add(ToRow(Article.Create(title, body, "Faq", "Published", "System")));
-            existing.Add(title);
+            db.Articles.Add(ToRow(Article.Create(title, body, kind, "Published", "System", locale)));
+            existing.Add(key);
+        }
+
+        foreach (var (title, body, locale) in PortalFaqSeeds)
+        {
+            var key = Key(locale, title);
+            if (existing.Contains(key))
+            {
+                continue;
+            }
+
+            db.Articles.Add(ToRow(Article.Create(title, body, "Faq", "Published", "System", locale)));
+            existing.Add(key);
         }
 
         db.SaveChanges();
     }
 
-    private static readonly (string Title, string Body)[] PortalFaqSeeds =
+    private static string Key(string locale, string title) =>
+        $"{KnowledgeCatalog.NormalizeLocale(locale)}::{title.Trim()}";
+
+    private static readonly (string Title, string Body, string Kind, string Locale)[] BootstrapArticles =
     [
         ("How do I reset my portal password?",
-            "Open the portal sign-in page, choose Forgot password, and follow the email link within 30 minutes. Check spam if the mail is delayed."),
-        ("How do I track an existing support request?",
-            "Open Track my requests in the portal and search with the email you used when submitting. Signed-in customers see their requests automatically."),
-        ("How do I start a live chat with support?",
-            "Choose Live chat from the portal menu. Signed-in customers skip name and email — just send a message. Your chat becomes a support ticket."),
-        ("Where can I rate support after a ticket closes?",
-            "Open Rate support and enter your ticket number, or use the Rate support link from Track my requests or after Live chat / the assistant."),
-        ("What should I ask the support assistant?",
-            "Ask about passwords, billing, invoices, tracking tickets, or live chat. If you need a person, say “human agent” or open Submit a request."),
-        ("How do billing and invoice questions get handled?",
-            "Include your invoice or PO number when you submit a request or chat. Agents compare line items and tax with Finance when needed."),
-        ("How do I submit a new support request?",
-            "Use Submit a request on the portal home. Provide a clear subject and description so agents can triage faster."),
-        ("Can I continue an earlier live chat?",
-            "Yes — reopen Live chat while signed in. The portal restores your open chat ticket and shows agent replies as they arrive."),
+            "Open the portal sign-in page, choose Forgot password, and follow the email link within 30 minutes.",
+            "Faq", "en"),
+        ("كيف أُعيد تعيين كلمة مرور البوابة؟",
+            "افتح صفحة تسجيل الدخول في البوابة، اختر نسيت كلمة المرور، واتبع رابط البريد خلال 30 دقيقة.",
+            "Faq", "ar"),
+        ("Invoice mismatch troubleshooting",
+            "1. Confirm the PO number on the ticket.\n2. Compare line items with the latest invoice PDF.\n3. If tax differs, escalate Billing with screenshots.",
+            "Solution", "en"),
+        ("معالجة اختلاف الفاتورة",
+            "1. تأكد من رقم أمر الشراء في الطلب.\n2. قارن البنود مع أحدث ملف PDF للفاتورة.\n3. إذا اختلفت الضريبة، صعّد إلى الفوترة مع لقطات الشاشة.",
+            "Solution", "ar"),
     ];
 
-    public IReadOnlyList<Article> Search(string? q)
+    private static readonly (string Title, string Body, string Locale)[] PortalFaqSeeds =
+    [
+        ("How do I reset my portal password?",
+            "Open the portal sign-in page, choose Forgot password, and follow the email link within 30 minutes. Check spam if the mail is delayed.",
+            "en"),
+        ("كيف أُعيد تعيين كلمة مرور البوابة؟",
+            "افتح صفحة تسجيل الدخول في البوابة، اختر نسيت كلمة المرور، واتبع رابط البريد خلال 30 دقيقة. راجع البريد غير الهام إذا تأخرت الرسالة.",
+            "ar"),
+        ("How do I track an existing support request?",
+            "Open Track my requests in the portal and search with the email you used when submitting. Signed-in customers see their requests automatically.",
+            "en"),
+        ("كيف أتابع طلب دعم قائم؟",
+            "افتح تتبع طلباتي في البوابة وابحث بالبريد المستخدم عند الإرسال. العملاء المسجّلون يرون طلباتهم تلقائيًا.",
+            "ar"),
+        ("How do I start a live chat with support?",
+            "Choose Live chat from the portal menu. Signed-in customers skip name and email — just send a message. Your chat becomes a support ticket.",
+            "en"),
+        ("كيف أبدأ محادثة مباشرة مع الدعم؟",
+            "اختر المحادثة المباشرة من قائمة البوابة. العملاء المسجّلون يتجاوزون الاسم والبريد — أرسل رسالة فقط. تتحول المحادثة إلى طلب دعم.",
+            "ar"),
+        ("Where can I rate support after a ticket closes?",
+            "Open Rate support and enter your ticket number, or use the Rate support link from Track my requests or after Live chat / the assistant.",
+            "en"),
+        ("أين أقيّم الدعم بعد إغلاق الطلب؟",
+            "افتح تقييم الدعم وأدخل رقم الطلب، أو استخدم رابط التقييم من تتبع الطلبات أو بعد المحادثة المباشرة / المساعد.",
+            "ar"),
+        ("What should I ask the support assistant?",
+            "Ask about passwords, billing, invoices, tracking tickets, or live chat. If you need a person, say “human agent” or open Submit a request.",
+            "en"),
+        ("ماذا أسأل مساعد الدعم؟",
+            "اسأل عن كلمات المرور أو الفوترة أو الفواتير أو تتبع الطلبات أو المحادثة المباشرة. إذا احتجت شخصًا، قل «موظف بشري» أو افتح إرسال طلب.",
+            "ar"),
+        ("How do billing and invoice questions get handled?",
+            "Include your invoice or PO number when you submit a request or chat. Agents compare line items and tax with Finance when needed.",
+            "en"),
+        ("كيف تُعالَج أسئلة الفوترة والفواتير؟",
+            "أدرج رقم الفاتورة أو أمر الشراء عند إرسال الطلب أو المحادثة. يقارن الموظفون البنود والضريبة مع المالية عند الحاجة.",
+            "ar"),
+        ("How do I submit a new support request?",
+            "Use Submit a request on the portal home. Provide a clear subject and description so agents can triage faster.",
+            "en"),
+        ("كيف أُرسل طلب دعم جديد؟",
+            "استخدم إرسال طلب من الصفحة الرئيسية للبوابة. اكتب موضوعًا ووصفًا واضحين ليتمكن الموظفون من التصنيف بسرعة.",
+            "ar"),
+        ("Can I continue an earlier live chat?",
+            "Yes — reopen Live chat while signed in. The portal restores your open chat ticket and shows agent replies as they arrive.",
+            "en"),
+        ("هل يمكنني متابعة محادثة مباشرة سابقة؟",
+            "نعم — أعد فتح المحادثة المباشرة وأنت مسجّل الدخول. تستعيد البوابة طلب المحادثة المفتوح وتعرض ردود الموظف عند وصولها.",
+            "ar"),
+    ];
+
+    public IReadOnlyList<Article> Search(string? q, string? locale = null)
     {
         using var db = factory.CreateDbContext();
-        var rows = db.Articles.AsNoTracking().ToList();
+        var rows = FilterLocale(db.Articles.AsNoTracking().ToList(), locale);
         if (!string.IsNullOrWhiteSpace(q))
         {
             var term = q.Trim();
@@ -107,10 +191,11 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
         string query,
         string? kind,
         string? status,
-        bool publishedOnly)
+        bool publishedOnly,
+        string? locale = null)
     {
         using var db = factory.CreateDbContext();
-        IEnumerable<ArticleRow> rows = db.Articles.AsNoTracking().ToList();
+        IEnumerable<ArticleRow> rows = FilterLocale(db.Articles.AsNoTracking().ToList(), locale);
         if (!string.IsNullOrWhiteSpace(kind))
         {
             rows = rows.Where(a => a.Kind.Equals(kind.Trim(), StringComparison.OrdinalIgnoreCase));
@@ -143,10 +228,10 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
     }
 
     /// <summary>SDD CRM-029 — published FAQ summaries for the customer portal.</summary>
-    public IReadOnlyList<Article> ListPortalFaqs(string? q)
+    public IReadOnlyList<Article> ListPortalFaqs(string? q, string? locale = null)
     {
         using var db = factory.CreateDbContext();
-        IEnumerable<ArticleRow> rows = db.Articles.AsNoTracking().ToList()
+        IEnumerable<ArticleRow> rows = FilterLocale(db.Articles.AsNoTracking().ToList(), locale)
             .Where(a =>
                 a.Kind.Equals("Faq", StringComparison.OrdinalIgnoreCase) &&
                 a.Status.Equals("Published", StringComparison.OrdinalIgnoreCase));
@@ -154,8 +239,8 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
         if (!string.IsNullOrWhiteSpace(q))
         {
             var terms = q.Trim()
-                .Split([' ', '\t', '\r', '\n', ',', '.', '?', '!'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(t => t.Length > 2)
+                .Split([' ', '\t', '\r', '\n', ',', '.', '?', '!', '؟', '،'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(t => t.Length > 1)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
             if (terms.Length > 0)
@@ -204,8 +289,22 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
         row.Body = article.Body;
         row.Kind = article.Kind;
         row.Status = article.Status;
+        row.Locale = article.Locale;
         row.UpdatedAt = article.UpdatedAt;
         db.SaveChanges();
+    }
+
+    private static List<ArticleRow> FilterLocale(List<ArticleRow> rows, string? locale)
+    {
+        if (string.IsNullOrWhiteSpace(locale))
+        {
+            return rows;
+        }
+
+        var normalized = KnowledgeCatalog.NormalizeLocale(locale);
+        return rows
+            .Where(a => KnowledgeCatalog.NormalizeLocale(a.Locale).Equals(normalized, StringComparison.OrdinalIgnoreCase))
+            .ToList();
     }
 
     private static ArticleRow ToRow(Article article) => new()
@@ -215,6 +314,7 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
         Body = article.Body,
         Kind = article.Kind,
         Status = article.Status,
+        Locale = article.Locale,
         CreatedBy = article.CreatedBy,
         CreatedAt = article.CreatedAt,
         UpdatedAt = article.UpdatedAt
@@ -229,5 +329,6 @@ public sealed class KnowledgeDb(IDbContextFactory<KnowledgeDbContext> factory)
             row.Status,
             row.CreatedBy,
             row.CreatedAt,
-            row.UpdatedAt);
+            row.UpdatedAt,
+            row.Locale);
 }

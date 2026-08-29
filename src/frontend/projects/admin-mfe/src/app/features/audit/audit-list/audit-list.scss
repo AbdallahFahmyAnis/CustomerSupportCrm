@@ -8,6 +8,12 @@
 
 .toolbar-form > input {
   flex: 1;
+  min-width: 10rem;
+}
+
+.toolbar-form select {
+  min-width: 9rem;
+  padding: 0.45rem 0.6rem;
 }
 
 .audit-card {
@@ -19,4 +25,37 @@
 .audit-card .muted {
   color: var(--crm-text-muted);
   font-size: 0.85rem;
+}
+
+.svc {
+  display: inline-flex;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--crm-primary-soft, #f4ebff);
+  color: var(--crm-primary, #6941c6);
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.pager-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.muted {
+  color: var(--crm-text-muted);
+  font-size: 0.9rem;
+}
+
+.error {
+  color: var(--crm-danger, #b42318);
 }

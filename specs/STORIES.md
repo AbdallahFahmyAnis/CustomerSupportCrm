@@ -124,7 +124,8 @@ Epic WI: 41.
 | CRM-037 | 49 | Configure the system | Must | Identity + admin-mfe |
 | CRM-046 | — | Reset a forgotten password | Must | Identity + shell (+ email outbound) |
 
-Feature map: `specs/identity/feature.md` (CRM-035…037, 043–046).
+Feature map: [`specs/identity/feature.md`](identity/feature.md) (CRM-035…037, 043–046).  
+All hubs: [`specs/README.md`](README.md).
 
 Epic WI: 46.
 

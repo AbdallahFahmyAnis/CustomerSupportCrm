@@ -27,6 +27,13 @@ export class SessionApi {
     );
   }
 
+  /** SDD CRM-045 — customer self-registration (BFF sets session cookies). */
+  register(body: { email: string; displayName: string; password: string }) {
+    return this.http.post<Session>('/register', body).pipe(
+      tap((value) => this.session.set({ ...value, authenticated: true })),
+    );
+  }
+
   logout() {
     return this.http.post('/logout', {}).pipe(tap(() => this.session.set(null)));
   }

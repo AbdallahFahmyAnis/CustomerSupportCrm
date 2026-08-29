@@ -11,7 +11,8 @@ public static class KnowledgeMap
         a.Title,
         a.Kind,
         a.Status,
-        a.UpdatedAt);
+        a.UpdatedAt,
+        a.Locale);
 
     public static KnowledgeArticleDetailDto Detail(Article a) => new(
         a.Id.ToString(),
@@ -21,7 +22,8 @@ public static class KnowledgeMap
         a.Status,
         a.CreatedBy,
         a.CreatedAt,
-        a.UpdatedAt);
+        a.UpdatedAt,
+        a.Locale);
 
     public static KnowledgeSearchHitDto SearchHit(KnowledgeSearchHit hit) => new(
         hit.Id.ToString(),
@@ -30,7 +32,8 @@ public static class KnowledgeMap
         hit.Status,
         hit.Score,
         hit.Snippet,
-        hit.UpdatedAt);
+        hit.UpdatedAt,
+        hit.Locale);
 }
 
 internal static class KnowledgeHttp

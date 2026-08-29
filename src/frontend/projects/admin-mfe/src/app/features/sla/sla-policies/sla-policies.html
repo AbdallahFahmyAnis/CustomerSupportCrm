@@ -1,113 +1,202 @@
 <section class="page">
+  <nav class="crumb-nav" [attr.aria-label]="lang.t('breadcrumb')">
+    <a routerLink="/admin">{{ lang.t('admin') }}</a>
+    <span class="sep" aria-hidden="true">/</span>
+    <span class="current">{{ lang.t('slaAutomation') }}</span>
+  </nav>
+
   <header class="row">
     <div>
-      <h1>SLA &amp; automation</h1>
-      <p class="lede">Targets, auto-assign rules, and escalation settings</p>
+      <h1>{{ lang.t('slaPageTitle') }}</h1>
+      <p class="lede">{{ lang.t('slaPageLead') }}</p>
     </div>
   </header>
 
   @if (store.error()) {
-    <p class="error">{{ store.error() }}</p>
+    <p class="banner error" role="alert">{{ errorText() }}</p>
   }
   @if (store.saved()) {
-    <p class="ok">Saved.</p>
+    <p class="banner ok" role="status">{{ lang.t('savedOk') }}</p>
   }
+
   @if (store.loading()) {
-    <p>Loading…</p>
+    <p class="muted">{{ lang.t('loading') }}</p>
   } @else {
-    <section class="block">
-      <h2>Response &amp; resolution targets</h2>
-      <div class="policy-table">
-        <div class="policy-head">
-          <span>Priority</span>
-          <span>First response (min)</span>
-          <span>Resolution (min)</span>
-          <span></span>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="label">{{ lang.t('slaPoliciesStat') }}</p>
+        <p class="value">{{ store.policies().length }}</p>
+      </div>
+      <div class="stat-card">
+        <p class="label">{{ lang.t('slaRulesStat') }}</p>
+        <p class="value">{{ ruleDrafts.length }}</p>
+      </div>
+      <div class="stat-card">
+        <p class="label">{{ lang.t('slaRulesEnabledStat') }}</p>
+        <p class="value">{{ enabledRuleCount() }}</p>
+      </div>
+    </div>
+
+    <section class="panel">
+      <header class="panel__head">
+        <div>
+          <h2>{{ lang.t('slaTargetsTitle') }}</h2>
+          <p>{{ lang.t('slaTargetsHint') }}</p>
         </div>
-        @for (p of store.policies(); track p.priority) {
-          @let draft = draftFor(p.priority, p.firstResponseMinutes, p.resolutionMinutes);
-          <form class="policy-row" (ngSubmit)="savePolicy(p.priority)">
-            <strong>{{ p.priority }}</strong>
-            <input
-              type="number"
-              min="1"
-              name="first-{{ p.priority }}"
-              [(ngModel)]="draft.firstResponseMinutes"
-              required
-            />
-            <input
-              type="number"
-              min="1"
-              name="resolution-{{ p.priority }}"
-              [(ngModel)]="draft.resolutionMinutes"
-              required
-            />
-            <button type="submit" class="btn" [disabled]="store.saving()">Save</button>
-          </form>
-        }
+      </header>
+      <div class="panel__body">
+        <div class="policy-grid">
+          @for (p of store.policies(); track p.priority) {
+            @let draft = draftFor(p.priority, p.firstResponseMinutes, p.resolutionMinutes);
+            <form class="policy-card" (ngSubmit)="savePolicy(p.priority)">
+              <div class="policy-card__head">
+                <span class="prio" [attr.data-tone]="priorityTone(p.priority)">{{
+                  priorityLabel(p.priority)
+                }}</span>
+              </div>
+              <div class="policy-card__fields">
+                <label>
+                  {{ lang.t('firstResponseMinutes') }}
+                  <input
+                    type="number"
+                    min="1"
+                    name="first-{{ p.priority }}"
+                    [(ngModel)]="draft.firstResponseMinutes"
+                    required
+                  />
+                </label>
+                <label>
+                  {{ lang.t('resolutionMinutes') }}
+                  <input
+                    type="number"
+                    min="1"
+                    name="resolution-{{ p.priority }}"
+                    [(ngModel)]="draft.resolutionMinutes"
+                    required
+                  />
+                </label>
+              </div>
+              <footer class="policy-card__foot">
+                <button type="submit" class="btn" [disabled]="store.saving()">
+                  {{ lang.t('savePolicy') }}
+                </button>
+              </footer>
+            </form>
+          }
+        </div>
       </div>
     </section>
 
-    <section class="block">
-      <h2>Auto-assign rules</h2>
-      <p class="hint">Most specific match wins (category + priority &gt; one field &gt; catch-all). Empty = any.</p>
-      <div class="rules">
+    <section class="panel">
+      <header class="panel__head">
+        <div>
+          <h2>{{ lang.t('slaAutoAssignTitle') }}</h2>
+          <p>{{ lang.t('slaAutoAssignHint') }}</p>
+        </div>
+      </header>
+      <div class="panel__body rules-body">
+        @if (ruleDrafts.length === 0) {
+          <p class="muted empty">{{ lang.t('slaAutoAssignHint') }}</p>
+        }
         @for (r of ruleDrafts; track r.id) {
-          <div class="rule-row">
-            <label>
-              Category
-              <input name="cat-{{ r.id }}" [(ngModel)]="r.category" placeholder="any" />
-            </label>
-            <label>
-              Priority
-              <input name="pri-{{ r.id }}" [(ngModel)]="r.priority" placeholder="any" />
-            </label>
-            <label>
-              Agent name
-              <input name="an-{{ r.id }}" [(ngModel)]="r.agentName" required />
-            </label>
-            <label>
-              Agent id
-              <input name="ai-{{ r.id }}" [(ngModel)]="r.agentId" required />
-            </label>
-            <label class="check">
-              <input type="checkbox" name="en-{{ r.id }}" [(ngModel)]="r.enabled" />
-              Enabled
-            </label>
-            <button type="button" class="btn secondary" (click)="removeRule(r.id)">Remove</button>
+          <div class="rule-card" [class.rule-card--off]="!r.enabled">
+            <div class="rule-card__grid">
+              <label>
+                {{ lang.t('category') }}
+                <select name="cat-{{ r.id }}" [(ngModel)]="r.category">
+                  <option value="">{{ lang.t('phAny') }}</option>
+                  @for (c of categoryOptionsFor(r.category); track c) {
+                    <option [value]="c">{{ categoryLabel(c) }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                {{ lang.t('priority') }}
+                <select name="pri-{{ r.id }}" [(ngModel)]="r.priority">
+                  <option value="">{{ lang.t('phAny') }}</option>
+                  @for (p of priorityOptionsFor(r.priority); track p) {
+                    <option [value]="p">{{ priorityLabel(p) }}</option>
+                  }
+                </select>
+              </label>
+              <label class="span-2">
+                {{ lang.t('assignee') }}
+                <select
+                  name="agent-{{ r.id }}"
+                  [ngModel]="r.agentId"
+                  (ngModelChange)="onRuleAgentChange(r, $event)"
+                  required
+                >
+                  <option value="" disabled>{{ lang.t('selectAgent') }}</option>
+                  @for (a of agentOptionsFor(r.agentId, r.agentName); track a.id) {
+                    <option [value]="a.id">{{ agentLabel(a) }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+            <div class="rule-card__actions">
+              <label class="check">
+                <input type="checkbox" name="en-{{ r.id }}" [(ngModel)]="r.enabled" />
+                {{ lang.t('enabled') }}
+              </label>
+              <button type="button" class="btn secondary" (click)="removeRule(r.id)">
+                {{ lang.t('remove') }}
+              </button>
+            </div>
           </div>
         }
       </div>
-      <div class="actions">
-        <button type="button" class="btn secondary" (click)="addRule()">Add rule</button>
-        <button type="button" class="btn" (click)="saveRules()" [disabled]="store.saving()">Save rules</button>
-      </div>
+      <footer class="panel__foot">
+        <button type="button" class="btn secondary" (click)="addRule()">{{ lang.t('addRule') }}</button>
+        <button type="button" class="btn" (click)="saveRules()" [disabled]="store.saving()">
+          {{ lang.t('saveRules') }}
+        </button>
+      </footer>
     </section>
 
-    <section class="block">
-      <h2>Escalation</h2>
-      <form class="escalation" (ngSubmit)="saveEscalation()">
-        <label class="check">
-          <input type="checkbox" name="fr" [(ngModel)]="escalateOnFirstResponseBreach" />
-          Escalate on first-response breach
-        </label>
-        <label class="check">
-          <input type="checkbox" name="res" [(ngModel)]="escalateOnResolutionBreach" />
-          Escalate on resolution breach
-        </label>
-        <label class="check">
-          <input type="checkbox" name="urg" [(ngModel)]="escalateUrgentAlways" />
-          Always escalate Urgent tickets
-        </label>
-        <label>
-          Assign to agent name
-          <input name="escName" [(ngModel)]="assignToAgentName" required />
-        </label>
-        <label>
-          Assign to agent id
-          <input name="escId" [(ngModel)]="assignToAgentId" required />
-        </label>
-        <button type="submit" class="btn" [disabled]="store.saving()">Save escalation</button>
+    <section class="panel">
+      <header class="panel__head">
+        <div>
+          <h2>{{ lang.t('slaEscalationTitle') }}</h2>
+          <p>{{ lang.t('slaEscalationHint') }}</p>
+        </div>
+      </header>
+      <form class="panel__body escalation" (ngSubmit)="saveEscalation()">
+        <div class="toggle-list">
+          <label class="check">
+            <input type="checkbox" name="fr" [(ngModel)]="escalateOnFirstResponseBreach" />
+            {{ lang.t('escalateOnFirstResponse') }}
+          </label>
+          <label class="check">
+            <input type="checkbox" name="res" [(ngModel)]="escalateOnResolutionBreach" />
+            {{ lang.t('escalateOnResolution') }}
+          </label>
+          <label class="check">
+            <input type="checkbox" name="urg" [(ngModel)]="escalateUrgentAlways" />
+            {{ lang.t('escalateUrgentAlways') }}
+          </label>
+        </div>
+        <div class="escalation-fields">
+          <label class="span-2">
+            {{ lang.t('assignToAgentName') }}
+            <select
+              name="escAgent"
+              [ngModel]="assignToAgentId"
+              (ngModelChange)="onEscalationAgentChange($event)"
+              required
+            >
+              <option value="" disabled>{{ lang.t('selectAgent') }}</option>
+              @for (a of agentOptionsFor(assignToAgentId, assignToAgentName); track a.id) {
+                <option [value]="a.id">{{ agentLabel(a) }}</option>
+              }
+            </select>
+          </label>
+        </div>
+        <div class="panel__foot inline">
+          <button type="submit" class="btn" [disabled]="store.saving()">
+            {{ lang.t('saveEscalation') }}
+          </button>
+        </div>
       </form>
     </section>
   }

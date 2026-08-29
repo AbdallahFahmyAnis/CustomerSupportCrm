@@ -1,6 +1,6 @@
 # Implementation Plan: [FEATURE]
 
-**Spec**: `specs/NNN-slug/spec.md`  
+**Spec**: `specs/<hub>/NNN-slug/spec.md`  
 **Story**: CRM-nnn  
 **Workflow stage after this plan**: Apply → Test → Mock → Done
 

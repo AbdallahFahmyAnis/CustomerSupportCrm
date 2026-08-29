@@ -8,7 +8,7 @@ public sealed class ListPortalFaqsEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/knowledge/portal/faqs", async (string? q, IMediator mediator) =>
-            Results.Ok(await mediator.Send(new ListPortalFaqsQuery(q))));
+        app.MapGet("/api/knowledge/portal/faqs", async (string? q, string? locale, IMediator mediator) =>
+            Results.Ok(await mediator.Send(new ListPortalFaqsQuery(q, locale))));
     }
 }

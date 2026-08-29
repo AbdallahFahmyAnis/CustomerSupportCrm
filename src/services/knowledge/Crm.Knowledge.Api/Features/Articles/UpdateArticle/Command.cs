@@ -9,6 +9,7 @@ public sealed record UpdateArticleCommand(
     string Title,
     string Body,
     string Kind,
-    string Status) : IRequest<UpdateArticleResponse>;
+    string Status,
+    string? Locale = null) : IRequest<UpdateArticleResponse>;
 
 public sealed record UpdateArticleResponse(KnowledgeArticleDetailDto? Article, string? Error);

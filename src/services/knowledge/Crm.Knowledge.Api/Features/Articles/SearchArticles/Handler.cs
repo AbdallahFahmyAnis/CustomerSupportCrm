@@ -13,7 +13,7 @@ public sealed class SearchArticlesHandler(KnowledgeDb db)
         CancellationToken cancellationToken)
     {
         IReadOnlyList<KnowledgeArticleSummaryDto> items =
-            db.Search(request.Q).Select(KnowledgeMap.Summary).ToList();
+            db.Search(request.Q, request.Locale).Select(KnowledgeMap.Summary).ToList();
         return Task.FromResult(items);
     }
 }

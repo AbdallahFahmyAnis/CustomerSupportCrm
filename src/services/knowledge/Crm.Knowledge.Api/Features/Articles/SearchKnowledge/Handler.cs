@@ -15,7 +15,7 @@ public sealed class SearchKnowledgeHandler(KnowledgeDb db)
         }
 
         IReadOnlyList<Crm.Contracts.Knowledge.KnowledgeSearchHitDto> hits = db
-            .RankedSearch(request.Q, request.Kind, request.Status, request.PublishedOnly)
+            .RankedSearch(request.Q, request.Kind, request.Status, request.PublishedOnly, request.Locale)
             .Select(KnowledgeMap.SearchHit)
             .ToList();
         return Task.FromResult(new SearchKnowledgeResponse(hits, null));

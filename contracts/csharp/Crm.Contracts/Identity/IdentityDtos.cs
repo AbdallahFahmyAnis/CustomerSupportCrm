@@ -44,7 +44,7 @@ public sealed record UpdatePermissionRequest(string Name, string? Description);
 
 public sealed record UpdateRolePermissionsRequest(IReadOnlyList<string> Permissions);
 
-/// <summary>SDD CRM-036 / specs/011-audit-logs.</summary>
+/// <summary>SDD CRM-036 / specs/011-audit-logs / specs/051.</summary>
 public sealed record AuditLogDto(
     string Id,
     DateTimeOffset OccurredAt,
@@ -52,7 +52,24 @@ public sealed record AuditLogDto(
     string? ActorEmail,
     string? TargetEmail,
     string? Detail,
-    bool Success);
+    bool Success,
+    string Service = "Identity");
+
+/// <summary>SDD CRM-036 / specs/051 — paged audit list.</summary>
+public sealed record AuditLogPageDto(
+    IReadOnlyList<AuditLogDto> Items,
+    int Total,
+    int Skip,
+    int Take);
+
+/// <summary>SDD CRM-036 / specs/051 — service ingest body.</summary>
+public sealed record AppendAuditRequest(
+    string Action,
+    bool Success,
+    string? ActorEmail = null,
+    string? TargetEmail = null,
+    string? Detail = null,
+    string? Service = null);
 
 /// <summary>SDD CRM-037 / specs/012-system-config / CRM-044.</summary>
 public sealed record SystemSettingsDto(

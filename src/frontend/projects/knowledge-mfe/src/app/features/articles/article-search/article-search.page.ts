@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LanguageStore } from 'shared';
@@ -25,6 +25,22 @@ export class ArticleSearchPage {
   status = '';
   publishedOnly = true;
 
+  constructor() {
+    effect(() => {
+      const locale = this.lang.lang();
+      if (!this.searched()) return;
+      const query = this.q.trim();
+      if (!query) return;
+      this.store.rankedSearch({
+        q: query,
+        kind: this.kind || undefined,
+        status: this.status || undefined,
+        publishedOnly: this.publishedOnly,
+        locale,
+      });
+    });
+  }
+
   run(): void {
     const query = this.q.trim();
     if (!query) {
@@ -36,6 +52,7 @@ export class ArticleSearchPage {
       kind: this.kind || undefined,
       status: this.status || undefined,
       publishedOnly: this.publishedOnly,
+      locale: this.lang.lang(),
     });
   }
 
